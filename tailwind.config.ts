@@ -57,6 +57,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        blossom: {
+          magenta: "hsl(var(--blossom-magenta))",
+          coral: "hsl(var(--blossom-coral))",
+          blush: "hsl(var(--blossom-blush))",
+          "rose-dark": "hsl(var(--blossom-rose-dark))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
