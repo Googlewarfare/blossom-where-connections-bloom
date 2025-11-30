@@ -1,0 +1,217 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Heart } from "lucide-react";
+import { z } from "zod";
+import logo from "@/assets/blossom-logo.jpg";
+
+const authSchema = z.object({
+  email: z.string().trim().email({ message: "Invalid email address" }).max(255),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100),
+  fullName: z.string().trim().max(100).optional(),
+});
+
+const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const validation = authSchema.safeParse({
+        email,
+        password,
+        fullName: isLogin ? undefined : fullName,
+      });
+
+      if (!validation.success) {
+        toast({
+          title: "Validation Error",
+          description: validation.error.errors[0].message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: validation.data.email,
+          password: validation.data.password,
+        });
+
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            toast({
+              title: "Login Failed",
+              description: "Invalid email or password. Please try again.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Welcome back!",
+            description: "You've successfully logged in.",
+          });
+          navigate("/profile");
+        }
+      } else {
+        const redirectUrl = `${window.location.origin}/`;
+        const { error } = await supabase.auth.signUp({
+          email: validation.data.email,
+          password: validation.data.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              full_name: validation.data.fullName || "",
+            },
+          },
+        });
+
+        if (error) {
+          if (error.message.includes("already registered")) {
+            toast({
+              title: "Account Exists",
+              description: "This email is already registered. Please login instead.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Account Created!",
+            description: "Welcome to Blossom. Setting up your profile...",
+          });
+          navigate("/profile");
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <Heart className="w-8 h-8 text-primary fill-current" />
+            <span className="text-2xl font-bold">Blossom</span>
+          </div>
+          <h1 className="text-3xl font-bold">
+            {isLogin ? "Welcome Back" : "Join Blossom"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isLogin ? "Sign in to continue your journey" : "Start your journey to finding love"}
+          </p>
+        </div>
+
+        {/* Auth Form */}
+        <Card className="p-8 shadow-card border-2">
+          <form onSubmit={handleAuth} className="space-y-6">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required={!isLogin}
+                  maxLength={100}
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                maxLength={255}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                maxLength={100}
+              />
+              {!isLogin && (
+                <p className="text-xs text-muted-foreground">
+                  Minimum 6 characters
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full rounded-full"
+              size="lg"
+              disabled={loading}
+            >
+              {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+            >
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <span className="font-semibold">
+                {isLogin ? "Sign Up" : "Sign In"}
+              </span>
+            </button>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Auth;
