@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import logo from "@/assets/blossom-logo.jpg";
 
 const Hero = () => {
@@ -33,13 +34,15 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-6 rounded-full shadow-soft hover:shadow-lg transition-smooth group"
-              >
-                Get Started
-                <Heart className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
-              </Button>
+              <Link to="/auth">
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 py-6 rounded-full shadow-soft hover:shadow-lg transition-smooth group"
+                >
+                  Get Started
+                  <Heart className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+                </Button>
+              </Link>
               <Button 
                 variant="outline" 
                 size="lg" 
