@@ -472,6 +472,30 @@ export type Database = {
         }
         Relationships: []
       }
+      super_likes: {
+        Row: {
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_id: string
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_id: string
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           created_at: string | null
