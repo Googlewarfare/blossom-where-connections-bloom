@@ -108,15 +108,16 @@ const Discover = () => {
   // Track profile view
   useEffect(() => {
     const trackView = async () => {
-      if (currentProfile && user) {
+      const profile = profiles[currentIndex];
+      if (profile && user) {
         await supabase.from("profile_views").insert({
           viewer_id: user.id,
-          viewed_user_id: currentProfile.id
+          viewed_user_id: profile.id
         }).select().maybeSingle();
       }
     };
     trackView();
-  }, [currentIndex, user]);
+  }, [currentIndex, user, profiles]);
   useEffect(() => {
     if (!user) {
       navigate("/auth");
