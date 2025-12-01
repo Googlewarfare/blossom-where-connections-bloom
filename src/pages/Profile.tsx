@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, Settings } from "lucide-react";
+import { Loader2, Camera, Heart, LogOut, X, Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -35,6 +35,14 @@ interface Preferences {
   interested_in: string[];
 }
 
+interface ProfilePhoto {
+  id: string;
+  photo_url: string;
+  signed_url: string;
+  is_primary: boolean;
+  display_order: number;
+}
+
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -42,6 +50,7 @@ const Profile = () => {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
     bio: "",
@@ -50,6 +59,8 @@ const Profile = () => {
     location: "",
     occupation: "",
   });
+  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [allInterests, setAllInterests] = useState<Interest[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -69,6 +80,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       loadProfile();
+      loadPhotos();
       loadInterests();
       loadUserInterests();
       loadPreferences();
@@ -99,6 +111,40 @@ const Profile = () => {
       console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPhotos = async () => {
+    try {
+      const { data: photosData, error } = await supabase
+        .from("profile_photos")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("is_primary", { ascending: false })
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+
+      // Generate signed URLs for all photos
+      const photosWithSignedUrls = await Promise.all(
+        (photosData || []).map(async (photo) => {
+          const { data: signedUrlData } = await supabase.storage
+            .from("profile-photos")
+            .createSignedUrl(photo.photo_url, 3600); // 1 hour expiration
+
+          return {
+            id: photo.id,
+            photo_url: photo.photo_url,
+            signed_url: signedUrlData?.signedUrl || "",
+            is_primary: photo.is_primary || false,
+            display_order: photo.display_order || 0,
+          };
+        })
+      );
+
+      setPhotos(photosWithSignedUrls);
+    } catch (error) {
+      console.error("Error loading photos:", error);
     }
   };
 
@@ -244,6 +290,141 @@ const Profile = () => {
     }
   };
 
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+
+      // Upload to storage bucket
+      const { error: uploadError } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Insert photo record into database
+      const { error: dbError } = await supabase
+        .from("profile_photos")
+        .insert({
+          user_id: user!.id,
+          photo_url: fileName,
+          is_primary: photos.length === 0, // First photo is primary
+          display_order: photos.length,
+        });
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Photo Uploaded",
+        description: "Your photo has been uploaded successfully.",
+      });
+
+      // Reload photos
+      await loadPhotos();
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleDeletePhoto = async (photoId: string, photoUrl: string) => {
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("profile-photos")
+        .remove([photoUrl]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("profile_photos")
+        .delete()
+        .eq("id", photoId);
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Photo Deleted",
+        description: "Your photo has been removed.",
+      });
+
+      // Reload photos
+      await loadPhotos();
+    } catch (error: any) {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSetPrimaryPhoto = async (photoId: string) => {
+    try {
+      // Set all photos to non-primary
+      await supabase
+        .from("profile_photos")
+        .update({ is_primary: false })
+        .eq("user_id", user!.id);
+
+      // Set selected photo as primary
+      const { error } = await supabase
+        .from("profile_photos")
+        .update({ is_primary: true })
+        .eq("id", photoId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Primary Photo Updated",
+        description: "Your primary photo has been set.",
+      });
+
+      // Reload photos
+      await loadPhotos();
+    } catch (error: any) {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -286,19 +467,70 @@ const Profile = () => {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <Card className="p-8 space-y-6">
-              {/* Photo Upload Placeholder */}
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full bg-gradient-primary flex items-center justify-center">
-                    <Camera className="w-12 h-12 text-white" />
-                  </div>
-                  <Button
-                    size="sm"
-                    className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
+              {/* Photo Upload Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Profile Photos</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {photos.map((photo) => (
+                    <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group">
+                      <img
+                        src={photo.signed_url}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {!photo.is_primary && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleSetPrimaryPhoto(photo.id)}
+                            title="Set as primary"
+                          >
+                            <Star className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeletePhoto(photo.id, photo.photo_url)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {photo.is_primary && (
+                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-current" />
+                          Primary
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {photos.length < 6 && (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer flex items-center justify-center transition-colors"
+                    >
+                      {uploading ? (
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      ) : (
+                        <div className="text-center">
+                          <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-xs text-muted-foreground">Add Photo</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Upload up to 6 photos. First photo will be your primary photo. Max 5MB per photo.
+                </p>
               </div>
 
               <div className="space-y-4">
