@@ -170,8 +170,8 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
         });
       }
 
-      // Add markers for each profile
-      profiles.forEach(profile => {
+      // Add markers for each profile with staggered animation
+      profiles.forEach((profile, index) => {
       if (!profile.latitude || !profile.longitude) return;
 
       const el = document.createElement('div');
@@ -187,14 +187,28 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
       el.style.border = '3px solid hsl(340, 75%, 45%)'; // Primary magenta border
       el.style.cursor = 'pointer';
       el.style.boxShadow = '0 4px 12px hsla(340, 75%, 45%, 0.3)'; // Branded shadow
-      el.style.transition = 'transform 0.2s ease';
+      el.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
       
-      // Hover effect
+      // Initial state for animation
+      el.style.opacity = '0';
+      el.style.transform = 'scale(0.5)';
+      
+      // Trigger animation after a staggered delay
+      setTimeout(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'scale(1)';
+      }, index * 50); // 50ms delay between each marker
+      
+      // Hover effect with smooth transitions
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.1)';
+        el.style.transform = 'scale(1.15)';
+        el.style.boxShadow = '0 8px 24px hsla(340, 75%, 45%, 0.4)';
+        el.style.zIndex = '1000';
       });
       el.addEventListener('mouseleave', () => {
         el.style.transform = 'scale(1)';
+        el.style.boxShadow = '0 4px 12px hsla(340, 75%, 45%, 0.3)';
+        el.style.zIndex = 'auto';
       });
 
       const marker = new mapboxgl.Marker(el)
@@ -249,25 +263,63 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
           box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
           border: 1px solid hsl(352, 40%, 88%);
           font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+          animation: popupSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .mapboxgl-popup-close-button {
           color: hsl(340, 75%, 45%);
           font-size: 20px;
           padding: 8px;
+          transition: all 0.2s ease;
         }
         .mapboxgl-popup-close-button:hover {
           background-color: hsl(352, 60%, 92%);
+          transform: scale(1.1);
         }
         .mapboxgl-ctrl-group {
           background: hsl(0, 0%, 100%);
           border: 1px solid hsl(352, 40%, 88%);
           box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
+          transition: all 0.2s ease;
         }
         .mapboxgl-ctrl-group button {
           color: hsl(340, 75%, 45%);
+          transition: all 0.2s ease;
         }
         .mapboxgl-ctrl-group button:hover {
           background-color: hsl(352, 60%, 92%);
+          transform: scale(1.05);
+        }
+        .marker {
+          position: relative;
+        }
+        .marker::before {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          background: hsl(340, 75%, 45%);
+          opacity: 0;
+          animation: markerPulse 2s ease-in-out infinite;
+        }
+        @keyframes markerPulse {
+          0%, 100% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.3;
+            transform: scale(1.3);
+          }
+        }
+        @keyframes popupSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
         .dark .mapboxgl-popup-content {
           background: hsl(340, 45%, 12%);
