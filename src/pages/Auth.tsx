@@ -20,6 +20,7 @@ const authSchema = z.object({
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -49,6 +50,61 @@ const Auth = () => {
       });
     } finally {
       setLoadingLocation(false);
+    }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const validation = z.string().email().safeParse(email);
+      if (!validation.success) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        // Send branded password reset email
+        try {
+          const resetLink = `${window.location.origin}/reset-password`;
+          await supabase.functions.invoke('send-password-reset', {
+            body: { email, resetLink }
+          });
+        } catch (emailError) {
+          console.error('Failed to send password reset email:', emailError);
+        }
+
+        toast({
+          title: "Reset Email Sent",
+          description: "Check your email for password reset instructions.",
+        });
+        setIsResetPassword(false);
+        setEmail("");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,17 +242,59 @@ const Auth = () => {
             <span className="text-2xl font-bold">Blossom</span>
           </div>
           <h1 className="text-3xl font-bold">
-            {isLogin ? "Welcome Back" : "Join Blossom"}
+            {isResetPassword ? "Reset Password" : isLogin ? "Welcome Back" : "Join Blossom"}
           </h1>
           <p className="text-muted-foreground">
-            {isLogin ? "Sign in to continue your journey" : "Start your journey to finding love"}
+            {isResetPassword 
+              ? "Enter your email to receive reset instructions" 
+              : isLogin 
+                ? "Sign in to continue your journey" 
+                : "Start your journey to finding love"}
           </p>
         </div>
 
         {/* Auth Form */}
         <Card className="p-8 shadow-card border-2">
-          <form onSubmit={handleAuth} className="space-y-6">
-            {!isLogin && (
+          {isResetPassword ? (
+            <form onSubmit={handlePasswordReset} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  maxLength={255}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full rounded-full"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsResetPassword(false);
+                    setEmail("");
+                  }}
+                  className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleAuth} className="space-y-6">
+              {!isLogin && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
@@ -281,20 +379,32 @@ const Auth = () => {
             >
               {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
-          </form>
+            </form>
+          )}
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
-            >
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <span className="font-semibold">
-                {isLogin ? "Sign Up" : "Sign In"}
-              </span>
-            </button>
-          </div>
+          {!isResetPassword && (
+            <div className="mt-6 space-y-4 text-center">
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setIsResetPassword(true)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  Forgot password?
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+              >
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <span className="font-semibold">
+                  {isLogin ? "Sign Up" : "Sign In"}
+                </span>
+              </button>
+            </div>
+          )}
         </Card>
       </div>
     </div>
