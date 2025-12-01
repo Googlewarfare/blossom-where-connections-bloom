@@ -155,7 +155,7 @@ const Auth = () => {
             title: "Welcome back!",
             description: "You've successfully logged in.",
           });
-          navigate("/profile");
+          navigate("/discover");
         }
       } else {
         const redirectUrl = `${window.location.origin}/`;
@@ -219,7 +219,7 @@ const Auth = () => {
           title: "Account Created!",
           description: "Welcome to Blossom! Check your email for a welcome message.",
         });
-        navigate("/profile");
+        navigate("/onboarding");
       }
     } catch (error) {
       toast({
