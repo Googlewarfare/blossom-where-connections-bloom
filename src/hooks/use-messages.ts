@@ -11,6 +11,16 @@ export interface MessageReaction {
   created_at: string;
 }
 
+export interface MessageMedia {
+  id: string;
+  message_id: string;
+  file_url: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -21,6 +31,7 @@ export interface Message {
   edited_at?: string;
   deleted: boolean;
   reactions?: MessageReaction[];
+  media?: MessageMedia[];
 }
 
 export interface Conversation {
@@ -46,6 +57,7 @@ export const useMessages = (conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [reactions, setReactions] = useState<MessageReaction[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MessageMedia[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch all conversations for the current user
@@ -150,15 +162,23 @@ export const useMessages = (conversationId?: string) => {
       if (error) throw error;
       setMessages(data || []);
 
-      // Fetch reactions for all messages
+      // Fetch reactions and media for all messages
       if (data && data.length > 0) {
         const messageIds = data.map(m => m.id);
+        
         const { data: reactionsData } = await supabase
           .from('message_reactions')
           .select('*')
           .in('message_id', messageIds);
         
         setReactions((reactionsData || []) as MessageReaction[]);
+
+        const { data: mediaData } = await supabase
+          .from('message_media')
+          .select('*')
+          .in('message_id', messageIds);
+        
+        setMediaFiles((mediaData || []) as MessageMedia[]);
       }
 
       // Mark messages as read
@@ -288,20 +308,74 @@ export const useMessages = (conversationId?: string) => {
     }
   };
 
-  // Send a new message
-  const sendMessage = async (content: string) => {
-    if (!user || !conversationId || !content.trim()) return;
+  // Upload media file
+  const uploadMedia = async (
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<string | null> => {
+    if (!user || !conversationId) return null;
 
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          content: content.trim(),
-          sender_id: user.id,
-          conversation_id: conversationId,
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${conversationId}/${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
         });
 
       if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('chat-media')
+        .getPublicUrl(data.path);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      toast.error('Failed to upload media');
+      return null;
+    }
+  };
+
+  // Send a new message with optional media
+  const sendMessage = async (content: string, mediaFiles?: File[]) => {
+    if (!user || !conversationId) return;
+    if (!content.trim() && (!mediaFiles || mediaFiles.length === 0)) return;
+
+    try {
+      // Insert message
+      const { data: messageData, error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          content: content.trim() || '',
+          sender_id: user.id,
+          conversation_id: conversationId,
+        })
+        .select()
+        .single();
+
+      if (messageError) throw messageError;
+
+      // Upload media files if provided
+      if (mediaFiles && mediaFiles.length > 0 && messageData) {
+        for (const file of mediaFiles) {
+          const fileUrl = await uploadMedia(file);
+          
+          if (fileUrl) {
+            await supabase.from('message_media').insert({
+              message_id: messageData.id,
+              file_url: fileUrl,
+              file_name: file.name,
+              file_type: file.type,
+              file_size: file.size,
+            });
+          }
+        }
+      }
 
       // Update conversation timestamp
       await supabase
@@ -368,6 +442,17 @@ export const useMessages = (conversationId?: string) => {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_media',
+        },
+        (payload) => {
+          setMediaFiles((prev) => [...prev, payload.new as MessageMedia]);
+        }
+      )
       .subscribe();
 
     return () => {
@@ -404,14 +489,15 @@ export const useMessages = (conversationId?: string) => {
     fetchConversations();
   }, [user]);
 
-  // Combine messages with their reactions
-  const messagesWithReactions = messages.map((msg) => ({
+  // Combine messages with their reactions and media
+  const messagesWithData = messages.map((msg) => ({
     ...msg,
     reactions: reactions.filter((r) => r.message_id === msg.id),
+    media: mediaFiles.filter((m) => m.message_id === msg.id),
   }));
 
   return {
-    messages: messagesWithReactions,
+    messages: messagesWithData,
     conversations,
     loading,
     sendMessage,
@@ -419,6 +505,7 @@ export const useMessages = (conversationId?: string) => {
     deleteMessage,
     addReaction,
     removeReaction,
+    uploadMedia,
     refreshConversations: fetchConversations,
   };
 };
