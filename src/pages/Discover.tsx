@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -450,6 +450,10 @@ const Discover = () => {
               </Badge>}
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate(-1)} variant="outline" className="rounded-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
             {hasUnlimitedSuperLikes ? <Button onClick={handleManageSubscription} variant="outline" className="rounded-full">
                 <Star className="w-4 h-4 mr-2" />
                 Manage Subscription
