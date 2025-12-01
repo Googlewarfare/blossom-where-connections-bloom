@@ -32,7 +32,7 @@ interface Profile {
 }
 
 const Discover = () => {
-  const { user } = useAuth();
+  const { user, subscriptionStatus, checkSubscription } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -44,18 +44,23 @@ const Discover = () => {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [viewMode, setViewMode] = useState<"cards" | "map">("cards");
   const [sendingSuperLike, setSendingSuperLike] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  
+  const UNLIMITED_SUPER_LIKES_PRODUCT_ID = "prod_TWguag6wQXdfSB";
+  const hasUnlimitedSuperLikes = subscriptionStatus?.subscribed && subscriptionStatus?.product_id === UNLIMITED_SUPER_LIKES_PRODUCT_ID;
   
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
 
-  // Handle super like success
+  // Handle super like and subscription success
   useEffect(() => {
-    const handleSuperLikeSuccess = async () => {
-      const success = searchParams.get('super_like_success');
+    const handleSuccess = async () => {
+      // Handle super like payment success
+      const superLikeSuccess = searchParams.get('super_like_success');
       const recipientId = searchParams.get('recipient');
       
-      if (success === 'true' && recipientId && user) {
+      if (superLikeSuccess === 'true' && recipientId && user) {
         // Record super like
         await supabase
           .from('super_likes')
@@ -95,10 +100,21 @@ const Discover = () => {
         window.history.replaceState({}, '', '/discover');
         window.location.reload();
       }
+
+      // Handle subscription success
+      const subscriptionSuccess = searchParams.get('subscription_success');
+      if (subscriptionSuccess === 'true') {
+        await checkSubscription();
+        toast({
+          title: "Subscription Active! 🎉",
+          description: "You now have unlimited Super Likes!",
+        });
+        window.history.replaceState({}, '', '/discover');
+      }
     };
 
-    handleSuperLikeSuccess();
-  }, [searchParams, user, toast]);
+    handleSuccess();
+  }, [searchParams, user, toast, checkSubscription]);
 
   // Track profile view
   useEffect(() => {
@@ -326,6 +342,69 @@ const Discover = () => {
     const currentProfile = profiles[currentIndex];
     if (!currentProfile || !user) return;
 
+    // If user has unlimited subscription, send super like immediately
+    if (hasUnlimitedSuperLikes) {
+      try {
+        // Record super like
+        await supabase
+          .from('super_likes')
+          .insert({
+            sender_id: user.id,
+            recipient_id: currentProfile.id,
+          });
+
+        // Also record as regular like
+        await supabase
+          .from('user_swipes')
+          .insert({
+            user_id: user.id,
+            target_user_id: currentProfile.id,
+            action_type: 'like',
+          });
+
+        await supabase
+          .from('profile_likes')
+          .insert({
+            liker_id: user.id,
+            liked_user_id: currentProfile.id,
+          });
+
+        // Check for match
+        const userId1 = user.id < currentProfile.id ? user.id : currentProfile.id;
+        const userId2 = user.id < currentProfile.id ? currentProfile.id : user.id;
+        
+        const { data: matchData } = await supabase
+          .from("matches")
+          .select("*")
+          .eq("user1_id", userId1)
+          .eq("user2_id", userId2)
+          .maybeSingle();
+
+        if (matchData) {
+          setMatchedProfile(currentProfile);
+          setShowMatchModal(true);
+        } else {
+          toast({
+            title: "Super Like Sent! ⭐",
+            description: "Your special interest has been noted!",
+          });
+        }
+
+        // Move to next profile
+        setCurrentIndex(prev => prev + 1);
+        x.set(0);
+      } catch (error) {
+        console.error('Error sending super like:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send Super Like",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // Otherwise, show payment option
     setSendingSuperLike(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-super-like-checkout', {
@@ -345,6 +424,40 @@ const Discover = () => {
       });
     } finally {
       setSendingSuperLike(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating subscription checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start subscription",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open subscription management",
+        variant: "destructive",
+      });
     }
   };
 
@@ -396,8 +509,31 @@ const Discover = () => {
             <p className="text-muted-foreground">
               Swipe right to like, left to pass
             </p>
+            {hasUnlimitedSuperLikes && (
+              <Badge className="mt-2 bg-gradient-to-r from-yellow-400 to-orange-500">
+                ⭐ Unlimited Super Likes Active
+              </Badge>
+            )}
           </div>
           <div className="flex gap-2">
+            {hasUnlimitedSuperLikes ? (
+              <Button
+                onClick={handleManageSubscription}
+                variant="outline"
+                className="rounded-full"
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Manage Subscription
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setShowSubscriptionDialog(true)}
+                className="rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600"
+              >
+                <Star className="w-4 h-4 mr-2 fill-current" />
+                Get Unlimited Super Likes
+              </Button>
+            )}
             <AdvancedFilters onFiltersApplied={() => window.location.reload()} />
             <Button
               onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")}
@@ -622,6 +758,7 @@ const Discover = () => {
                   className="h-16 w-16 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 border-2 border-yellow-300/50 shadow-lg shadow-amber-500/30"
                   onClick={handleSuperLike}
                   disabled={sendingSuperLike}
+                  title={hasUnlimitedSuperLikes ? "Send Super Like (Unlimited)" : "Send Super Like ($4.99)"}
                 >
                   <Star className="w-6 h-6 fill-current" />
                 </Button>
@@ -666,6 +803,72 @@ const Discover = () => {
                 onClick={() => navigate("/matches")}
               >
                 View Matches
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription Dialog */}
+      <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              Unlimited Super Likes ⭐
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Get unlimited Super Likes and stand out from the crowd!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20">
+              <CardContent className="p-6">
+                <div className="text-center mb-4">
+                  <div className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
+                    $9.99/month
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <Star className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">Send unlimited Super Likes</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Star className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">Stand out with priority visibility</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Star className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">Show you're really interested</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Star className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">Cancel anytime</span>
+                  </li>
+                </ul>
+                <Button
+                  onClick={handleSubscribe}
+                  className="w-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600"
+                  size="lg"
+                >
+                  <Star className="w-5 h-5 mr-2 fill-current" />
+                  Subscribe Now
+                </Button>
+              </CardContent>
+            </Card>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 justify-center">
+                <div className="text-sm text-muted-foreground">Or send one at a time:</div>
+              </div>
+              <Button
+                onClick={() => {
+                  setShowSubscriptionDialog(false);
+                  handleSuperLike();
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                Send Single Super Like - $4.99
               </Button>
             </div>
           </div>
