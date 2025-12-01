@@ -217,6 +217,7 @@ export type Database = {
           edited_at: string | null
           id: string
           read: boolean
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -227,6 +228,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           read?: boolean
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -237,6 +239,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           read?: boolean
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [
