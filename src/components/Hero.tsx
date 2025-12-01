@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Heart, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/blossom-logo.jpg";
-
 const Hero = () => {
-  return (
-    <section className="relative min-h-screen gradient-hero flex items-center justify-center overflow-hidden px-4 py-20">
+  return <section className="relative min-h-screen gradient-hero flex items-center justify-center overflow-hidden px-4 py-20">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-blossom-coral rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: "2s" }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{
+        animationDelay: "2s"
+      }} />
       </div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
@@ -24,7 +24,7 @@ const Hero = () => {
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
                 Find Your{" "}
-                <span className="gradient-primary bg-clip-text text-transparent">
+                <span className="gradient-primary bg-clip-text text-primary">
                   Perfect Match
                 </span>
               </h1>
@@ -35,20 +35,13 @@ const Hero = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/discover">
-                <Button 
-                  size="lg" 
-                  className="text-lg px-8 py-6 rounded-full shadow-soft hover:shadow-lg transition-smooth group"
-                >
+                <Button size="lg" className="text-lg px-8 py-6 rounded-full shadow-soft hover:shadow-lg transition-smooth group">
                   Start Browsing
                   <Heart className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="text-lg px-8 py-6 rounded-full border-2 hover:bg-card/50 transition-smooth"
-                >
+                <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full border-2 hover:bg-card/50 transition-smooth">
                   Sign Up
                 </Button>
               </Link>
@@ -71,17 +64,11 @@ const Hero = () => {
           <div className="flex-1 flex items-center justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-3xl blur-2xl opacity-30 animate-pulse" />
-              <img 
-                src={logo} 
-                alt="Blossom - Blossom into Love" 
-                className="relative w-full max-w-md rounded-3xl shadow-soft transition-smooth hover:scale-105"
-              />
+              <img src={logo} alt="Blossom - Blossom into Love" className="relative w-full max-w-md rounded-3xl shadow-soft transition-smooth hover:scale-105" />
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
