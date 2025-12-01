@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Map } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -30,7 +31,7 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
     // Initialize map
     const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
     if (!token) {
-      console.error('Mapbox token not found');
+      console.error('Mapbox token not found. Please add VITE_MAPBOX_PUBLIC_TOKEN to your environment variables.');
       return;
     }
     
@@ -225,7 +226,30 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
   }, [profiles, onMarkerClick, userLocation]);
 
   return (
-    <div ref={mapContainer} className="w-full h-full rounded-lg" />
+    <div ref={mapContainer} className="w-full h-full rounded-lg relative">
+      {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
+          <div className="text-center p-8 max-w-md">
+            <Map className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Map View Unavailable</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              To enable the map view, please add your Mapbox public token to the project settings.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Get your token at{" "}
+              <a 
+                href="https://mapbox.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                mapbox.com
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
