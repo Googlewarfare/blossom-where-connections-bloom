@@ -4,13 +4,14 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "@/lib/location-utils";
+import MatchesMap from "@/components/MatchesMap";
 
 interface Profile {
   id: string;
@@ -36,6 +37,7 @@ const Discover = () => {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState<Profile | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "map">("cards");
   
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -277,6 +279,23 @@ const Discover = () => {
           </div>
           <div className="flex gap-2">
             <Button
+              onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")}
+              variant="outline"
+              className="rounded-full"
+            >
+              {viewMode === "cards" ? (
+                <>
+                  <Map className="w-4 h-4 mr-2" />
+                  Map View
+                </>
+              ) : (
+                <>
+                  <Heart className="w-4 h-4 mr-2" />
+                  Card View
+                </>
+              )}
+            </Button>
+            <Button
               onClick={() => navigate("/matches")}
               variant="outline"
               className="rounded-full"
@@ -294,8 +313,17 @@ const Discover = () => {
           </div>
         </div>
 
-        {/* Swipe Card Stack */}
-        <div className="flex justify-center items-center min-h-[600px]">
+        {/* Map or Card View */}
+        {viewMode === "map" ? (
+          <div className="h-[600px] w-full rounded-lg overflow-hidden shadow-xl">
+            <MatchesMap 
+              profiles={profiles.filter(p => p.latitude && p.longitude) as (Profile & { latitude: number; longitude: number })[]}
+              userLocation={userLocation || undefined}
+            />
+          </div>
+        ) : (
+          /* Swipe Card Stack */
+          <div className="flex justify-center items-center min-h-[600px]">
           {!currentProfile || currentIndex >= profiles.length ? (
             <div className="text-center py-20">
               <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -419,7 +447,7 @@ const Discover = () => {
                                 variant="secondary"
                                 className="rounded-full bg-white/20 text-white border-white/30"
                               >
-                                {interest}
+                                 {interest}
                               </Badge>
                             ))}
                           </div>
@@ -452,6 +480,7 @@ const Discover = () => {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Match Modal */}
