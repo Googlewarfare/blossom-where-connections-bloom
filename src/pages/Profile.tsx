@@ -713,14 +713,41 @@ const Profile = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="height">Height (cm)</Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      value={profile.height_cm || ""}
-                      onChange={(e) => setProfile({ ...profile, height_cm: parseInt(e.target.value) || null })}
-                      placeholder="e.g., 170"
-                    />
+                    <Label htmlFor="height">Height</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="heightFeet" className="text-xs text-muted-foreground">Feet</Label>
+                        <Input
+                          id="heightFeet"
+                          type="number"
+                          value={profile.height_cm ? Math.floor((profile.height_cm / 2.54) / 12) : ""}
+                          onChange={(e) => {
+                            const feet = parseInt(e.target.value) || 0;
+                            const inches = profile.height_cm ? Math.round((profile.height_cm / 2.54) % 12) : 0;
+                            setProfile({ ...profile, height_cm: Math.round((feet * 12 + inches) * 2.54) });
+                          }}
+                          placeholder="5"
+                          min="3"
+                          max="8"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="heightInches" className="text-xs text-muted-foreground">Inches</Label>
+                        <Input
+                          id="heightInches"
+                          type="number"
+                          value={profile.height_cm ? Math.round((profile.height_cm / 2.54) % 12) : ""}
+                          onChange={(e) => {
+                            const feet = profile.height_cm ? Math.floor((profile.height_cm / 2.54) / 12) : 0;
+                            const inches = parseInt(e.target.value) || 0;
+                            setProfile({ ...profile, height_cm: Math.round((feet * 12 + inches) * 2.54) });
+                          }}
+                          placeholder="10"
+                          min="0"
+                          max="11"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

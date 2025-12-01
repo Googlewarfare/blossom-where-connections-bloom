@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { cmToFeetInches } from '@/lib/location-utils';
 
 interface AdvancedFiltersProps {
   onFiltersApplied: () => void;
@@ -115,7 +116,13 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
         <div className="space-y-6 py-6">
           {/* Height Range */}
           <div className="space-y-3">
-            <Label>Height (cm): {heightRange[0]} - {heightRange[1]}</Label>
+            <Label>
+              Height: {(() => {
+                const min = cmToFeetInches(heightRange[0]);
+                const max = cmToFeetInches(heightRange[1]);
+                return `${min.feet}'${min.inches}" - ${max.feet}'${max.inches}"`;
+              })()}
+            </Label>
             <Slider
               value={heightRange}
               onValueChange={(val) => setHeightRange(val as [number, number])}
