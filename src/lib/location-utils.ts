@@ -57,3 +57,35 @@ export function getCurrentLocation(): Promise<{ latitude: number; longitude: num
     );
   });
 }
+
+/**
+ * Convert centimeters to feet and inches
+ * @param cm Height in centimeters
+ * @returns Object with feet and inches
+ */
+export function cmToFeetInches(cm: number): { feet: number; inches: number } {
+  const totalInches = cm / 2.54;
+  const feet = Math.floor(totalInches / 12);
+  const inches = Math.round(totalInches % 12);
+  return { feet, inches };
+}
+
+/**
+ * Convert feet and inches to centimeters
+ * @param feet Number of feet
+ * @param inches Number of inches
+ * @returns Height in centimeters
+ */
+export function feetInchesToCm(feet: number, inches: number): number {
+  return Math.round((feet * 12 + inches) * 2.54);
+}
+
+/**
+ * Format height in feet and inches as a string
+ * @param cm Height in centimeters
+ * @returns Formatted string like "5'10\""
+ */
+export function formatHeightFtIn(cm: number): string {
+  const { feet, inches } = cmToFeetInches(cm);
+  return `${feet}'${inches}"`;
+}
