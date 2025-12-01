@@ -14,6 +14,7 @@ import { calculateDistance } from "@/lib/location-utils";
 import MatchesMap from "@/components/MatchesMap";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { AdvancedFilters } from "@/components/AdvancedFilters";
 interface Profile {
   id: string;
@@ -565,6 +566,12 @@ const Discover = () => {
                           </h3>
                           <VerificationBadge verified={currentProfile.verified} size="lg" />
                         </div>
+                        
+                        {/* Compatibility Score */}
+                        <div className="mb-3">
+                          <CompatibilityScore targetUserId={currentProfile.id} />
+                        </div>
+
                         <div className="space-y-2 mb-4">
                           {currentProfile.distance !== null && currentProfile.distance !== undefined && <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
