@@ -147,11 +147,21 @@ const Auth = () => {
           if (profileError) {
             console.error("Error updating profile location:", profileError);
           }
+          
+          // Send welcome email
+          try {
+            await supabase.functions.invoke('send-welcome-email', {
+              body: { userId: user.id }
+            });
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't block signup if email fails
+          }
         }
 
         toast({
           title: "Account Created!",
-          description: "Welcome to Blossom. Setting up your profile...",
+          description: "Welcome to Blossom! Check your email for a welcome message.",
         });
         navigate("/profile");
       }
