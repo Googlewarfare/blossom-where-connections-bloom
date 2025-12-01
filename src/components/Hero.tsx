@@ -23,13 +23,13 @@ const Hero = () => {
 
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                Blossom into{" "}
+                Find Your{" "}
                 <span className="gradient-primary bg-clip-text text-transparent">
-                  Love
+                  Perfect Match
                 </span>
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                Discover meaningful connections through authentic profiles and thoughtful conversations. Your perfect match is just a bloom away.
+                Discover meaningful connections through authentic profiles and real conversations. Start your love story today.
               </p>
             </div>
 
