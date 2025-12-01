@@ -9,6 +9,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { VerificationBadge } from "@/components/VerificationBadge";
+import { CompatibilityScore } from "@/components/CompatibilityScore";
 
 interface MatchProfile {
   id: string;
@@ -20,6 +22,7 @@ interface MatchProfile {
   photo_url: string | null;
   match_id: string;
   matched_at: string;
+  verified: boolean;
 }
 
 const Matches = () => {
@@ -53,7 +56,7 @@ const Matches = () => {
 
             const { data: profileData } = await supabase
               .from("profiles")
-              .select("id, full_name, age, bio, location, occupation")
+              .select("id, full_name, age, bio, location, occupation, verified")
               .eq("id", otherUserId)
               .single();
 
@@ -240,10 +243,18 @@ const Matches = () => {
 
                       {/* Profile Info Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                        <h3 className="text-2xl font-bold mb-1">
-                          {match.full_name}
-                          {match.age && `, ${match.age}`}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-2xl font-bold">
+                            {match.full_name}
+                            {match.age && `, ${match.age}`}
+                          </h3>
+                          <VerificationBadge verified={match.verified} size="md" />
+                        </div>
+                        
+                        <div className="mb-2">
+                          <CompatibilityScore targetUserId={match.id} />
+                        </div>
+
                         <div className="space-y-1">
                           {match.location && (
                             <div className="flex items-center gap-2 text-sm">

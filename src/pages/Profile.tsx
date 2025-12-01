@@ -812,15 +812,36 @@ const Profile = () => {
                 </div>
               </div>
 
-              {profile.verified && (
-                <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+              {profile.verified ? (
+                <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-500/20 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-primary/20 text-primary">
+                    <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">
                       ✓ Verified Profile
                     </Badge>
                     <p className="text-sm text-muted-foreground">
                       Your profile is verified
                     </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-500/20 rounded-lg">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-sm mb-1">Get Verified</p>
+                      <p className="text-xs text-muted-foreground">
+                        {profile.verification_status === 'pending' 
+                          ? 'Your verification is being reviewed'
+                          : 'Stand out with a verified badge'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/verification')}
+                      disabled={profile.verification_status === 'pending'}
+                    >
+                      {profile.verification_status === 'pending' ? 'Pending' : 'Get Verified'}
+                    </Button>
                   </div>
                 </div>
               )}
