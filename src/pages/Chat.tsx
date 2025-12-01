@@ -8,10 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, MessageCircle, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { MessageReactions } from '@/components/MessageReactions';
+import { MessageActions } from '@/components/MessageActions';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -24,8 +25,19 @@ const Chat = () => {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations, loading, sendMessage, addReaction, removeReaction } =
-    useMessages(selectedConversation || undefined);
+  const {
+    messages,
+    conversations,
+    loading,
+    sendMessage,
+    editMessage,
+    deleteMessage,
+    addReaction,
+    removeReaction,
+  } = useMessages(selectedConversation || undefined);
+  
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,6 +61,23 @@ const Chat = () => {
 
     await sendMessage(messageText);
     setMessageText('');
+  };
+
+  const handleEditMessage = async (messageId: string) => {
+    if (!editText.trim()) return;
+
+    await editMessage(messageId, editText);
+    setEditingMessageId(null);
+    setEditText('');
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    await deleteMessage(messageId);
+  };
+
+  const startEditing = (messageId: string, currentContent: string) => {
+    setEditingMessageId(messageId);
+    setEditText(currentContent);
   };
 
   const currentConversation = conversations.find((c) => c.id === selectedConversation);
@@ -173,51 +202,119 @@ const Chat = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((message) => {
                     const isOwn = message.sender_id === user?.id;
+                    const isEditing = editingMessageId === message.id;
+                    
+                    if (message.deleted) {
+                      return (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
+                            <div className="rounded-2xl px-4 py-2 bg-muted/50">
+                              <p className="text-muted-foreground italic text-sm">
+                                This message was deleted
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    }
+                    
                     return (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                       >
                         <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
-                          <div
-                            className={`rounded-2xl px-4 py-2 ${
-                              isOwn
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted'
-                            }`}
-                          >
-                            <p className="whitespace-pre-wrap break-words">
-                              {message.content}
-                            </p>
-                            <div
-                              className={`flex items-center gap-1 text-xs mt-1 ${
-                                isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                              }`}
-                            >
-                              <span>{format(new Date(message.created_at), 'h:mm a')}</span>
-                              {isOwn && (
-                                <span className="ml-1">
-                                  {message.read ? (
-                                    <CheckCheck className="h-3 w-3" />
-                                  ) : (
-                                    <Check className="h-3 w-3" />
-                                  )}
-                                </span>
-                              )}
+                          {isEditing ? (
+                            <div className="w-full space-y-2">
+                              <Input
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleEditMessage(message.id);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingMessageId(null);
+                                  }
+                                }}
+                                className="w-full"
+                                autoFocus
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditMessage(message.id)}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingMessageId(null)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                          
-                          {/* Message Reactions */}
-                          {user && (
-                            <MessageReactions
-                              messageId={message.id}
-                              reactions={message.reactions || []}
-                              userId={user.id}
-                              onAddReaction={addReaction}
-                              onRemoveReaction={removeReaction}
-                            />
+                          ) : (
+                            <>
+                              <div className="flex items-start gap-2">
+                                <div
+                                  className={`rounded-2xl px-4 py-2 ${
+                                    isOwn
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'bg-muted'
+                                  }`}
+                                >
+                                  <p className="whitespace-pre-wrap break-words">
+                                    {message.content}
+                                  </p>
+                                  <div
+                                    className={`flex items-center gap-2 text-xs mt-1 ${
+                                      isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                    }`}
+                                  >
+                                    <span>{format(new Date(message.created_at), 'h:mm a')}</span>
+                                    {message.edited_at && (
+                                      <span className="italic">(edited)</span>
+                                    )}
+                                    {isOwn && (
+                                      <span className="ml-1">
+                                        {message.read ? (
+                                          <CheckCheck className="h-3 w-3" />
+                                        ) : (
+                                          <Check className="h-3 w-3" />
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {isOwn && (
+                                  <MessageActions
+                                    onEdit={() => startEditing(message.id, message.content)}
+                                    onDelete={() => handleDeleteMessage(message.id)}
+                                  />
+                                )}
+                              </div>
+                              
+                              {/* Message Reactions */}
+                              {user && (
+                                <MessageReactions
+                                  messageId={message.id}
+                                  reactions={message.reactions || []}
+                                  userId={user.id}
+                                  onAddReaction={addReaction}
+                                  onRemoveReaction={removeReaction}
+                                />
+                              )}
+                            </>
                           )}
                         </div>
                       </motion.div>
