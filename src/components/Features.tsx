@@ -26,7 +26,7 @@ const Features = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl sm:text-5xl font-bold">
-            Why Choose <span className="gradient-primary bg-clip-text text-primary">Blossom</span>?
+            Why Choose <span className="gradient-primary bg-clip-text text-primary-foreground">Blossom</span>?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             We've built features that help you find genuine connections and nurture meaningful relationships.
