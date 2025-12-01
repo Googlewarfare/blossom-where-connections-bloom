@@ -217,13 +217,23 @@ const Discover = () => {
               Swipe right to like, left to pass
             </p>
           </div>
-          <Button
-            onClick={() => navigate("/profile")}
-            variant="outline"
-            className="rounded-full"
-          >
-            My Profile
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/matches")}
+              variant="outline"
+              className="rounded-full"
+            >
+              <Heart className="w-4 h-4 mr-2" />
+              Matches
+            </Button>
+            <Button
+              onClick={() => navigate("/profile")}
+              variant="outline"
+              className="rounded-full"
+            >
+              My Profile
+            </Button>
+          </div>
         </div>
 
         {/* Swipe Card Stack */}
@@ -237,9 +247,14 @@ const Discover = () => {
               <p className="text-muted-foreground mb-4">
                 Check back later for more matches
               </p>
-              <Button onClick={() => navigate("/profile")} variant="outline">
-                Edit Your Profile
-              </Button>
+              <div className="flex gap-4">
+                <Button onClick={() => navigate("/matches")} variant="outline">
+                  View Matches
+                </Button>
+                <Button onClick={() => navigate("/profile")}>
+                  Edit Profile
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="relative w-full max-w-md">
@@ -404,8 +419,11 @@ const Discover = () => {
               >
                 Keep Swiping
               </Button>
-              <Button className="flex-1" onClick={() => navigate("/profile")}>
-                View Profile
+              <Button
+                className="flex-1"
+                onClick={() => navigate("/matches")}
+              >
+                View Matches
               </Button>
             </div>
           </div>
