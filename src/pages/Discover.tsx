@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "@/lib/location-utils";
 import MatchesMap from "@/components/MatchesMap";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { VerificationBadge } from "@/components/VerificationBadge";
+import { AdvancedFilters } from "@/components/AdvancedFilters";
 
 interface Profile {
   id: string;
@@ -26,6 +28,7 @@ interface Profile {
   latitude: number | null;
   longitude: number | null;
   distance?: number | null;
+  verified: boolean;
 }
 
 const Discover = () => {
@@ -94,7 +97,8 @@ const Discover = () => {
             location,
             occupation,
             latitude,
-            longitude
+            longitude,
+            verified
           `)
           .neq("id", user.id)
           .not("bio", "is", null);
@@ -160,6 +164,7 @@ const Discover = () => {
               photo_url: signedPhotoUrl,
               interests,
               distance,
+              verified: profile.verified || false,
             };
           })
         );
@@ -284,6 +289,7 @@ const Discover = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <AdvancedFilters onFiltersApplied={() => window.location.reload()} />
             <Button
               onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")}
               variant="outline"
@@ -422,10 +428,13 @@ const Discover = () => {
 
                       {/* Profile Info Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                        <h3 className="text-3xl font-bold mb-2">
-                          {currentProfile.full_name}
-                          {currentProfile.age && `, ${currentProfile.age}`}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-3xl font-bold">
+                            {currentProfile.full_name}
+                            {currentProfile.age && `, ${currentProfile.age}`}
+                          </h3>
+                          <VerificationBadge verified={currentProfile.verified} size="lg" />
+                        </div>
                         <div className="space-y-2 mb-4">
                           {currentProfile.distance !== null && currentProfile.distance !== undefined && (
                             <div className="flex items-center gap-2">

@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { MessageReactions } from '@/components/MessageReactions';
 import { MessageActions } from '@/components/MessageActions';
 import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
+import { IcebreakerQuestions } from '@/components/IcebreakerQuestions';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -379,6 +380,7 @@ const Chat = () => {
                     >
                       <Paperclip className="h-5 w-5" />
                     </Button>
+                    <IcebreakerQuestions onSend={(question) => setMessageText(question)} />
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
