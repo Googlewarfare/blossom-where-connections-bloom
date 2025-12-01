@@ -8,6 +8,7 @@ import { Heart, MessageCircle, MapPin, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
 interface MatchProfile {
   id: string;
@@ -153,6 +154,11 @@ const Matches = () => {
   return (
     <div className="min-h-screen gradient-hero">
       <div className="container mx-auto px-4 py-8">
+        {/* Profile Completion Banner */}
+        <div className="mb-6">
+          <ProfileCompletionBanner />
+        </div>
+
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>

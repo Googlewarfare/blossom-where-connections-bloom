@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { getCurrentLocation } from "@/lib/location-utils";
+import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
 interface ProfileData {
   full_name: string;
@@ -465,6 +466,11 @@ const Profile = () => {
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
           </Button>
+        </div>
+
+        {/* Profile Completion Banner */}
+        <div className="mb-6">
+          <ProfileCompletionBanner />
         </div>
 
         {/* Tabs */}
