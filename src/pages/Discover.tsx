@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from "@/lib/location-utils";
 import MatchesMap from "@/components/MatchesMap";
+import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
 interface Profile {
   id: string;
@@ -264,6 +265,11 @@ const Discover = () => {
   return (
     <div className="min-h-screen gradient-hero">
       <div className="container mx-auto px-4 py-8">
+        {/* Profile Completion Banner */}
+        <div className="mb-6">
+          <ProfileCompletionBanner />
+        </div>
+
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
