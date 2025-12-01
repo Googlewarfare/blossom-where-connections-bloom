@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MessageCircle, MapPin, Briefcase } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Briefcase, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -173,6 +173,14 @@ const Matches = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/activity")}
+              variant="outline"
+              className="rounded-full"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Activity
+            </Button>
             <Button
               onClick={() => navigate("/discover")}
               variant="outline"
