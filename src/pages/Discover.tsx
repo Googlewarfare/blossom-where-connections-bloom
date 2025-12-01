@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -308,6 +308,14 @@ const Discover = () => {
             >
               <Heart className="w-4 h-4 mr-2" />
               Matches
+            </Button>
+            <Button
+              onClick={() => navigate("/chat")}
+              variant="outline"
+              className="rounded-full"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Messages
             </Button>
             <Button
               onClick={() => navigate("/profile")}
