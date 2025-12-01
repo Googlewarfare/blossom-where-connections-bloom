@@ -35,6 +35,27 @@ export type Database = {
         }
         Relationships: []
       }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       preferences: {
         Row: {
           created_at: string | null
@@ -182,6 +203,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_swipes: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          target_user_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          target_user_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          target_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
