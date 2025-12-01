@@ -111,7 +111,7 @@ const Matches = () => {
         .maybeSingle();
 
       if (existingConv) {
-        navigate(`/chat/${existingConv.id}`);
+        navigate(`/chat?id=${existingConv.id}`);
       } else {
         // Create new conversation
         const { data: newConv, error } = await supabase
@@ -121,7 +121,7 @@ const Matches = () => {
           .single();
 
         if (error) throw error;
-        navigate(`/chat/${newConv.id}`);
+        navigate(`/chat?id=${newConv.id}`);
       }
     } catch (error) {
       console.error("Error starting conversation:", error);
@@ -172,13 +172,23 @@ const Matches = () => {
               {matches.length} {matches.length === 1 ? "match" : "matches"} found
             </p>
           </div>
-          <Button
-            onClick={() => navigate("/discover")}
-            variant="outline"
-            className="rounded-full"
-          >
-            Keep Swiping
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/discover")}
+              variant="outline"
+              className="rounded-full"
+            >
+              Keep Swiping
+            </Button>
+            <Button
+              onClick={() => navigate("/chat")}
+              variant="outline"
+              className="rounded-full"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Messages
+            </Button>
+          </div>
         </div>
 
         {/* Matches Grid */}
