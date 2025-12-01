@@ -4,9 +4,9 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ const Discover = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,10 +43,62 @@ const Discover = () => {
   const [matchedProfile, setMatchedProfile] = useState<Profile | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [viewMode, setViewMode] = useState<"cards" | "map">("cards");
+  const [sendingSuperLike, setSendingSuperLike] = useState(false);
   
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+
+  // Handle super like success
+  useEffect(() => {
+    const handleSuperLikeSuccess = async () => {
+      const success = searchParams.get('super_like_success');
+      const recipientId = searchParams.get('recipient');
+      
+      if (success === 'true' && recipientId && user) {
+        // Record super like
+        await supabase
+          .from('super_likes')
+          .insert({
+            sender_id: user.id,
+            recipient_id: recipientId,
+          })
+          .select()
+          .maybeSingle();
+
+        // Also record as regular like
+        await supabase
+          .from('user_swipes')
+          .insert({
+            user_id: user.id,
+            target_user_id: recipientId,
+            action_type: 'like',
+          })
+          .select()
+          .maybeSingle();
+
+        await supabase
+          .from('profile_likes')
+          .insert({
+            liker_id: user.id,
+            liked_user_id: recipientId,
+          })
+          .select()
+          .maybeSingle();
+
+        toast({
+          title: "Super Like Sent! ⭐",
+          description: "Your special interest has been noted!",
+        });
+
+        // Clear params and refresh
+        window.history.replaceState({}, '', '/discover');
+        window.location.reload();
+      }
+    };
+
+    handleSuperLikeSuccess();
+  }, [searchParams, user, toast]);
 
   // Track profile view
   useEffect(() => {
@@ -266,6 +319,32 @@ const Discover = () => {
         description: "Failed to record your action",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleSuperLike = async () => {
+    const currentProfile = profiles[currentIndex];
+    if (!currentProfile || !user) return;
+
+    setSendingSuperLike(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-super-like-checkout', {
+        body: { recipientId: currentProfile.id },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating super like checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process Super Like payment",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingSuperLike(false);
     }
   };
 
@@ -520,22 +599,31 @@ const Discover = () => {
               </motion.div>
 
               {/* Action Buttons */}
-              <div className="flex justify-center gap-8 mt-8">
+              <div className="flex justify-center items-center gap-4 mt-8">
                 <Button
-                  size="lg"
+                  size="icon"
                   variant="outline"
-                  className="w-16 h-16 rounded-full border-2 hover:bg-red-500 hover:text-white hover:border-red-500"
+                  className="h-16 w-16 rounded-full border-2 border-red-500/30 hover:bg-red-500 hover:text-white"
                   onClick={() => handleSwipe("pass")}
                 >
-                  <X className="w-8 h-8" />
+                  <X className="w-6 h-6" />
                 </Button>
                 <Button
-                  size="lg"
+                  size="icon"
                   variant="outline"
-                  className="w-16 h-16 rounded-full border-2 hover:bg-green-500 hover:text-white hover:border-green-500"
+                  className="h-20 w-20 rounded-full border-2 border-green-500/30 hover:bg-green-500 hover:text-white"
                   onClick={() => handleSwipe("like")}
                 >
                   <Heart className="w-8 h-8" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="default"
+                  className="h-16 w-16 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 border-2 border-yellow-300/50 shadow-lg shadow-amber-500/30"
+                  onClick={handleSuperLike}
+                  disabled={sendingSuperLike}
+                >
+                  <Star className="w-6 h-6 fill-current" />
                 </Button>
               </div>
             </div>
