@@ -43,6 +43,30 @@ export type Database = {
           },
         ]
       }
+      icebreaker_questions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          question: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question?: string
+        }
+        Relationships: []
+      }
       interests: {
         Row: {
           category: string | null
@@ -228,34 +252,61 @@ export type Database = {
       preferences: {
         Row: {
           created_at: string | null
+          drinking_preference: string[] | null
+          education_preference: string[] | null
+          exercise_preference: string[] | null
           id: string
           interested_in: string[] | null
+          lifestyle_preference: string[] | null
           max_age: number | null
           max_distance: number | null
+          max_height_cm: number | null
           min_age: number | null
+          min_height_cm: number | null
+          relationship_goal_preference: string[] | null
+          religion_preference: string[] | null
           show_profiles_within_miles: number | null
+          smoking_preference: string[] | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          drinking_preference?: string[] | null
+          education_preference?: string[] | null
+          exercise_preference?: string[] | null
           id?: string
           interested_in?: string[] | null
+          lifestyle_preference?: string[] | null
           max_age?: number | null
           max_distance?: number | null
+          max_height_cm?: number | null
           min_age?: number | null
+          min_height_cm?: number | null
+          relationship_goal_preference?: string[] | null
+          religion_preference?: string[] | null
           show_profiles_within_miles?: number | null
+          smoking_preference?: string[] | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          drinking_preference?: string[] | null
+          education_preference?: string[] | null
+          exercise_preference?: string[] | null
           id?: string
           interested_in?: string[] | null
+          lifestyle_preference?: string[] | null
           max_age?: number | null
           max_distance?: number | null
+          max_height_cm?: number | null
           min_age?: number | null
+          min_height_cm?: number | null
+          relationship_goal_preference?: string[] | null
+          religion_preference?: string[] | null
           show_profiles_within_miles?: number | null
+          smoking_preference?: string[] | null
           updated_at?: string | null
           user_id?: string
         }
@@ -309,40 +360,73 @@ export type Database = {
           age: number | null
           bio: string | null
           created_at: string | null
+          drinking: string | null
+          education: string | null
+          exercise: string | null
           full_name: string | null
           gender: string | null
+          height_cm: number | null
           id: string
           latitude: number | null
+          lifestyle: string | null
           location: string | null
           longitude: number | null
           occupation: string | null
+          relationship_goal: string | null
+          religion: string | null
+          smoking: string | null
           updated_at: string | null
+          verification_photo_url: string | null
+          verification_status: string | null
+          verified: boolean
         }
         Insert: {
           age?: number | null
           bio?: string | null
           created_at?: string | null
+          drinking?: string | null
+          education?: string | null
+          exercise?: string | null
           full_name?: string | null
           gender?: string | null
+          height_cm?: number | null
           id: string
           latitude?: number | null
+          lifestyle?: string | null
           location?: string | null
           longitude?: number | null
           occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
           updated_at?: string | null
+          verification_photo_url?: string | null
+          verification_status?: string | null
+          verified?: boolean
         }
         Update: {
           age?: number | null
           bio?: string | null
           created_at?: string | null
+          drinking?: string | null
+          education?: string | null
+          exercise?: string | null
           full_name?: string | null
           gender?: string | null
+          height_cm?: number | null
           id?: string
           latitude?: number | null
+          lifestyle?: string | null
           location?: string | null
           longitude?: number | null
           occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
           updated_at?: string | null
+          verification_photo_url?: string | null
+          verification_status?: string | null
+          verified?: boolean
         }
         Relationships: []
       }

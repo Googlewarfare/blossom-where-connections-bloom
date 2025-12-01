@@ -24,6 +24,16 @@ interface ProfileData {
   occupation: string;
   latitude: number | null;
   longitude: number | null;
+  education: string;
+  lifestyle: string;
+  relationship_goal: string;
+  drinking: string;
+  smoking: string;
+  exercise: string;
+  height_cm: number | null;
+  religion: string;
+  verified: boolean;
+  verification_status: string;
 }
 
 interface Interest {
@@ -66,6 +76,16 @@ const Profile = () => {
     occupation: "",
     latitude: null,
     longitude: null,
+    education: "",
+    lifestyle: "",
+    relationship_goal: "",
+    drinking: "",
+    smoking: "",
+    exercise: "",
+    height_cm: null,
+    religion: "",
+    verified: false,
+    verification_status: "unverified",
   });
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -116,6 +136,16 @@ const Profile = () => {
           occupation: data.occupation || "",
           latitude: data.latitude || null,
           longitude: data.longitude || null,
+          education: data.education || "",
+          lifestyle: data.lifestyle || "",
+          relationship_goal: data.relationship_goal || "",
+          drinking: data.drinking || "",
+          smoking: data.smoking || "",
+          exercise: data.exercise || "",
+          height_cm: data.height_cm || null,
+          religion: data.religion || "",
+          verified: data.verified || false,
+          verification_status: data.verification_status || "unverified",
         });
       }
     } catch (error) {
@@ -224,6 +254,14 @@ const Profile = () => {
           gender: profile.gender,
           location: profile.location,
           occupation: profile.occupation,
+          education: profile.education || null,
+          lifestyle: profile.lifestyle || null,
+          relationship_goal: profile.relationship_goal || null,
+          drinking: profile.drinking || null,
+          smoking: profile.smoking || null,
+          exercise: profile.exercise || null,
+          height_cm: profile.height_cm || null,
+          religion: profile.religion || null,
         })
         .eq("id", user!.id);
 
@@ -659,6 +697,106 @@ const Profile = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="font-semibold text-lg">Additional Details</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="education">Education</Label>
+                    <Input
+                      id="education"
+                      value={profile.education}
+                      onChange={(e) => setProfile({ ...profile, education: e.target.value })}
+                      placeholder="e.g., Bachelors"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="height">Height (cm)</Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={profile.height_cm || ""}
+                      onChange={(e) => setProfile({ ...profile, height_cm: parseInt(e.target.value) || null })}
+                      placeholder="e.g., 170"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lifestyle">Lifestyle</Label>
+                    <Input
+                      id="lifestyle"
+                      value={profile.lifestyle}
+                      onChange={(e) => setProfile({ ...profile, lifestyle: e.target.value })}
+                      placeholder="e.g., Active"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship_goal">Looking For</Label>
+                    <Input
+                      id="relationship_goal"
+                      value={profile.relationship_goal}
+                      onChange={(e) => setProfile({ ...profile, relationship_goal: e.target.value })}
+                      placeholder="e.g., Relationship"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="drinking">Drinking</Label>
+                    <Input
+                      id="drinking"
+                      value={profile.drinking}
+                      onChange={(e) => setProfile({ ...profile, drinking: e.target.value })}
+                      placeholder="e.g., Socially"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="smoking">Smoking</Label>
+                    <Input
+                      id="smoking"
+                      value={profile.smoking}
+                      onChange={(e) => setProfile({ ...profile, smoking: e.target.value })}
+                      placeholder="e.g., Never"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="exercise">Exercise</Label>
+                    <Input
+                      id="exercise"
+                      value={profile.exercise}
+                      onChange={(e) => setProfile({ ...profile, exercise: e.target.value })}
+                      placeholder="e.g., Daily"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="religion">Religion</Label>
+                    <Input
+                      id="religion"
+                      value={profile.religion}
+                      onChange={(e) => setProfile({ ...profile, religion: e.target.value })}
+                      placeholder="e.g., Christian"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {profile.verified && (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-primary/20 text-primary">
+                      ✓ Verified Profile
+                    </Badge>
+                    <p className="text-sm text-muted-foreground">
+                      Your profile is verified
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <Button
                 onClick={saveProfile}
