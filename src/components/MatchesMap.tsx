@@ -12,6 +12,9 @@ interface Profile {
   longitude: number;
   photo_url?: string;
   bio?: string;
+  distance?: number;
+  interests?: string[];
+  verified?: boolean;
 }
 
 interface MatchesMapProps {
