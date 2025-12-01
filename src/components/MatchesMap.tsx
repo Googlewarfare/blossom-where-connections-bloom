@@ -44,7 +44,7 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/light-v11', // Lighter style to match the app's aesthetic
       center: center,
       zoom: userLocation ? 10 : 4,
     });
@@ -57,11 +57,14 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
 
     // Add user location marker if available
     if (userLocation) {
-      const userMarker = new mapboxgl.Marker({ color: '#ef4444' })
+      const userMarker = new mapboxgl.Marker({ color: 'hsl(340, 75%, 45%)' }) // Primary magenta color
         .setLngLat([userLocation.longitude, userLocation.latitude])
         .setPopup(
-          new mapboxgl.Popup({ offset: 25 })
-            .setHTML('<div class="font-semibold">Your Location</div>')
+          new mapboxgl.Popup({ 
+            offset: 25,
+            className: 'custom-popup'
+          })
+            .setHTML('<div class="font-semibold text-[hsl(340,75%,45%)]">Your Location</div>')
         )
         .addTo(map.current);
       
@@ -135,17 +138,17 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
               0, 1,
               12, 3
             ],
-            // Color ramp for heatmap
+            // Color ramp for heatmap - using brand colors
             'heatmap-color': [
               'interpolate',
               ['linear'],
               ['heatmap-density'],
-              0, 'rgba(236,222,239,0)',
-              0.2, 'rgb(208,209,230)',
-              0.4, 'rgb(166,189,219)',
-              0.6, 'rgb(103,169,207)',
-              0.8, 'rgb(28,144,153)',
-              1, 'rgb(1,108,89)'
+              0, 'rgba(254,242,242,0)', // transparent blush
+              0.2, 'hsl(352, 100%, 90%)', // light blush
+              0.4, 'hsl(8, 100%, 85%)', // light coral
+              0.6, 'hsl(8, 100%, 75%)', // coral
+              0.8, 'hsl(340, 75%, 55%)', // light magenta
+              1, 'hsl(340, 75%, 45%)' // primary magenta
             ],
             // Adjust the heatmap radius by zoom level
             'heatmap-radius': [
@@ -175,25 +178,37 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
       el.className = 'marker';
       el.style.backgroundImage = profile.photo_url 
         ? `url(${profile.photo_url})`
-        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        : 'linear-gradient(135deg, hsl(340, 75%, 45%) 0%, hsl(8, 100%, 75%) 100%)'; // Brand gradient
       el.style.width = '40px';
       el.style.height = '40px';
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center';
       el.style.borderRadius = '50%';
-      el.style.border = '3px solid white';
+      el.style.border = '3px solid hsl(340, 75%, 45%)'; // Primary magenta border
       el.style.cursor = 'pointer';
-      el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      el.style.boxShadow = '0 4px 12px hsla(340, 75%, 45%, 0.3)'; // Branded shadow
+      el.style.transition = 'transform 0.2s ease';
+      
+      // Hover effect
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.1)';
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1)';
+      });
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat([profile.longitude, profile.latitude])
         .setPopup(
-          new mapboxgl.Popup({ offset: 25 })
+          new mapboxgl.Popup({ 
+            offset: 25,
+            className: 'custom-popup'
+          })
             .setHTML(`
-              <div class="p-2">
-                <div class="font-semibold text-base">${profile.full_name}, ${profile.age}</div>
-                <div class="text-sm text-muted-foreground">${profile.location}</div>
-                ${profile.bio ? `<div class="text-sm mt-1">${profile.bio.substring(0, 80)}${profile.bio.length > 80 ? '...' : ''}</div>` : ''}
+              <div class="p-3">
+                <div class="font-semibold text-base text-[hsl(340,75%,45%)]">${profile.full_name}, ${profile.age}</div>
+                <div class="text-sm text-[hsl(340,30%,50%)]">${profile.location}</div>
+                ${profile.bio ? `<div class="text-sm mt-1 text-[hsl(340,80%,20%)]">${profile.bio.substring(0, 80)}${profile.bio.length > 80 ? '...' : ''}</div>` : ''}
               </div>
             `)
         )
@@ -226,30 +241,74 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
   }, [profiles, onMarkerClick, userLocation]);
 
   return (
-    <div ref={mapContainer} className="w-full h-full rounded-lg relative">
-      {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
-          <div className="text-center p-8 max-w-md">
-            <Map className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">Map View Unavailable</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              To enable the map view, please add your Mapbox public token to the project settings.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Get your token at{" "}
-              <a 
-                href="https://mapbox.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                mapbox.com
-              </a>
-            </p>
+    <>
+      <style>{`
+        .mapboxgl-popup-content {
+          background: hsl(0, 0%, 100%);
+          border-radius: 1rem;
+          box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
+          border: 1px solid hsl(352, 40%, 88%);
+          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
+        .mapboxgl-popup-close-button {
+          color: hsl(340, 75%, 45%);
+          font-size: 20px;
+          padding: 8px;
+        }
+        .mapboxgl-popup-close-button:hover {
+          background-color: hsl(352, 60%, 92%);
+        }
+        .mapboxgl-ctrl-group {
+          background: hsl(0, 0%, 100%);
+          border: 1px solid hsl(352, 40%, 88%);
+          box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
+        }
+        .mapboxgl-ctrl-group button {
+          color: hsl(340, 75%, 45%);
+        }
+        .mapboxgl-ctrl-group button:hover {
+          background-color: hsl(352, 60%, 92%);
+        }
+        .dark .mapboxgl-popup-content {
+          background: hsl(340, 45%, 12%);
+          border-color: hsl(340, 40%, 20%);
+        }
+        .dark .mapboxgl-ctrl-group {
+          background: hsl(340, 45%, 12%);
+          border-color: hsl(340, 40%, 20%);
+        }
+        .dark .mapboxgl-ctrl-group button {
+          color: hsl(8, 100%, 75%);
+        }
+        .dark .mapboxgl-popup-close-button {
+          color: hsl(8, 100%, 75%);
+        }
+      `}</style>
+      <div ref={mapContainer} className="w-full h-full rounded-lg relative overflow-hidden border border-border">
+        {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
+            <div className="text-center p-8 max-w-md">
+              <Map className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Map View Unavailable</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                To enable the map view, please add your Mapbox public token to the project settings.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Get your token at{" "}
+                <a 
+                  href="https://mapbox.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  mapbox.com
+                </a>
+              </p>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 
