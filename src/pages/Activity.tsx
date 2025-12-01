@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Heart, Eye, Users, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Eye, Users, Sparkles, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { VerificationBadge } from '@/components/VerificationBadge';
@@ -20,6 +20,7 @@ interface ActivityUser {
   photo_url: string | null;
   verified: boolean;
   timestamp: string;
+  is_super_like?: boolean;
 }
 
 const Activity = () => {
@@ -28,6 +29,7 @@ const Activity = () => {
   const [loading, setLoading] = useState(true);
   const [recentMatches, setRecentMatches] = useState<ActivityUser[]>([]);
   const [profileLikes, setProfileLikes] = useState<ActivityUser[]>([]);
+  const [superLikes, setSuperLikes] = useState<ActivityUser[]>([]);
   const [profileViews, setProfileViews] = useState<ActivityUser[]>([]);
 
   useEffect(() => {
@@ -63,7 +65,27 @@ const Activity = () => {
 
       setRecentMatches(matchUsers.filter(Boolean) as ActivityUser[]);
 
-      // Load who liked you (last 7 days)
+      // Load super likes (last 7 days) - Priority display
+      const { data: superLikesData } = await supabase
+        .from('super_likes')
+        .select('sender_id, created_at')
+        .eq('recipient_id', user.id)
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const superLikeUsers = await Promise.all(
+        (superLikesData || []).map(async (superLike) => {
+          const userDetails = await fetchUserDetails(superLike.sender_id, superLike.created_at);
+          return userDetails ? { ...userDetails, is_super_like: true } : null;
+        })
+      );
+
+      setSuperLikes(superLikeUsers.filter(Boolean) as ActivityUser[]);
+
+      // Load regular likes (last 7 days) - excluding super likes
+      const superLikeSenderIds = superLikesData?.map(sl => sl.sender_id) || [];
+      
       const { data: likesData } = await supabase
         .from('profile_likes')
         .select('liker_id, created_at')
@@ -73,9 +95,11 @@ const Activity = () => {
         .limit(20);
 
       const likeUsers = await Promise.all(
-        (likesData || []).map(async (like) => {
-          return await fetchUserDetails(like.liker_id, like.created_at);
-        })
+        (likesData || [])
+          .filter(like => !superLikeSenderIds.includes(like.liker_id))
+          .map(async (like) => {
+            return await fetchUserDetails(like.liker_id, like.created_at);
+          })
       );
 
       setProfileLikes(likeUsers.filter(Boolean) as ActivityUser[]);
@@ -155,7 +179,9 @@ const Activity = () => {
       transition={{ duration: 0.2 }}
     >
       <Card 
-        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+        className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+          activityUser.is_super_like ? 'border-2 border-amber-400 shadow-lg shadow-amber-500/20' : ''
+        }`}
         onClick={() => navigate(`/discover`)}
       >
         <div className="flex items-center gap-4">
@@ -167,6 +193,22 @@ const Activity = () => {
             <div className={`absolute -bottom-1 -right-1 ${iconColor} rounded-full p-1.5`}>
               <Icon className="h-3 w-3 text-white" />
             </div>
+            {activityUser.is_super_like && (
+              <motion.div
+                className="absolute -top-1 -left-1 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-full p-1"
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <Star className="h-3 w-3 text-white fill-white" />
+              </motion.div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
@@ -175,6 +217,11 @@ const Activity = () => {
                 {activityUser.age && `, ${activityUser.age}`}
               </h3>
               <VerificationBadge verified={activityUser.verified} size="sm" />
+              {activityUser.is_super_like && (
+                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0">
+                  Super Like
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               {formatDistanceToNow(new Date(activityUser.timestamp), { addSuffix: true })}
@@ -218,7 +265,7 @@ const Activity = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="matches" className="space-y-6">
+        <Tabs defaultValue="likes" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="matches" className="gap-2">
               <Users className="h-4 w-4" />
@@ -230,8 +277,8 @@ const Activity = () => {
             <TabsTrigger value="likes" className="gap-2">
               <Heart className="h-4 w-4" />
               Likes
-              {profileLikes.length > 0 && (
-                <Badge variant="secondary" className="ml-1">{profileLikes.length}</Badge>
+              {(profileLikes.length + superLikes.length) > 0 && (
+                <Badge variant="secondary" className="ml-1">{profileLikes.length + superLikes.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="views" className="gap-2">
@@ -270,10 +317,10 @@ const Activity = () => {
             </div>
           </TabsContent>
 
-          {/* Who Liked You */}
+          {/* Who Liked You - Super Likes at Top */}
           <TabsContent value="likes">
             <div className="space-y-3">
-              {profileLikes.length === 0 ? (
+              {superLikes.length === 0 && profileLikes.length === 0 ? (
                 <Card className="p-12 text-center">
                   <Heart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No likes yet</h3>
@@ -285,14 +332,49 @@ const Activity = () => {
                   </Button>
                 </Card>
               ) : (
-                profileLikes.map((like) => (
-                  <ActivityCard
-                    key={like.id}
-                    user={like}
-                    icon={Heart}
-                    iconColor="bg-gradient-to-br from-red-500 to-pink-500"
-                  />
-                ))
+                <>
+                  {/* Super Likes Section - Priority Display */}
+                  {superLikes.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 px-2">
+                        <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Super Likes
+                        </h3>
+                      </div>
+                      {superLikes.map((like) => (
+                        <ActivityCard
+                          key={like.id}
+                          user={like}
+                          icon={Star}
+                          iconColor="bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Regular Likes Section */}
+                  {profileLikes.length > 0 && (
+                    <div className="space-y-3 mt-6">
+                      {superLikes.length > 0 && (
+                        <div className="flex items-center gap-2 px-2">
+                          <Heart className="h-5 w-5 text-pink-500" />
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Regular Likes
+                          </h3>
+                        </div>
+                      )}
+                      {profileLikes.map((like) => (
+                        <ActivityCard
+                          key={like.id}
+                          user={like}
+                          icon={Heart}
+                          iconColor="bg-gradient-to-br from-red-500 to-pink-500"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </TabsContent>
