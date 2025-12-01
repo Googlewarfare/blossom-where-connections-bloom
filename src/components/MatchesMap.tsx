@@ -78,12 +78,96 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing profile markers (keep user marker)
-    markers.current.slice(userLocation ? 1 : 0).forEach(marker => marker.remove());
-    markers.current = markers.current.slice(0, userLocation ? 1 : 0);
+    // Wait for map to be fully loaded
+    if (!map.current.isStyleLoaded()) {
+      map.current.once('load', () => {
+        updateMapData();
+      });
+    } else {
+      updateMapData();
+    }
 
-    // Add markers for each profile
-    profiles.forEach(profile => {
+    function updateMapData() {
+      if (!map.current) return;
+
+      // Clear existing profile markers (keep user marker)
+      markers.current.slice(userLocation ? 1 : 0).forEach(marker => marker.remove());
+      markers.current = markers.current.slice(0, userLocation ? 1 : 0);
+
+      // Create GeoJSON data for heatmap
+      const geojsonData = {
+        type: 'FeatureCollection' as const,
+        features: profiles
+          .filter(profile => profile.latitude && profile.longitude)
+          .map(profile => ({
+            type: 'Feature' as const,
+            properties: {},
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [profile.longitude, profile.latitude]
+            }
+          }))
+      };
+
+      // Add or update heatmap source
+      if (map.current.getSource('matches-heatmap')) {
+        (map.current.getSource('matches-heatmap') as mapboxgl.GeoJSONSource).setData(geojsonData);
+      } else {
+        map.current.addSource('matches-heatmap', {
+          type: 'geojson',
+          data: geojsonData
+        });
+
+        // Add heatmap layer
+        map.current.addLayer({
+          id: 'matches-heatmap-layer',
+          type: 'heatmap',
+          source: 'matches-heatmap',
+          paint: {
+            // Increase the heatmap weight based on frequency and property magnitude
+            'heatmap-weight': 1,
+            // Increase the heatmap color weight by zoom level
+            'heatmap-intensity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 1,
+              12, 3
+            ],
+            // Color ramp for heatmap
+            'heatmap-color': [
+              'interpolate',
+              ['linear'],
+              ['heatmap-density'],
+              0, 'rgba(236,222,239,0)',
+              0.2, 'rgb(208,209,230)',
+              0.4, 'rgb(166,189,219)',
+              0.6, 'rgb(103,169,207)',
+              0.8, 'rgb(28,144,153)',
+              1, 'rgb(1,108,89)'
+            ],
+            // Adjust the heatmap radius by zoom level
+            'heatmap-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 2,
+              12, 20
+            ],
+            // Transition from heatmap to circle layer by zoom level
+            'heatmap-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              7, 1,
+              12, 0.5
+            ]
+          }
+        });
+      }
+
+      // Add markers for each profile
+      profiles.forEach(profile => {
       if (!profile.latitude || !profile.longitude) return;
 
       const el = document.createElement('div');
@@ -137,7 +221,8 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
 
       map.current.fitBounds(bounds, { padding: 50, maxZoom: 12 });
     }
-  }, [profiles, onMarkerClick]);
+    }
+  }, [profiles, onMarkerClick, userLocation]);
 
   return (
     <div ref={mapContainer} className="w-full h-full rounded-lg" />
