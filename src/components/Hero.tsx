@@ -24,7 +24,7 @@ const Hero = () => {
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
                 Find Your{" "}
-                <span className="gradient-primary bg-clip-text text-primary">
+                <span className="gradient-primary bg-clip-text text-primary bg-secondary">
                   Perfect Match
                 </span>
               </h1>
