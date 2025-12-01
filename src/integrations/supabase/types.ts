@@ -128,6 +128,7 @@ export type Database = {
           max_age: number | null
           max_distance: number | null
           min_age: number | null
+          show_profiles_within_miles: number | null
           updated_at: string | null
           user_id: string
         }
@@ -138,6 +139,7 @@ export type Database = {
           max_age?: number | null
           max_distance?: number | null
           min_age?: number | null
+          show_profiles_within_miles?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -148,6 +150,7 @@ export type Database = {
           max_age?: number | null
           max_distance?: number | null
           min_age?: number | null
+          show_profiles_within_miles?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -204,7 +207,9 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           occupation: string | null
           updated_at: string | null
         }
@@ -215,7 +220,9 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           occupation?: string | null
           updated_at?: string | null
         }
@@ -226,7 +233,9 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           occupation?: string | null
           updated_at?: string | null
         }

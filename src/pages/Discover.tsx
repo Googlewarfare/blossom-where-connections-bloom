@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { calculateDistance } from "@/lib/location-utils";
 
 interface Profile {
   id: string;
@@ -20,6 +21,9 @@ interface Profile {
   occupation: string | null;
   photo_url: string | null;
   interests: string[];
+  latitude: number | null;
+  longitude: number | null;
+  distance?: number | null;
 }
 
 const Discover = () => {
@@ -31,6 +35,7 @@ const Discover = () => {
   const [loading, setLoading] = useState(true);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState<Profile | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -42,8 +47,31 @@ const Discover = () => {
       return;
     }
 
-    const fetchProfiles = async () => {
+    const loadUserLocationAndFetchProfiles = async () => {
       try {
+        // First, load user's own location
+        const { data: userData } = await supabase
+          .from("profiles")
+          .select("latitude, longitude")
+          .eq("id", user.id)
+          .single();
+
+        const userLat = userData?.latitude;
+        const userLon = userData?.longitude;
+        
+        if (userLat !== null && userLon !== null) {
+          setUserLocation({ latitude: userLat, longitude: userLon });
+        }
+
+        // Fetch user's preferences for distance filtering
+        const { data: prefsData } = await supabase
+          .from("preferences")
+          .select("show_profiles_within_miles")
+          .eq("user_id", user.id)
+          .single();
+
+        const maxDistance = prefsData?.show_profiles_within_miles || 50;
+
         // Fetch profiles that haven't been swiped yet
         const { data: swipedIds } = await supabase
           .from("user_swipes")
@@ -61,7 +89,9 @@ const Discover = () => {
             age,
             bio,
             location,
-            occupation
+            occupation,
+            latitude,
+            longitude
           `)
           .neq("id", user.id)
           .not("bio", "is", null);
@@ -71,13 +101,24 @@ const Discover = () => {
           query = query.not("id", "in", `(${swipedUserIds.join(",")})`);
         }
 
-        const { data: profilesData, error: profilesError } = await query.limit(20);
+        const { data: profilesData, error: profilesError } = await query.limit(50);
 
         if (profilesError) throw profilesError;
 
-        // Fetch photos for each profile
-        const profilesWithPhotos = await Promise.all(
+        // Fetch photos and interests, calculate distance, and filter
+        const profilesWithDetails = await Promise.all(
           (profilesData || []).map(async (profile) => {
+            // Calculate distance if both users have location data
+            let distance = null;
+            if (userLat !== null && userLon !== null && profile.latitude !== null && profile.longitude !== null) {
+              distance = calculateDistance(userLat, userLon, profile.latitude, profile.longitude);
+            }
+
+            // Skip if distance exceeds max distance preference
+            if (distance !== null && distance > maxDistance) {
+              return null;
+            }
+
             const { data: photoData } = await supabase
               .from("profile_photos")
               .select("photo_url")
@@ -115,20 +156,28 @@ const Discover = () => {
               ...profile,
               photo_url: signedPhotoUrl,
               interests,
+              distance,
             };
           })
         );
 
-        setProfiles(profilesWithPhotos);
+        // Filter out null values (profiles that exceeded distance limit)
+        const filteredProfiles = profilesWithDetails.filter(p => p !== null) as Profile[];
+        setProfiles(filteredProfiles);
       } catch (error) {
         console.error("Error fetching profiles:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load profiles",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfiles();
-  }, [user, navigate]);
+    loadUserLocationAndFetchProfiles();
+  }, [user, navigate, toast]);
 
   const handleSwipe = async (action: "like" | "pass") => {
     const currentProfile = profiles[currentIndex];
@@ -336,10 +385,16 @@ const Discover = () => {
                           {currentProfile.age && `, ${currentProfile.age}`}
                         </h3>
                         <div className="space-y-2 mb-4">
-                          {currentProfile.location && (
+                          {currentProfile.distance !== null && currentProfile.distance !== undefined && (
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
-                              <span>{currentProfile.location}</span>
+                              <span>{currentProfile.distance} miles away</span>
+                            </div>
+                          )}
+                          {currentProfile.location && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 opacity-70" />
+                              <span className="text-sm opacity-90">{currentProfile.location}</span>
                             </div>
                           )}
                           {currentProfile.occupation && (

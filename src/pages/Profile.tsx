@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, X, Star } from "lucide-react";
+import { Loader2, Camera, Heart, LogOut, X, Star, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { getCurrentLocation } from "@/lib/location-utils";
 
 interface ProfileData {
   full_name: string;
@@ -20,6 +21,8 @@ interface ProfileData {
   gender: string;
   location: string;
   occupation: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface Interest {
@@ -33,6 +36,7 @@ interface Preferences {
   max_age: number;
   max_distance: number;
   interested_in: string[];
+  show_profiles_within_miles: number;
 }
 
 interface ProfilePhoto {
@@ -51,6 +55,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
     bio: "",
@@ -58,6 +63,8 @@ const Profile = () => {
     gender: "",
     location: "",
     occupation: "",
+    latitude: null,
+    longitude: null,
   });
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +76,7 @@ const Profile = () => {
     max_age: 99,
     max_distance: 50,
     interested_in: [],
+    show_profiles_within_miles: 50,
   });
 
   useEffect(() => {
@@ -105,6 +113,8 @@ const Profile = () => {
           gender: data.gender || "",
           location: data.location || "",
           occupation: data.occupation || "",
+          latitude: data.latitude || null,
+          longitude: data.longitude || null,
         });
       }
     } catch (error) {
@@ -193,6 +203,7 @@ const Profile = () => {
           max_age: data.max_age || 99,
           max_distance: data.max_distance || 50,
           interested_in: data.interested_in || [],
+          show_profiles_within_miles: data.show_profiles_within_miles || 50,
         });
       }
     } catch (error) {
@@ -589,9 +600,47 @@ const Profile = () => {
                     id="location"
                     value={profile.location}
                     onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    placeholder="City, Country"
+                    placeholder="City, State"
                     maxLength={100}
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      setLoadingLocation(true);
+                      try {
+                        const coords = await getCurrentLocation();
+                        setProfile({
+                          ...profile,
+                          latitude: coords.latitude,
+                          longitude: coords.longitude,
+                        });
+                        toast({
+                          title: "Location Captured",
+                          description: "Your location coordinates have been set.",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Location Error",
+                          description: "Unable to get your location.",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setLoadingLocation(false);
+                      }
+                    }}
+                    disabled={loadingLocation}
+                    className="w-full"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {loadingLocation ? "Getting location..." : profile.latitude ? "Update My Location" : "Use My Location"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    {profile.latitude && profile.longitude
+                      ? `Coordinates set (${profile.latitude.toFixed(4)}, ${profile.longitude.toFixed(4)})`
+                      : "Click to use your device's location for distance calculation"}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -686,14 +735,17 @@ const Profile = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <Label>Maximum Distance: {preferences.max_distance} km</Label>
+                  <Label>Maximum Distance: {preferences.show_profiles_within_miles} miles</Label>
                   <Slider
-                    value={[preferences.max_distance]}
-                    onValueChange={([value]) => setPreferences({ ...preferences, max_distance: value })}
+                    value={[preferences.show_profiles_within_miles]}
+                    onValueChange={([value]) => setPreferences({ ...preferences, show_profiles_within_miles: value })}
                     min={1}
                     max={500}
                     step={5}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Only show profiles within this distance from your location
+                  </p>
                 </div>
 
                 <div className="space-y-2">
