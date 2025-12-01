@@ -18,6 +18,8 @@ export interface Message {
   conversation_id: string;
   created_at: string;
   read: boolean;
+  edited_at?: string;
+  deleted: boolean;
   reactions?: MessageReaction[];
 }
 
@@ -231,6 +233,61 @@ export const useMessages = (conversationId?: string) => {
     }
   };
 
+  // Edit a message
+  const editMessage = async (messageId: string, newContent: string) => {
+    if (!user || !newContent.trim()) return;
+
+    try {
+      // Get current message content for history
+      const { data: currentMessage } = await supabase
+        .from('messages')
+        .select('content')
+        .eq('id', messageId)
+        .single();
+
+      if (currentMessage) {
+        // Save to edit history
+        await supabase
+          .from('message_edit_history')
+          .insert({
+            message_id: messageId,
+            content: currentMessage.content,
+          });
+      }
+
+      // Update message
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          content: newContent.trim(),
+          edited_at: new Date().toISOString(),
+        })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
+    }
+  };
+
+  // Delete a message (soft delete)
+  const deleteMessage = async (messageId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ deleted: true })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+    }
+  };
+
   // Send a new message
   const sendMessage = async (content: string) => {
     if (!user || !conversationId || !content.trim()) return;
@@ -358,6 +415,8 @@ export const useMessages = (conversationId?: string) => {
     conversations,
     loading,
     sendMessage,
+    editMessage,
+    deleteMessage,
     addReaction,
     removeReaction,
     refreshConversations: fetchConversations,
