@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
+import { useAuth, PREMIUM_FEATURES } from '@/lib/auth';
 import { useMessages } from '@/hooks/use-messages';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,10 +15,14 @@ import { MessageReactions } from '@/components/MessageReactions';
 import { MessageActions } from '@/components/MessageActions';
 import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
 import { IcebreakerQuestions } from '@/components/IcebreakerQuestions';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, subscriptionStatus } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const conversationId = searchParams.get('id');
   const [messageText, setMessageText] = useState('');
@@ -26,6 +30,10 @@ const Chat = () => {
     conversationId
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+
+  const hasReadReceipts = subscriptionStatus?.subscribed && 
+    subscriptionStatus.subscriptions?.some(sub => sub.product_id === PREMIUM_FEATURES.READ_RECEIPTS);
 
   const {
     messages,
@@ -54,11 +62,44 @@ const Chat = () => {
     if (conversationId) {
       setSelectedConversation(conversationId);
     }
-  }, [conversationId]);
+    
+    // Handle subscription success
+    const subscriptionSuccess = searchParams.get('subscription_success');
+    if (subscriptionSuccess === 'true') {
+      toast({
+        title: "Read Receipts Active! 💬",
+        description: "You can now see when messages are read!",
+      });
+      window.history.replaceState({}, '', '/chat');
+    }
+  }, [conversationId, searchParams, toast]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    
+    // Mark messages as read when viewing them
+    const markMessagesAsRead = async () => {
+      if (!selectedConversation || !user || messages.length === 0) return;
+      
+      const unreadMessages = messages.filter(
+        msg => !msg.read && msg.sender_id !== user.id
+      );
+      
+      if (unreadMessages.length === 0) return;
+      
+      // Update all unread messages
+      await Promise.all(
+        unreadMessages.map(msg =>
+          supabase
+            .from('messages')
+            .update({ read: true, read_at: new Date().toISOString() })
+            .eq('id', msg.id)
+        )
+      );
+    };
+    
+    markMessagesAsRead();
+  }, [messages, selectedConversation, user]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -106,6 +147,40 @@ const Chat = () => {
     setEditText(currentContent);
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open subscription management",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubscribeReadReceipts = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-read-receipts-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating subscription checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start subscription",
+        variant: "destructive",
+      });
+    }
+  };
+
   const currentConversation = conversations.find((c) => c.id === selectedConversation);
 
   if (authLoading || loading) {
@@ -126,7 +201,27 @@ const Chat = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl font-bold">Messages</h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            {hasReadReceipts ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageSubscription}
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                Read Receipts Active
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSubscriptionDialog(true)}
+                className="border-primary/30"
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                Get Read Receipts
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -312,25 +407,43 @@ const Chat = () => {
                                   <p className="whitespace-pre-wrap break-words">
                                     {message.content}
                                   </p>
-                                  <div
+                                   <div
                                     className={`flex items-center gap-2 text-xs mt-1 ${
                                       isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
                                     }`}
-                                  >
-                                    <span>{format(new Date(message.created_at), 'h:mm a')}</span>
-                                    {message.edited_at && (
-                                      <span className="italic">(edited)</span>
-                                    )}
-                                    {isOwn && (
-                                      <span className="ml-1">
-                                        {message.read ? (
-                                          <CheckCheck className="h-3 w-3" />
-                                        ) : (
-                                          <Check className="h-3 w-3" />
-                                        )}
-                                      </span>
-                                    )}
-                                  </div>
+                                   >
+                                     <span>{format(new Date(message.created_at), 'h:mm a')}</span>
+                                     {message.edited_at && (
+                                       <span className="italic">(edited)</span>
+                                     )}
+                                     {isOwn && hasReadReceipts && (
+                                       <span className="ml-1 flex items-center gap-1">
+                                         {message.read ? (
+                                           <>
+                                             <CheckCheck className="h-3 w-3 text-blue-400" />
+                                             {message.read_at && (
+                                               <span className="text-[10px]">
+                                                 Read {format(new Date(message.read_at), 'h:mm a')}
+                                               </span>
+                                             )}
+                                           </>
+                                         ) : (
+                                           <Check className="h-3 w-3" />
+                                         )}
+                                       </span>
+                                     )}
+                                     {isOwn && !hasReadReceipts && (
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         className="h-4 px-1 py-0 text-[10px] hover:bg-transparent"
+                                         onClick={() => setShowSubscriptionDialog(true)}
+                                       >
+                                         <CheckCheck className="h-3 w-3 mr-0.5" />
+                                         Enable
+                                       </Button>
+                                     )}
+                                   </div>
                                 </div>
                                 {isOwn && (
                                   <MessageActions
@@ -417,6 +530,61 @@ const Chat = () => {
             )}
           </Card>
         </div>
+
+        {/* Read Receipts Subscription Dialog */}
+        <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-2xl">
+                Read Receipts Premium 💬
+              </DialogTitle>
+              <DialogDescription className="text-center pt-2">
+                Know exactly when your messages are read!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-6">
+              <Card className="border-2 border-primary/20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+                <div className="p-6">
+                  <div className="text-center mb-4">
+                    <div className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
+                      $4.99/month
+                    </div>
+                  </div>
+                  <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-2">
+                      <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">See when messages are read</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">Real-time read timestamps</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">Delivery confirmations</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">Better conversation flow</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">Cancel anytime</span>
+                    </li>
+                  </ul>
+                  <Button
+                    onClick={handleSubscribeReadReceipts}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                    size="lg"
+                  >
+                    <CheckCheck className="w-5 h-5 mr-2" />
+                    Subscribe Now
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

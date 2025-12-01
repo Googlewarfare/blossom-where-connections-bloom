@@ -28,6 +28,7 @@ export interface Message {
   conversation_id: string;
   created_at: string;
   read: boolean;
+  read_at?: string;
   edited_at?: string;
   deleted: boolean;
   reactions?: MessageReaction[];

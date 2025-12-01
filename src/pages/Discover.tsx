@@ -47,7 +47,8 @@ const Discover = () => {
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   
   const UNLIMITED_SUPER_LIKES_PRODUCT_ID = "prod_TWguag6wQXdfSB";
-  const hasUnlimitedSuperLikes = subscriptionStatus?.subscribed && subscriptionStatus?.product_id === UNLIMITED_SUPER_LIKES_PRODUCT_ID;
+  const hasUnlimitedSuperLikes = subscriptionStatus?.subscribed && 
+    subscriptionStatus.subscriptions?.some(sub => sub.product_id === UNLIMITED_SUPER_LIKES_PRODUCT_ID);
   
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);

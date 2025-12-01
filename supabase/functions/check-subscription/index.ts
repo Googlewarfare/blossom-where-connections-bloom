@@ -59,26 +59,25 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
-      limit: 1,
+      limit: 10,
     });
     const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
+    
+    const activeProducts = subscriptions.data.map((sub: any) => ({
+      product_id: sub.items.data[0].price.product as string,
+      subscription_end: new Date(sub.current_period_end * 1000).toISOString(),
+      subscription_id: sub.id,
+    }));
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
-      productId = subscription.items.data[0].price.product;
-      logStep("Determined subscription product", { productId });
+      logStep("Active subscriptions found", { count: activeProducts.length, products: activeProducts });
     } else {
       logStep("No active subscription found");
     }
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
-      product_id: productId,
-      subscription_end: subscriptionEnd
+      subscriptions: activeProducts
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

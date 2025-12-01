@@ -2,11 +2,22 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface ActiveSubscription {
+  product_id: string;
+  subscription_end: string;
+  subscription_id: string;
+}
+
 interface SubscriptionStatus {
   subscribed: boolean;
-  product_id: string | null;
-  subscription_end: string | null;
+  subscriptions: ActiveSubscription[];
 }
+
+// Premium feature product IDs
+export const PREMIUM_FEATURES = {
+  UNLIMITED_SUPER_LIKES: "prod_TWguag6wQXdfSB",
+  READ_RECEIPTS: "prod_TWgzMdfHydGfMG",
+} as const;
 
 interface AuthContextType {
   user: User | null;
