@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map, MessageCircle } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,24 @@ const Discover = () => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+
+  // Track profile view
+  useEffect(() => {
+    const trackView = async () => {
+      if (currentProfile && user) {
+        await supabase
+          .from("profile_views")
+          .insert({
+            viewer_id: user.id,
+            viewed_user_id: currentProfile.id,
+          })
+          .select()
+          .maybeSingle();
+      }
+    };
+
+    trackView();
+  }, [currentIndex, user]);
 
   useEffect(() => {
     if (!user) {
@@ -203,6 +221,18 @@ const Discover = () => {
 
       if (swipeError) throw swipeError;
 
+      // If it's a like, also insert into profile_likes
+      if (action === "like") {
+        await supabase
+          .from("profile_likes")
+          .insert({
+            liker_id: user!.id,
+            liked_user_id: currentProfile.id,
+          })
+          .select()
+          .maybeSingle();
+      }
+
       // Check for match if it was a like
       if (action === "like") {
         const userId1 = user!.id < currentProfile.id ? user!.id : currentProfile.id;
@@ -306,6 +336,14 @@ const Discover = () => {
                   Card View
                 </>
               )}
+            </Button>
+            <Button
+              onClick={() => navigate("/activity")}
+              variant="outline"
+              className="rounded-full"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Activity
             </Button>
             <Button
               onClick={() => navigate("/matches")}
