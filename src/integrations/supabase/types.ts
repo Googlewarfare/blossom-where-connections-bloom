@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      compatibility_scores: {
+        Row: {
+          calculated_at: string | null
+          factors: Json | null
+          id: string
+          score: number
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          calculated_at?: string | null
+          factors?: Json | null
+          id?: string
+          score: number
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          calculated_at?: string | null
+          factors?: Json | null
+          id?: string
+          score?: number
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -42,6 +69,116 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_questions: {
+        Row: {
+          category: string
+          created_at: string | null
+          date: string
+          id: string
+          is_active: boolean | null
+          question: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          date: string
+          id?: string
+          is_active?: boolean | null
+          question: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_active?: boolean | null
+          question?: string
+        }
+        Relationships: []
+      }
+      event_attendees: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          event_date: string
+          event_end_date: string | null
+          id: string
+          image_url: string | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          max_attendees: number | null
+          organizer_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          event_date: string
+          event_end_date?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          event_date?: string
+          event_end_date?: string | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       icebreaker_questions: {
         Row: {
@@ -141,30 +278,36 @@ export type Database = {
       message_media: {
         Row: {
           created_at: string
+          duration_seconds: number | null
           file_name: string
           file_size: number
           file_type: string
           file_url: string
           id: string
           message_id: string
+          waveform_data: Json | null
         }
         Insert: {
           created_at?: string
+          duration_seconds?: number | null
           file_name: string
           file_size: number
           file_type: string
           file_url: string
           id?: string
           message_id: string
+          waveform_data?: Json | null
         }
         Update: {
           created_at?: string
+          duration_seconds?: number | null
           file_name?: string
           file_size?: number
           file_type?: string
           file_url?: string
           id?: string
           message_id?: string
+          waveform_data?: Json | null
         }
         Relationships: [
           {
@@ -475,6 +618,107 @@ export type Database = {
         }
         Relationships: []
       }
+      stories: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          media_type: string
+          media_url: string
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_type: string
+          media_url: string
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_type?: string
+          media_url?: string
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string | null
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string | null
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string | null
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      success_stories: {
+        Row: {
+          approved: boolean | null
+          created_at: string | null
+          featured: boolean | null
+          id: string
+          meet_date: string | null
+          photo_url: string | null
+          story_text: string
+          updated_at: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          approved?: boolean | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          meet_date?: string | null
+          photo_url?: string | null
+          story_text: string
+          updated_at?: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          approved?: boolean | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          meet_date?: string | null
+          photo_url?: string | null
+          story_text?: string
+          updated_at?: string | null
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       super_likes: {
         Row: {
           created_at: string
@@ -531,6 +775,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_question_answers: {
+        Row: {
+          answer: string
+          created_at: string | null
+          id: string
+          is_public: boolean | null
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_question_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "daily_questions"
             referencedColumns: ["id"]
           },
         ]
