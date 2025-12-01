@@ -66,9 +66,18 @@ const Matches = () => {
               .limit(1)
               .maybeSingle();
 
+            // Generate signed URL for private photo bucket
+            let signedPhotoUrl = null;
+            if (photoData?.photo_url) {
+              const { data: signedUrlData } = await supabase.storage
+                .from("profile-photos")
+                .createSignedUrl(photoData.photo_url, 3600); // 1 hour expiration
+              signedPhotoUrl = signedUrlData?.signedUrl || null;
+            }
+
             return {
               ...profileData,
-              photo_url: photoData?.photo_url || null,
+              photo_url: signedPhotoUrl,
               match_id: match.id,
               matched_at: match.created_at,
             } as MatchProfile;

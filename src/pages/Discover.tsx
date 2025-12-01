@@ -85,7 +85,16 @@ const Discover = () => {
               .order("is_primary", { ascending: false })
               .order("display_order", { ascending: true })
               .limit(1)
-              .single();
+              .maybeSingle();
+
+            // Generate signed URL for private photo bucket
+            let signedPhotoUrl = null;
+            if (photoData?.photo_url) {
+              const { data: signedUrlData } = await supabase.storage
+                .from("profile-photos")
+                .createSignedUrl(photoData.photo_url, 3600); // 1 hour expiration
+              signedPhotoUrl = signedUrlData?.signedUrl || null;
+            }
 
             // Fetch interests
             const { data: interestsData } = await supabase
@@ -104,7 +113,7 @@ const Discover = () => {
 
             return {
               ...profile,
-              photo_url: photoData?.photo_url || null,
+              photo_url: signedPhotoUrl,
               interests,
             };
           })
