@@ -8,9 +8,10 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { MessageReactions } from '@/components/MessageReactions';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -23,9 +24,8 @@ const Chat = () => {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations, loading, sendMessage } = useMessages(
-    selectedConversation || undefined
-  );
+  const { messages, conversations, loading, sendMessage, addReaction, removeReaction } =
+    useMessages(selectedConversation || undefined);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -171,7 +171,7 @@ const Chat = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((message) => {
+                {messages.map((message) => {
                     const isOwn = message.sender_id === user?.id;
                     return (
                       <motion.div
@@ -180,23 +180,45 @@ const Chat = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div
-                          className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                            isOwn
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap break-words">
-                            {message.content}
-                          </p>
-                          <p
-                            className={`text-xs mt-1 ${
-                              isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
+                          <div
+                            className={`rounded-2xl px-4 py-2 ${
+                              isOwn
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
                             }`}
                           >
-                            {format(new Date(message.created_at), 'h:mm a')}
-                          </p>
+                            <p className="whitespace-pre-wrap break-words">
+                              {message.content}
+                            </p>
+                            <div
+                              className={`flex items-center gap-1 text-xs mt-1 ${
+                                isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                              }`}
+                            >
+                              <span>{format(new Date(message.created_at), 'h:mm a')}</span>
+                              {isOwn && (
+                                <span className="ml-1">
+                                  {message.read ? (
+                                    <CheckCheck className="h-3 w-3" />
+                                  ) : (
+                                    <Check className="h-3 w-3" />
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Message Reactions */}
+                          {user && (
+                            <MessageReactions
+                              messageId={message.id}
+                              reactions={message.reactions || []}
+                              userId={user.id}
+                              onAddReaction={addReaction}
+                              onRemoveReaction={removeReaction}
+                            />
+                          )}
                         </div>
                       </motion.div>
                     );

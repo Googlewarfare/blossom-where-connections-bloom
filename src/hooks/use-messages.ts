@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
+export interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  reaction: 'heart' | 'like' | 'laugh';
+  created_at: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -10,6 +18,7 @@ export interface Message {
   conversation_id: string;
   created_at: string;
   read: boolean;
+  reactions?: MessageReaction[];
 }
 
 export interface Conversation {
@@ -34,6 +43,7 @@ export const useMessages = (conversationId?: string) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [reactions, setReactions] = useState<MessageReaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch all conversations for the current user
@@ -138,6 +148,17 @@ export const useMessages = (conversationId?: string) => {
       if (error) throw error;
       setMessages(data || []);
 
+      // Fetch reactions for all messages
+      if (data && data.length > 0) {
+        const messageIds = data.map(m => m.id);
+        const { data: reactionsData } = await supabase
+          .from('message_reactions')
+          .select('*')
+          .in('message_id', messageIds);
+        
+        setReactions((reactionsData || []) as MessageReaction[]);
+      }
+
       // Mark messages as read
       if (user) {
         await supabase
@@ -150,6 +171,63 @@ export const useMessages = (conversationId?: string) => {
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to load messages');
+    }
+  };
+
+  // Add reaction to a message
+  const addReaction = async (messageId: string, reaction: 'heart' | 'like' | 'laugh') => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('message_reactions')
+        .insert({
+          message_id: messageId,
+          user_id: user.id,
+          reaction,
+        });
+
+      if (error) {
+        // If unique constraint violation, update existing reaction
+        if (error.code === '23505') {
+          await supabase
+            .from('message_reactions')
+            .delete()
+            .eq('message_id', messageId)
+            .eq('user_id', user.id);
+          
+          await supabase
+            .from('message_reactions')
+            .insert({
+              message_id: messageId,
+              user_id: user.id,
+              reaction,
+            });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      toast.error('Failed to add reaction');
+    }
+  };
+
+  // Remove reaction from a message
+  const removeReaction = async (messageId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('message_reactions')
+        .delete()
+        .eq('message_id', messageId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+      toast.error('Failed to remove reaction');
     }
   };
 
@@ -180,7 +258,7 @@ export const useMessages = (conversationId?: string) => {
     }
   };
 
-  // Set up realtime subscription for messages
+  // Set up realtime subscription for messages and reactions
   useEffect(() => {
     if (!conversationId) return;
 
@@ -198,6 +276,39 @@ export const useMessages = (conversationId?: string) => {
         },
         (payload) => {
           setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === payload.new.id ? (payload.new as Message) : msg
+            )
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_reactions',
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setReactions((prev) => [...prev, payload.new as MessageReaction]);
+          } else if (payload.eventType === 'DELETE') {
+            setReactions((prev) =>
+              prev.filter((r) => r.id !== payload.old.id)
+            );
+          }
         }
       )
       .subscribe();
@@ -236,11 +347,19 @@ export const useMessages = (conversationId?: string) => {
     fetchConversations();
   }, [user]);
 
+  // Combine messages with their reactions
+  const messagesWithReactions = messages.map((msg) => ({
+    ...msg,
+    reactions: reactions.filter((r) => r.message_id === msg.id),
+  }));
+
   return {
-    messages,
+    messages: messagesWithReactions,
     conversations,
     loading,
     sendMessage,
+    addReaction,
+    removeReaction,
     refreshConversations: fetchConversations,
   };
 };
