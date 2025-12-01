@@ -18,12 +18,14 @@ interface MatchesMapProps {
   profiles: Profile[];
   userLocation?: { latitude: number; longitude: number };
   onMarkerClick?: (profileId: string) => void;
+  onProfileSelect?: (profile: Profile | null) => void;
 }
 
-const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) => {
+const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: MatchesMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+  const [selectedProfile, setSelectedProfile] = React.useState<Profile | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -229,7 +231,11 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
         .addTo(map.current!);
 
       if (onMarkerClick) {
-        el.addEventListener('click', () => onMarkerClick(profile.id));
+        el.addEventListener('click', () => {
+          onMarkerClick(profile.id);
+          setSelectedProfile(profile);
+          onProfileSelect?.(profile);
+        });
       }
 
       markers.current.push(marker);
@@ -336,26 +342,109 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick }: MatchesMapProps) 
           color: hsl(8, 100%, 75%);
         }
       `}</style>
-      <div ref={mapContainer} className="w-full h-full rounded-lg relative overflow-hidden border border-border">
-        {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
-            <div className="text-center p-8 max-w-md">
-              <Map className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Map View Unavailable</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                To enable the map view, please add your Mapbox public token to the project settings.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Get your token at{" "}
-                <a 
-                  href="https://mapbox.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+      
+      <div className="relative w-full h-full">
+        <div ref={mapContainer} className="w-full h-full rounded-lg relative overflow-hidden border border-border">
+          {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
+              <div className="text-center p-8 max-w-md">
+                <Map className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">Map View Unavailable</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  To enable the map view, please add your Mapbox public token to the project settings.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Get your token at{" "}
+                  <a 
+                    href="https://mapbox.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    mapbox.com
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sliding Profile Card */}
+        {selectedProfile && (
+          <div 
+            className="absolute top-0 right-0 h-full w-96 bg-card border-l border-border shadow-soft animate-slide-in-right z-50 overflow-y-auto"
+            style={{ maxWidth: '90vw' }}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-foreground">
+                  {selectedProfile.full_name}, {selectedProfile.age}
+                </h2>
+                <button
+                  onClick={() => {
+                    setSelectedProfile(null);
+                    onProfileSelect?.(null);
+                  }}
+                  className="p-2 hover:bg-muted rounded-full transition-colors"
+                  aria-label="Close profile"
                 >
-                  mapbox.com
-                </a>
-              </p>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {selectedProfile.photo_url && (
+                <div className="mb-4 rounded-lg overflow-hidden aspect-square">
+                  <img 
+                    src={selectedProfile.photo_url} 
+                    alt={selectedProfile.full_name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Location</h3>
+                  <p className="text-foreground">{selectedProfile.location}</p>
+                  {selectedProfile.distance && (
+                    <p className="text-sm text-muted-foreground">{selectedProfile.distance} miles away</p>
+                  )}
+                </div>
+
+                {selectedProfile.bio && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">About</h3>
+                    <p className="text-foreground">{selectedProfile.bio}</p>
+                  </div>
+                )}
+
+                {selectedProfile.interests && selectedProfile.interests.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProfile.interests.map((interest, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProfile.verified && (
+                  <div className="flex items-center gap-2 text-primary">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm font-semibold">Verified Profile</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
