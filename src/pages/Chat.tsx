@@ -8,11 +8,12 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { MessageReactions } from '@/components/MessageReactions';
 import { MessageActions } from '@/components/MessageActions';
+import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -38,6 +39,9 @@ const Chat = () => {
   
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -55,12 +59,33 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      const isUnder10MB = file.size <= 10 * 1024 * 1024;
+      return (isImage || isVideo) && isUnder10MB;
+    });
+    
+    setSelectedFiles(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (file: File) => {
+    setSelectedFiles(prev => prev.filter(f => f !== file));
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim()) return;
+    if (!messageText.trim() && selectedFiles.length === 0) return;
 
-    await sendMessage(messageText);
+    await sendMessage(messageText, selectedFiles);
     setMessageText('');
+    setSelectedFiles([]);
+    setUploadProgress({});
   };
 
   const handleEditMessage = async (messageId: string) => {
@@ -314,6 +339,11 @@ const Chat = () => {
                                   onRemoveReaction={removeReaction}
                                 />
                               )}
+                              
+                              {/* Media attachments */}
+                              {message.media && message.media.length > 0 && (
+                                <MediaPreview media={message.media} />
+                              )}
                             </>
                           )}
                         </div>
@@ -324,15 +354,42 @@ const Chat = () => {
                 </div>
 
                 {/* Message Input */}
-                <form onSubmit={handleSendMessage} className="p-4 border-t">
-                  <div className="flex gap-2">
+                <form onSubmit={handleSendMessage} className="border-t">
+                  {selectedFiles.length > 0 && (
+                    <UploadingMediaPreview
+                      files={selectedFiles}
+                      progress={uploadProgress}
+                      onRemove={removeFile}
+                    />
+                  )}
+                  <div className="flex gap-2 p-4">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip className="h-5 w-5" />
+                    </Button>
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       placeholder="Type a message..."
                       className="flex-1"
                     />
-                    <Button type="submit" size="icon" disabled={!messageText.trim()}>
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      disabled={!messageText.trim() && selectedFiles.length === 0}
+                    >
                       <Send className="h-5 w-5" />
                     </Button>
                   </div>
