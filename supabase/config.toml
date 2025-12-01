@@ -1,1 +1,19 @@
 project_id = "cldpflpfyoalxxioaqab"
+
+[functions.send-password-reset]
+verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.create-super-like-checkout]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.create-subscription-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
