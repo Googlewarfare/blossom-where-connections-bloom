@@ -34,22 +34,24 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/auth">
+              <Link to="/discover">
                 <Button 
                   size="lg" 
                   className="text-lg px-8 py-6 rounded-full shadow-soft hover:shadow-lg transition-smooth group"
                 >
-                  Get Started
+                  Start Browsing
                   <Heart className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-lg px-8 py-6 rounded-full border-2 hover:bg-card/50 transition-smooth"
-              >
-                Learn More
-              </Button>
+              <Link to="/auth">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-6 rounded-full border-2 hover:bg-card/50 transition-smooth"
+                >
+                  Sign Up
+                </Button>
+              </Link>
             </div>
 
             <div className="flex items-center gap-8 justify-center lg:justify-start pt-4">
