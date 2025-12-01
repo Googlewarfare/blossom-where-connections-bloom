@@ -15,6 +15,7 @@ import { MessageReactions } from '@/components/MessageReactions';
 import { MessageActions } from '@/components/MessageActions';
 import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
 import { IcebreakerQuestions } from '@/components/IcebreakerQuestions';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -128,6 +129,55 @@ const Chat = () => {
     setMessageText('');
     setSelectedFiles([]);
     setUploadProgress({});
+  };
+
+  const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
+    if (!selectedConversation || !user) return;
+
+    try {
+      // Upload audio to storage
+      const fileName = `${user.id}/${Date.now()}.webm`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, audioBlob);
+
+      if (uploadError) throw uploadError;
+
+      // Send message with voice attachment
+      await sendMessage(`🎤 Voice message (${duration}s)`, []);
+      
+      // Get the message that was just created
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('conversation_id', selectedConversation)
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (messages && messages[0]) {
+        // Add media record
+        await supabase.from('message_media').insert({
+          message_id: messages[0].id,
+          file_url: fileName,
+          file_type: 'audio/webm',
+          file_name: 'voice-message.webm',
+          file_size: audioBlob.size,
+          duration_seconds: duration
+        });
+      }
+
+      toast({
+        title: "Voice message sent!",
+      });
+    } catch (error) {
+      console.error('Error sending voice message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send voice message",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditMessage = async (messageId: string) => {
@@ -504,6 +554,10 @@ const Chat = () => {
                       <Paperclip className="h-5 w-5" />
                     </Button>
                     <IcebreakerQuestions onSend={(question) => setMessageText(question)} />
+                    <VoiceRecorder 
+                      onRecordingComplete={handleVoiceRecording}
+                      disabled={!selectedConversation}
+                    />
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}

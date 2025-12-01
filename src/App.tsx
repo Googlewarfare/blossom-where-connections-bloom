@@ -14,6 +14,8 @@ import Activity from "./pages/Activity";
 import Onboarding from "./pages/Onboarding";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import SuccessStories from "./pages/SuccessStories";
+import Events from "./pages/Events";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/activity" element={<Activity />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/success-stories" element={<SuccessStories />} />
+            <Route path="/events" element={<Events />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
