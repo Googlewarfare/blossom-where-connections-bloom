@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft, Flag } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { AdvancedFilters } from "@/components/AdvancedFilters";
+import { ReportDialog } from "@/components/ReportDialog";
 interface Profile {
   id: string;
   full_name: string;
@@ -604,6 +605,15 @@ const Discover = () => {
 
               {/* Action Buttons */}
               <div className="flex justify-center items-center gap-4 mt-8">
+                <ReportDialog
+                  reportedUserId={currentProfile.id}
+                  reportedUserName={currentProfile.full_name || undefined}
+                  trigger={
+                    <Button size="icon" variant="outline" className="h-12 w-12 rounded-full border-2 border-destructive/30 hover:bg-destructive hover:text-destructive-foreground" title="Report Profile">
+                      <Flag className="w-4 h-4" />
+                    </Button>
+                  }
+                />
                 <Button size="icon" variant="outline" className="h-16 w-16 rounded-full border-2 border-red-500/30 hover:bg-red-500 hover:text-white" onClick={() => handleSwipe("pass")}>
                   <X className="w-6 h-6" />
                 </Button>

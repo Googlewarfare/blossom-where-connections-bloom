@@ -618,6 +618,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["report_category"]
+          created_at: string | null
+          description: string | null
+          evidence_urls: string[] | null
+          id: string
+          reported_user_id: string
+          reporter_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: Database["public"]["Enums"]["report_category"]
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reported_user_id: string
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["report_category"]
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reported_user_id?: string
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           caption: string | null
@@ -814,6 +859,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_swipes: {
         Row: {
           action_type: string
@@ -843,10 +909,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      report_category:
+        | "fake_profile"
+        | "inappropriate_photos"
+        | "harassment"
+        | "spam"
+        | "scam"
+        | "underage"
+        | "other"
+      report_status: "pending" | "reviewing" | "resolved" | "dismissed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -973,6 +1054,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      report_category: [
+        "fake_profile",
+        "inappropriate_photos",
+        "harassment",
+        "spam",
+        "scam",
+        "underage",
+        "other",
+      ],
+      report_status: ["pending", "reviewing", "resolved", "dismissed"],
+    },
   },
 } as const
