@@ -113,16 +113,16 @@ const Onboarding = () => {
         if (photoError) throw photoError;
       }
 
-      // Save preferences
+      // Save preferences (upsert since row may exist from signup trigger)
       const { error: preferencesError } = await supabase
         .from("preferences")
-        .insert({
+        .upsert({
           user_id: user.id,
           interested_in: interestedIn,
           min_age: parseInt(minAge),
           max_age: parseInt(maxAge),
           max_distance: parseInt(maxDistance)
-        });
+        }, { onConflict: 'user_id' });
 
       if (preferencesError) throw preferencesError;
 
