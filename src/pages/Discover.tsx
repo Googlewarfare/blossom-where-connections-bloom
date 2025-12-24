@@ -499,11 +499,15 @@ const Discover = () => {
         </div>
 
         {/* Map or Card View */}
-        {viewMode === "map" ? <div className="h-[600px] w-full rounded-lg overflow-hidden shadow-xl">
-            <MatchesMap profiles={profiles.filter(p => p.latitude && p.longitude) as (Profile & {
-          latitude: number;
-          longitude: number;
-        })[]} userLocation={userLocation || undefined} />
+        {viewMode === "map" ? <div className="h-[700px] w-full rounded-lg overflow-hidden shadow-xl">
+            <MatchesMap 
+              profiles={profiles.filter(p => p.latitude && p.longitude) as (Profile & {
+                latitude: number;
+                longitude: number;
+              })[]} 
+              userLocation={userLocation || undefined}
+              maxDistanceMiles={50}
+            />
           </div> : (/* Swipe Card Stack */
       <div className="flex justify-center items-center min-h-[600px]">
           {!currentProfile || currentIndex >= profiles.length ? <div className="text-center py-20">

@@ -1,7 +1,25 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Map } from 'lucide-react';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import { Map, Maximize2, Minimize2, Users, Layers, Filter, X, BadgeCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface Profile {
   id: string;
@@ -20,36 +38,94 @@ interface Profile {
 interface MatchesMapProps {
   profiles: Profile[];
   userLocation?: { latitude: number; longitude: number };
+  maxDistanceMiles?: number;
   onMarkerClick?: (profileId: string) => void;
   onProfileSelect?: (profile: Profile | null) => void;
 }
 
-const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: MatchesMapProps) => {
+const MAP_STYLES = [
+  { id: 'light-v11', name: 'Light', icon: '☀️' },
+  { id: 'dark-v11', name: 'Dark', icon: '🌙' },
+  { id: 'satellite-streets-v12', name: 'Satellite', icon: '🛰️' },
+  { id: 'outdoors-v12', name: 'Outdoors', icon: '🏔️' },
+];
+
+const MatchesMap = ({ 
+  profiles, 
+  userLocation, 
+  maxDistanceMiles = 50,
+  onMarkerClick, 
+  onProfileSelect 
+}: MatchesMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
-  const [selectedProfile, setSelectedProfile] = React.useState<Profile | null>(null);
+  const geocoder = useRef<MapboxGeocoder | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [currentStyle, setCurrentStyle] = useState('light-v11');
+  
+  // Filter state
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [ageRange, setAgeRange] = useState<[number, number]>([18, 80]);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filtered profiles based on filter state
+  const filteredProfiles = useMemo(() => {
+    return profiles.filter(profile => {
+      if (showVerifiedOnly && !profile.verified) return false;
+      if (profile.age < ageRange[0] || profile.age > ageRange[1]) return false;
+      return true;
+    });
+  }, [profiles, showVerifiedOnly, ageRange]);
+
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    const container = mapContainer.current?.parentElement;
+    if (!container) return;
+    
+    if (!isFullscreen) {
+      container.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // Change map style
+  const changeMapStyle = (styleId: string) => {
+    if (!map.current) return;
+    setCurrentStyle(styleId);
+    map.current.setStyle(`mapbox://styles/mapbox/${styleId}`);
+  };
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Initialize map
     const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
     if (!token) {
-      console.error('Mapbox token not found. Please add VITE_MAPBOX_PUBLIC_TOKEN to your environment variables.');
+      console.error('Mapbox token not found.');
       return;
     }
     
     mapboxgl.accessToken = token;
     
-    // Set initial center to user location or default
     const center: [number, number] = userLocation 
       ? [userLocation.longitude, userLocation.latitude]
-      : [-98.5795, 39.8283]; // Center of US
+      : [-98.5795, 39.8283];
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11', // Lighter style to match the app's aesthetic
+      style: `mapbox://styles/mapbox/${currentStyle}`,
       center: center,
       zoom: userLocation ? 10 : 4,
     });
@@ -60,265 +136,361 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
       'top-right'
     );
 
-    // Add user location marker if available
-    if (userLocation) {
-      const userMarker = new mapboxgl.Marker({ color: 'hsl(340, 75%, 45%)' }) // Primary magenta color
-        .setLngLat([userLocation.longitude, userLocation.latitude])
-        .setPopup(
-          new mapboxgl.Popup({ 
-            offset: 25,
-            className: 'custom-popup'
-          })
-            .setHTML('<div class="font-semibold text-[hsl(340,75%,45%)]">Your Location</div>')
-        )
-        .addTo(map.current);
-      
-      markers.current.push(userMarker);
-    }
+    // Add geocoder search
+    geocoder.current = new MapboxGeocoder({
+      accessToken: token,
+      mapboxgl: mapboxgl as any,
+      placeholder: 'Search location...',
+      marker: false,
+      collapsed: true,
+    });
+    map.current.addControl(geocoder.current as any, 'top-left');
+
+    // Add geolocate control
+    map.current.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      }),
+      'top-right'
+    );
+
+    map.current.on('load', () => {
+      updateMapData();
+    });
+
+    // Update visible count on move
+    map.current.on('moveend', updateVisibleCount);
 
     return () => {
-      markers.current.forEach(marker => marker.remove());
-      markers.current = [];
       map.current?.remove();
     };
   }, []);
 
-  // Update markers when profiles change
+  // Re-add data when style changes
   useEffect(() => {
     if (!map.current) return;
-
-    // Wait for map to be fully loaded
-    if (!map.current.isStyleLoaded()) {
-      map.current.once('load', () => {
-        updateMapData();
-      });
-    } else {
+    
+    map.current.once('style.load', () => {
       updateMapData();
-    }
+    });
+  }, [currentStyle]);
 
-    function updateMapData() {
-      if (!map.current) return;
+  const updateVisibleCount = () => {
+    if (!map.current) return;
+    const bounds = map.current.getBounds();
+    const count = filteredProfiles.filter(p => {
+      if (!p.latitude || !p.longitude) return false;
+      return bounds.contains([p.longitude, p.latitude]);
+    }).length;
+    setVisibleCount(count);
+  };
 
-      // Clear existing profile markers (keep user marker)
-      markers.current.slice(userLocation ? 1 : 0).forEach(marker => marker.remove());
-      markers.current = markers.current.slice(0, userLocation ? 1 : 0);
+  const updateMapData = () => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
 
-      // Create GeoJSON data for heatmap
-      const geojsonData = {
-        type: 'FeatureCollection' as const,
-        features: profiles
-          .filter(profile => profile.latitude && profile.longitude)
-          .map(profile => ({
-            type: 'Feature' as const,
-            properties: {},
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [profile.longitude, profile.latitude]
-            }
-          }))
-      };
-
-      // Add or update heatmap source
-      if (map.current.getSource('matches-heatmap')) {
-        (map.current.getSource('matches-heatmap') as mapboxgl.GeoJSONSource).setData(geojsonData);
-      } else {
-        map.current.addSource('matches-heatmap', {
-          type: 'geojson',
-          data: geojsonData
-        });
-
-        // Add heatmap layer
-        map.current.addLayer({
-          id: 'matches-heatmap-layer',
-          type: 'heatmap',
-          source: 'matches-heatmap',
-          paint: {
-            // Increase the heatmap weight based on frequency and property magnitude
-            'heatmap-weight': 1,
-            // Increase the heatmap color weight by zoom level
-            'heatmap-intensity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              0, 1,
-              12, 3
-            ],
-            // Color ramp for heatmap - using brand colors
-            'heatmap-color': [
-              'interpolate',
-              ['linear'],
-              ['heatmap-density'],
-              0, 'rgba(254,242,242,0)', // transparent blush
-              0.2, 'hsl(352, 100%, 90%)', // light blush
-              0.4, 'hsl(8, 100%, 85%)', // light coral
-              0.6, 'hsl(8, 100%, 75%)', // coral
-              0.8, 'hsl(340, 75%, 55%)', // light magenta
-              1, 'hsl(340, 75%, 45%)' // primary magenta
-            ],
-            // Adjust the heatmap radius by zoom level
-            'heatmap-radius': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              0, 2,
-              12, 20
-            ],
-            // Transition from heatmap to circle layer by zoom level
-            'heatmap-opacity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              7, 1,
-              12, 0.5
-            ]
-          }
-        });
-      }
-
-      // Add markers for each profile with staggered animation
-      profiles.forEach((profile, index) => {
-      if (!profile.latitude || !profile.longitude) return;
-
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.backgroundImage = profile.photo_url 
-        ? `url(${profile.photo_url})`
-        : 'linear-gradient(135deg, hsl(340, 75%, 45%) 0%, hsl(8, 100%, 75%) 100%)'; // Brand gradient
-      el.style.width = '40px';
-      el.style.height = '40px';
-      el.style.backgroundSize = 'cover';
-      el.style.backgroundPosition = 'center';
-      el.style.borderRadius = '50%';
-      el.style.border = '3px solid hsl(340, 75%, 45%)'; // Primary magenta border
-      el.style.cursor = 'pointer';
-      el.style.boxShadow = '0 4px 12px hsla(340, 75%, 45%, 0.3)'; // Branded shadow
-      el.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      
-      // Initial state for animation
-      el.style.opacity = '0';
-      el.style.transform = 'scale(0.5)';
-      
-      // Trigger animation after a staggered delay
-      setTimeout(() => {
-        el.style.opacity = '1';
-        el.style.transform = 'scale(1)';
-      }, index * 50); // 50ms delay between each marker
-      
-      // Hover effect with smooth transitions
-      el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.15)';
-        el.style.boxShadow = '0 8px 24px hsla(340, 75%, 45%, 0.4)';
-        el.style.zIndex = '1000';
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
-        el.style.boxShadow = '0 4px 12px hsla(340, 75%, 45%, 0.3)';
-        el.style.zIndex = 'auto';
-      });
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([profile.longitude, profile.latitude])
-        .setPopup(
-          new mapboxgl.Popup({ 
-            offset: 25,
-            className: 'custom-popup'
-          })
-            .setHTML(`
-              <div class="p-3">
-                <div class="font-semibold text-base text-[hsl(340,75%,45%)]">${profile.full_name}, ${profile.age}</div>
-                <div class="text-sm text-[hsl(340,30%,50%)]">${profile.location}</div>
-                ${profile.bio ? `<div class="text-sm mt-1 text-[hsl(340,80%,20%)]">${profile.bio.substring(0, 80)}${profile.bio.length > 80 ? '...' : ''}</div>` : ''}
-              </div>
-            `)
-        )
-        .addTo(map.current!);
-
-      if (onMarkerClick) {
-        el.addEventListener('click', () => {
-          onMarkerClick(profile.id);
-          setSelectedProfile(profile);
-          onProfileSelect?.(profile);
-        });
-      }
-
-      markers.current.push(marker);
+    // Remove existing layers and sources
+    ['clusters', 'cluster-count', 'unclustered-point', 'distance-radius', 'heatmap-layer'].forEach(id => {
+      if (map.current?.getLayer(id)) map.current.removeLayer(id);
+    });
+    ['profiles-cluster', 'distance-circle', 'matches-heatmap'].forEach(id => {
+      if (map.current?.getSource(id)) map.current.removeSource(id);
     });
 
-    // Fit bounds to show all markers
-    if (profiles.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
+    // Add distance radius circle if user location exists
+    if (userLocation) {
+      const metersPerMile = 1609.34;
+      const radiusMeters = maxDistanceMiles * metersPerMile;
       
+      // Create a circle using turf-style calculation
+      const center = [userLocation.longitude, userLocation.latitude];
+      const points = 64;
+      const coordinates: [number, number][] = [];
+      
+      for (let i = 0; i < points; i++) {
+        const angle = (i / points) * 360;
+        const rad = (angle * Math.PI) / 180;
+        const lat = userLocation.latitude + (radiusMeters / 111320) * Math.cos(rad);
+        const lng = userLocation.longitude + (radiusMeters / (111320 * Math.cos(userLocation.latitude * Math.PI / 180))) * Math.sin(rad);
+        coordinates.push([lng, lat]);
+      }
+      coordinates.push(coordinates[0]); // Close the circle
+
+      map.current.addSource('distance-circle', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Polygon',
+            coordinates: [coordinates]
+          }
+        }
+      });
+
+      map.current.addLayer({
+        id: 'distance-radius',
+        type: 'fill',
+        source: 'distance-circle',
+        paint: {
+          'fill-color': 'hsl(340, 75%, 45%)',
+          'fill-opacity': 0.1,
+          'fill-outline-color': 'hsl(340, 75%, 45%)'
+        }
+      });
+
+      // Add user location marker
+      new mapboxgl.Marker({ color: 'hsl(340, 75%, 45%)' })
+        .setLngLat([userLocation.longitude, userLocation.latitude])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<div class="font-semibold text-primary">Your Location</div>'))
+        .addTo(map.current);
+    }
+
+    // Create GeoJSON with clustering
+    const geojsonData: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: filteredProfiles
+        .filter(profile => profile.latitude && profile.longitude)
+        .map(profile => ({
+          type: 'Feature',
+          properties: {
+            id: profile.id,
+            name: profile.full_name,
+            age: profile.age,
+            location: profile.location,
+            photo_url: profile.photo_url || '',
+            bio: profile.bio || '',
+            distance: profile.distance || 0,
+            verified: profile.verified || false,
+            interests: profile.interests?.join(', ') || ''
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [profile.longitude, profile.latitude]
+          }
+        }))
+    };
+
+    // Add clustered source
+    map.current.addSource('profiles-cluster', {
+      type: 'geojson',
+      data: geojsonData,
+      cluster: true,
+      clusterMaxZoom: 14,
+      clusterRadius: 50
+    });
+
+    // Cluster circles
+    map.current.addLayer({
+      id: 'clusters',
+      type: 'circle',
+      source: 'profiles-cluster',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': [
+          'step',
+          ['get', 'point_count'],
+          'hsl(352, 100%, 90%)', // < 10
+          10, 'hsl(8, 100%, 75%)', // 10-30
+          30, 'hsl(340, 75%, 55%)', // 30-100
+          100, 'hsl(340, 75%, 45%)' // 100+
+        ],
+        'circle-radius': [
+          'step',
+          ['get', 'point_count'],
+          20,
+          10, 30,
+          30, 40,
+          100, 50
+        ],
+        'circle-stroke-width': 3,
+        'circle-stroke-color': 'hsl(340, 75%, 45%)'
+      }
+    });
+
+    // Cluster count labels
+    map.current.addLayer({
+      id: 'cluster-count',
+      type: 'symbol',
+      source: 'profiles-cluster',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        'text-size': 14
+      },
+      paint: {
+        'text-color': 'hsl(340, 75%, 25%)'
+      }
+    });
+
+    // Individual points
+    map.current.addLayer({
+      id: 'unclustered-point',
+      type: 'circle',
+      source: 'profiles-cluster',
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': [
+          'case',
+          ['get', 'verified'],
+          'hsl(340, 75%, 45%)',
+          'hsl(8, 100%, 75%)'
+        ],
+        'circle-radius': 12,
+        'circle-stroke-width': 3,
+        'circle-stroke-color': '#ffffff'
+      }
+    });
+
+    // Click on cluster to zoom
+    map.current.on('click', 'clusters', (e) => {
+      const features = map.current!.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+      const clusterId = features[0].properties?.cluster_id;
+      (map.current!.getSource('profiles-cluster') as mapboxgl.GeoJSONSource).getClusterExpansionZoom(
+        clusterId,
+        (err, zoom) => {
+          if (err) return;
+          map.current!.easeTo({
+            center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+            zoom: zoom!
+          });
+        }
+      );
+    });
+
+    // Click on point to show profile
+    map.current.on('click', 'unclustered-point', (e) => {
+      const feature = e.features?.[0];
+      if (!feature) return;
+      
+      const props = feature.properties;
+      const profile = filteredProfiles.find(p => p.id === props?.id);
+      if (profile) {
+        setSelectedProfile(profile);
+        onProfileSelect?.(profile);
+        onMarkerClick?.(profile.id);
+      }
+    });
+
+    // Popup on hover
+    map.current.on('mouseenter', 'unclustered-point', (e) => {
+      if (!map.current) return;
+      map.current.getCanvas().style.cursor = 'pointer';
+      
+      const feature = e.features?.[0];
+      if (!feature) return;
+      
+      const props = feature.properties;
+      const coords = (feature.geometry as GeoJSON.Point).coordinates.slice() as [number, number];
+      
+      new mapboxgl.Popup({ offset: 15, className: 'custom-popup' })
+        .setLngLat(coords)
+        .setHTML(`
+          <div class="p-3">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-base">${props?.name}, ${props?.age}</span>
+              ${props?.verified ? '<span class="text-primary">✓</span>' : ''}
+            </div>
+            <div class="text-sm text-muted-foreground">${props?.location}</div>
+            ${props?.distance ? `<div class="text-xs text-muted-foreground">${Math.round(props.distance)} miles away</div>` : ''}
+          </div>
+        `)
+        .addTo(map.current);
+    });
+
+    map.current.on('mouseleave', 'unclustered-point', () => {
+      if (!map.current) return;
+      map.current.getCanvas().style.cursor = '';
+      // Remove popups on mouse leave
+      const popups = document.getElementsByClassName('mapboxgl-popup');
+      while (popups.length > 0) {
+        popups[0].remove();
+      }
+    });
+
+    map.current.on('mouseenter', 'clusters', () => {
+      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'clusters', () => {
+      if (map.current) map.current.getCanvas().style.cursor = '';
+    });
+
+    // Fit bounds
+    if (filteredProfiles.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
       if (userLocation) {
         bounds.extend([userLocation.longitude, userLocation.latitude]);
       }
-      
-      profiles.forEach(profile => {
+      filteredProfiles.forEach(profile => {
         if (profile.latitude && profile.longitude) {
           bounds.extend([profile.longitude, profile.latitude]);
         }
       });
-
       map.current.fitBounds(bounds, { padding: 50, maxZoom: 12 });
     }
+
+    updateVisibleCount();
+  };
+
+  // Update when filtered profiles change
+  useEffect(() => {
+    if (map.current?.isStyleLoaded()) {
+      updateMapData();
     }
-  }, [profiles, onMarkerClick, userLocation]);
+  }, [filteredProfiles, userLocation, maxDistanceMiles]);
 
   return (
     <>
       <style>{`
         .mapboxgl-popup-content {
-          background: hsl(0, 0%, 100%);
+          background: hsl(var(--card));
+          color: hsl(var(--card-foreground));
           border-radius: 1rem;
           box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
-          border: 1px solid hsl(352, 40%, 88%);
-          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+          border: 1px solid hsl(var(--border));
+          font-family: inherit;
           animation: popupSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .mapboxgl-popup-close-button {
-          color: hsl(340, 75%, 45%);
+          color: hsl(var(--primary));
           font-size: 20px;
           padding: 8px;
           transition: all 0.2s ease;
         }
         .mapboxgl-popup-close-button:hover {
-          background-color: hsl(352, 60%, 92%);
-          transform: scale(1.1);
+          background-color: hsl(var(--muted));
         }
         .mapboxgl-ctrl-group {
-          background: hsl(0, 0%, 100%);
-          border: 1px solid hsl(352, 40%, 88%);
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
           box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
-          transition: all 0.2s ease;
         }
         .mapboxgl-ctrl-group button {
-          color: hsl(340, 75%, 45%);
-          transition: all 0.2s ease;
+          color: hsl(var(--primary));
         }
         .mapboxgl-ctrl-group button:hover {
-          background-color: hsl(352, 60%, 92%);
-          transform: scale(1.05);
+          background-color: hsl(var(--muted));
         }
-        .marker {
-          position: relative;
+        .mapboxgl-ctrl-geocoder {
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 20px -4px hsla(340, 75%, 45%, 0.15);
         }
-        .marker::before {
-          content: '';
-          position: absolute;
-          inset: -3px;
-          border-radius: 50%;
-          background: hsl(340, 75%, 45%);
-          opacity: 0;
-          animation: markerPulse 2s ease-in-out infinite;
+        .mapboxgl-ctrl-geocoder input {
+          color: hsl(var(--foreground));
         }
-        @keyframes markerPulse {
-          0%, 100% {
-            opacity: 0;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.3;
-            transform: scale(1.3);
-          }
+        .mapboxgl-ctrl-geocoder .suggestions {
+          background: hsl(var(--card));
+          border: 1px solid hsl(var(--border));
+        }
+        .mapboxgl-ctrl-geocoder .suggestions li a {
+          color: hsl(var(--foreground));
+        }
+        .mapboxgl-ctrl-geocoder .suggestions li a:hover {
+          background: hsl(var(--muted));
         }
         @keyframes popupSlideIn {
           from {
@@ -330,23 +502,105 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
             transform: translateY(0) scale(1);
           }
         }
-        .dark .mapboxgl-popup-content {
-          background: hsl(340, 45%, 12%);
-          border-color: hsl(340, 40%, 20%);
-        }
-        .dark .mapboxgl-ctrl-group {
-          background: hsl(340, 45%, 12%);
-          border-color: hsl(340, 40%, 20%);
-        }
-        .dark .mapboxgl-ctrl-group button {
-          color: hsl(8, 100%, 75%);
-        }
-        .dark .mapboxgl-popup-close-button {
-          color: hsl(8, 100%, 75%);
-        }
       `}</style>
       
-      <div className="relative w-full h-full">
+      <div className={`relative w-full h-full ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+        {/* Map Controls Overlay */}
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2" style={{ marginTop: '50px' }}>
+          {/* Profile Count */}
+          <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5 shadow-lg">
+            <Users className="w-4 h-4" />
+            <span>{visibleCount} profiles in view</span>
+          </Badge>
+        </div>
+
+        {/* Right side controls */}
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2" style={{ marginTop: '100px' }}>
+          {/* Fullscreen Toggle */}
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={toggleFullscreen}
+            className="shadow-lg"
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </Button>
+
+          {/* Map Style Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="secondary" className="shadow-lg">
+                <Layers className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {MAP_STYLES.map(style => (
+                <DropdownMenuItem
+                  key={style.id}
+                  onClick={() => changeMapStyle(style.id)}
+                  className={currentStyle === style.id ? 'bg-muted' : ''}
+                >
+                  <span className="mr-2">{style.icon}</span>
+                  {style.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Filters */}
+          <Popover open={showFilters} onOpenChange={setShowFilters}>
+            <PopoverTrigger asChild>
+              <Button size="icon" variant="secondary" className="shadow-lg relative">
+                <Filter className="w-4 h-4" />
+                {(showVerifiedOnly || ageRange[0] !== 18 || ageRange[1] !== 80) && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Filters</h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowVerifiedOnly(false);
+                      setAgeRange([18, 80]);
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="verified-only" className="flex items-center gap-2">
+                    <BadgeCheck className="w-4 h-4 text-primary" />
+                    Verified only
+                  </Label>
+                  <Switch
+                    id="verified-only"
+                    checked={showVerifiedOnly}
+                    onCheckedChange={setShowVerifiedOnly}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Age range: {ageRange[0]} - {ageRange[1]}</Label>
+                  <Slider
+                    value={ageRange}
+                    onValueChange={(value) => setAgeRange(value as [number, number])}
+                    min={18}
+                    max={80}
+                    step={1}
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Map Container */}
         <div ref={mapContainer} className="w-full h-full rounded-lg relative overflow-hidden border border-border">
           {!import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm rounded-lg z-10">
@@ -375,14 +629,19 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
         {/* Sliding Profile Card */}
         {selectedProfile && (
           <div 
-            className="absolute top-0 right-0 h-full w-96 bg-card border-l border-border shadow-soft animate-slide-in-right z-50 overflow-y-auto"
+            className="absolute top-0 right-0 h-full w-96 bg-card border-l border-border shadow-xl animate-in slide-in-from-right z-50 overflow-y-auto"
             style={{ maxWidth: '90vw' }}
           >
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-foreground">
-                  {selectedProfile.full_name}, {selectedProfile.age}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {selectedProfile.full_name}, {selectedProfile.age}
+                  </h2>
+                  {selectedProfile.verified && (
+                    <BadgeCheck className="w-5 h-5 text-primary" />
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     setSelectedProfile(null);
@@ -391,9 +650,7 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                   aria-label="Close profile"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -412,7 +669,7 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
                   <h3 className="text-sm font-semibold text-muted-foreground mb-1">Location</h3>
                   <p className="text-foreground">{selectedProfile.location}</p>
                   {selectedProfile.distance && (
-                    <p className="text-sm text-muted-foreground">{selectedProfile.distance} miles away</p>
+                    <p className="text-sm text-muted-foreground">{Math.round(selectedProfile.distance)} miles away</p>
                   )}
                 </div>
 
@@ -428,23 +685,11 @@ const MatchesMap = ({ profiles, userLocation, onMarkerClick, onProfileSelect }: 
                     <h3 className="text-sm font-semibold text-muted-foreground mb-2">Interests</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedProfile.interests.map((interest, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                        >
+                        <Badge key={idx} variant="secondary">
                           {interest}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {selectedProfile.verified && (
-                  <div className="flex items-center gap-2 text-primary">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-semibold">Verified Profile</span>
                   </div>
                 )}
               </div>
