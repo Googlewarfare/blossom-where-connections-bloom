@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import BackgroundCheckRequest from "@/components/BackgroundCheckRequest";
 import DateCheckin from "@/components/DateCheckin";
 
@@ -18,6 +19,7 @@ const Safety = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <Navbar />
       <div className="container max-w-2xl py-8 px-4">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

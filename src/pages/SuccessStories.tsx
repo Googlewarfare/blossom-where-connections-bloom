@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 interface SuccessStory {
   id: string;
@@ -33,6 +34,7 @@ const SuccessStories = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
