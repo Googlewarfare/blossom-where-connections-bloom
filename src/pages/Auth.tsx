@@ -482,6 +482,24 @@ const Auth = () => {
             <form onSubmit={handleAuth} className="space-y-6">
               {!isLogin && (
               <>
+                {/* Age Verification */}
+                <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-3">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="ageConfirmation"
+                      required
+                      className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="ageConfirmation" className="text-sm">
+                      <span className="font-medium">I confirm that I am 18 years of age or older</span>
+                      <p className="text-muted-foreground mt-1">
+                        By checking this box, you confirm you meet the minimum age requirement to use Blossom.
+                      </p>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
