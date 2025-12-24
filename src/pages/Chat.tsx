@@ -19,11 +19,14 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { VideoCallButton } from '@/components/VideoCallButton';
+import { useVideoCallContext } from '@/components/VideoCallProvider';
 
 const Chat = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, subscriptionStatus } = useAuth();
   const { toast } = useToast();
+  const { startCall, callState } = useVideoCallContext();
   const [searchParams] = useSearchParams();
   const conversationId = searchParams.get('id');
   const [messageText, setMessageText] = useState('');
@@ -368,9 +371,16 @@ const Chat = () => {
                       {currentConversation.other_user.full_name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold flex-1">
                     {currentConversation.other_user.full_name}
                   </h2>
+                  <VideoCallButton
+                    onStartCall={() => startCall(
+                      currentConversation.other_user.id,
+                      currentConversation.match_id
+                    )}
+                    disabled={callState.status !== 'idle'}
+                  />
                 </div>
 
                 {/* Messages */}
