@@ -88,15 +88,9 @@ const Chat = () => {
       
       if (unreadMessages.length === 0) return;
       
-      // Update all unread messages
-      await Promise.all(
-        unreadMessages.map(msg =>
-          supabase
-            .from('messages')
-            .update({ read: true, read_at: new Date().toISOString() })
-            .eq('id', msg.id)
-        )
-      );
+      // Use the secure function to mark messages as read
+      const messageIds = unreadMessages.map(msg => msg.id);
+      await supabase.rpc('mark_messages_as_read', { p_message_ids: messageIds });
     };
     
     markMessagesAsRead();

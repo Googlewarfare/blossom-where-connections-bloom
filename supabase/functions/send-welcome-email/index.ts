@@ -10,6 +10,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[SEND-WELCOME-EMAIL] ${step}${detailsStr}`);
+};
+
 interface WelcomeEmailRequest {
   userId: string;
 }
@@ -20,7 +25,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    logStep("Function started");
+
     const { userId }: WelcomeEmailRequest = await req.json();
+
+    if (!userId) {
+      logStep("ERROR: Missing user ID");
+      return new Response(JSON.stringify({ error: "User ID is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -35,22 +50,30 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      throw profileError;
+      logStep("ERROR: Failed to fetch profile", { error: profileError.message });
+      return new Response(JSON.stringify({ error: "Failed to send welcome email" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Get user email from auth
     const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (userError || !user) {
-      console.error("Error fetching user:", userError);
-      throw userError;
+      logStep("ERROR: Failed to fetch user", { error: userError?.message });
+      return new Response(JSON.stringify({ error: "Failed to send welcome email" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const firstName = profile?.full_name?.split(" ")[0] || "there";
     const profileUrl = `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || ""}/profile`;
 
-    const emailResponse = await resend.emails.send({
+    logStep("Sending welcome email");
+
+    await resend.emails.send({
       from: "Blossom <onboarding@resend.dev>",
       to: [user.email!],
       subject: "Welcome to Blossom! 🌸",
@@ -240,19 +263,22 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Welcome email sent successfully:", emailResponse);
+    logStep("Welcome email sent successfully");
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
-    console.error("Error in send-welcome-email function:", error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    
+    // Return generic error to client
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Failed to send welcome email" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

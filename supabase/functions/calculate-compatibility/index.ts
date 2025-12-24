@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CALCULATE-COMPATIBILITY] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,11 +22,19 @@ serve(async (req) => {
   );
 
   try {
+    logStep("Function started");
+
     const { userId1, userId2 } = await req.json();
 
     if (!userId1 || !userId2) {
-      throw new Error("Both user IDs are required");
+      logStep("ERROR: Missing user IDs");
+      return new Response(JSON.stringify({ error: "Both user IDs are required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
+
+    logStep("Calculating compatibility", { userId1, userId2 });
 
     // Fetch both user profiles and preferences
     const { data: profile1 } = await supabaseClient
@@ -49,7 +62,11 @@ serve(async (req) => {
       .single();
 
     if (!profile1 || !profile2 || !pref1 || !pref2) {
-      throw new Error("Could not fetch user data");
+      logStep("ERROR: Could not fetch user data");
+      return new Response(JSON.stringify({ error: "User data not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     // Calculate compatibility score
@@ -123,6 +140,8 @@ serve(async (req) => {
       calculated_at: new Date().toISOString()
     });
 
+    logStep("Compatibility calculated", { score: finalScore });
+
     return new Response(
       JSON.stringify({ score: finalScore, factors }),
       {
@@ -130,9 +149,13 @@ serve(async (req) => {
         status: 200,
       }
     );
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    
+    // Return generic error to client
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Failed to calculate compatibility" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
