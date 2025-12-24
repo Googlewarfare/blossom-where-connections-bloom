@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Heart, Menu, X, User, LogOut, Shield, Sparkles } from "lucide-react";
+import { Heart, Menu, User, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/blossom-logo.jpg";
 
 const navLinks = [
@@ -61,7 +62,8 @@ const Navbar = () => {
         </nav>
 
         {/* Desktop Auth Buttons */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <>
               <Button
