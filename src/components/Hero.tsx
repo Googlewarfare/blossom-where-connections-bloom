@@ -1,7 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, ArrowRight } from "lucide-react";
+import { Heart, Sparkles, ArrowRight, Camera, Lock, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/blossom-logo.jpg";
+
+const trustBadges = [
+  {
+    icon: Camera,
+    label: "Photo Verification",
+    description: "Available",
+  },
+  {
+    icon: Lock,
+    label: "Secure Messaging",
+    description: "End-to-end",
+  },
+  {
+    icon: ShieldAlert,
+    label: "Report & Block",
+    description: "Anytime",
+  },
+];
 
 const Hero = () => {
   return (
@@ -93,6 +111,22 @@ const Hero = () => {
               </Link>
             </div>
 
+            {/* Trust Badges */}
+            <div className="flex flex-wrap items-center gap-4 justify-center lg:justify-start pt-4">
+              {trustBadges.map((badge, index) => (
+                <div
+                  key={badge.label}
+                  className="flex items-center gap-2 glass px-4 py-2.5 rounded-full group hover-scale-sm cursor-default animate-fade-in"
+                  style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+                >
+                  <badge.icon className="w-4 h-4 text-primary" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold leading-tight">{badge.label}</span>
+                    <span className="text-[10px] text-muted-foreground leading-tight">{badge.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Right content - Logo */}
