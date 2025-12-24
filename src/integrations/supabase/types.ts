@@ -49,6 +49,44 @@ export type Database = {
           },
         ]
       }
+      call_signals: {
+        Row: {
+          call_id: string
+          created_at: string
+          from_user_id: string
+          id: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          signal_data?: Json
+          signal_type?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_signals_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "video_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compatibility_scores: {
         Row: {
           calculated_at: string | null
@@ -938,6 +976,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      video_calls: {
+        Row: {
+          caller_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          match_id: string
+          recipient_id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          caller_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          match_id: string
+          recipient_id: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          caller_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          match_id?: string
+          recipient_id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_calls_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
