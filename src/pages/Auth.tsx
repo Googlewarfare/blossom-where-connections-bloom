@@ -482,8 +482,8 @@ const Auth = () => {
             <form onSubmit={handleAuth} className="space-y-6">
               {!isLogin && (
               <>
-                {/* Age Verification */}
-                <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-3">
+                {/* Age Verification & Terms */}
+                <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
                   <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
@@ -497,6 +497,26 @@ const Auth = () => {
                         By checking this box, you confirm you meet the minimum age requirement to use Blossom.
                       </p>
                     </label>
+                  </div>
+                  
+                  <div className="border-t border-border pt-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="termsAcceptance"
+                        required
+                        className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <label htmlFor="termsAcceptance" className="text-sm">
+                        <span className="font-medium">I agree to the Terms of Service and Privacy Policy</span>
+                        <p className="text-muted-foreground mt-1">
+                          By checking this box, you agree to our{" "}
+                          <a href="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</a>
+                          {" "}and{" "}
+                          <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>.
+                        </p>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
