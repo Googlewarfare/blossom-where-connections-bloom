@@ -23,6 +23,7 @@ import About from "@/pages/About";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import Support from "@/pages/Support";
+import CommunityGuidelines from "@/pages/CommunityGuidelines";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -53,6 +54,7 @@ export const AnimatedRoutes = () => {
         <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
         <Route path="/support" element={<PageTransition><Support /></PageTransition>} />
+        <Route path="/community-guidelines" element={<PageTransition><CommunityGuidelines /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
