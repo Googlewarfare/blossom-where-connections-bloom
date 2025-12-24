@@ -18,6 +18,7 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { ReportDialog } from "@/components/ReportDialog";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 interface Profile {
   id: string;
   full_name: string;
@@ -722,6 +723,9 @@ const Discover = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Push Notification Permission Prompt */}
+      <PushNotificationPrompt />
       </div>
     </div>;
 };
