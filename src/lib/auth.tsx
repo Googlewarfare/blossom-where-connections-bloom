@@ -17,7 +17,11 @@ interface SubscriptionStatus {
 export const PREMIUM_FEATURES = {
   UNLIMITED_SUPER_LIKES: "prod_TWguag6wQXdfSB",
   READ_RECEIPTS: "prod_TWgzMdfHydGfMG",
+  BLOSSOM_PREMIUM: "prod_TfCzZZYDeHQlyp",
 } as const;
+
+// Premium price ID for checkout
+export const PREMIUM_PRICE_ID = "price_1ShsZ5D2qFqWAuNmmh2UjMgz";
 
 interface AuthContextType {
   user: User | null;
