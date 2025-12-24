@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { VideoCallProvider } from "./components/VideoCallProvider";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
+import { SkipLink } from "./components/ui/skip-link";
 
 const queryClient = new QueryClient();
 
@@ -14,10 +15,13 @@ const App = () => (
     <AuthProvider>
       <VideoCallProvider>
         <TooltipProvider>
+          <SkipLink />
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AnimatedRoutes />
+            <main id="main-content">
+              <AnimatedRoutes />
+            </main>
           </BrowserRouter>
         </TooltipProvider>
       </VideoCallProvider>
