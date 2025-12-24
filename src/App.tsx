@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { VideoCallProvider } from "./components/VideoCallProvider";
-import { ThemeProvider } from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -29,39 +28,37 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        <VideoCallProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/discover" element={<Discover />} />
-            <Route path="/matches" element={<Matches />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/activity" element={<Activity />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/success-stories" element={<SuccessStories />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/verification" element={<Verification />} />
-            <Route path="/admin/verification" element={<AdminVerification />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/premium" element={<Premium />} />
-            <Route path="/safety" element={<Safety />} />
-            <Route path="/about" element={<About />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-          </TooltipProvider>
-        </VideoCallProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <VideoCallProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/discover" element={<Discover />} />
+              <Route path="/matches" element={<Matches />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/activity" element={<Activity />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/success-stories" element={<SuccessStories />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/verification" element={<Verification />} />
+              <Route path="/admin/verification" element={<AdminVerification />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/premium" element={<Premium />} />
+              <Route path="/safety" element={<Safety />} />
+              <Route path="/about" element={<About />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </VideoCallProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

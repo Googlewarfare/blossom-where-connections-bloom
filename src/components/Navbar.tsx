@@ -6,7 +6,6 @@ import { Heart, Menu, User, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/blossom-logo.jpg";
 
 const navLinks = [
@@ -63,7 +62,6 @@ const Navbar = () => {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden lg:flex items-center gap-2">
-          <ThemeToggle />
           {user ? (
             <>
               <Button
