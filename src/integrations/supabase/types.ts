@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      background_checks: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verification_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verification_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verification_date?: string | null
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_at: string
@@ -169,6 +202,72 @@ export type Database = {
           question?: string
         }
         Relationships: []
+      }
+      date_checkins: {
+        Row: {
+          created_at: string
+          date_location: string | null
+          date_time: string
+          expected_end_time: string
+          id: string
+          last_checkin_at: string | null
+          latitude: number | null
+          longitude: number | null
+          match_id: string | null
+          notes: string | null
+          status: string
+          trusted_contact_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_location?: string | null
+          date_time: string
+          expected_end_time: string
+          id?: string
+          last_checkin_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          match_id?: string | null
+          notes?: string | null
+          status?: string
+          trusted_contact_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_location?: string | null
+          date_time?: string
+          expected_end_time?: string
+          id?: string
+          last_checkin_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          match_id?: string | null
+          notes?: string | null
+          status?: string
+          trusted_contact_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "date_checkins_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "date_checkins_trusted_contact_id_fkey"
+            columns: ["trusted_contact_id"]
+            isOneToOne: false
+            referencedRelation: "trusted_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_attendees: {
         Row: {
@@ -858,6 +957,33 @@ export type Database = {
           recipient_id?: string
           sender_id?: string
           stripe_payment_intent_id?: string | null
+        }
+        Relationships: []
+      }
+      trusted_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          user_id?: string
         }
         Relationships: []
       }
