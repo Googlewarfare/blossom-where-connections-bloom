@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield } from "lucide-react";
+import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield, ImagePlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -16,6 +16,9 @@ import { getCurrentLocation } from "@/lib/location-utils";
 import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { TwoFactorSetup } from "@/components/TwoFactorSetup";
+import { useCamera } from "@/hooks/use-camera";
+import { useHaptics } from "@/hooks/use-haptics";
+import { Capacitor } from "@capacitor/core";
 
 interface ProfileData {
   full_name: string;
@@ -64,6 +67,9 @@ const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { pickOrTake, loading: cameraLoading } = useCamera();
+  const { impact, ImpactStyle } = useHaptics();
+  const isNativePlatform = Capacitor.isNativePlatform();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -345,7 +351,10 @@ const Profile = () => {
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    await uploadPhotoFile(file);
+  };
 
+  const uploadPhotoFile = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
@@ -369,7 +378,7 @@ const Profile = () => {
     setUploading(true);
     try {
       // Generate unique filename
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file.name.split(".").pop() || 'jpg';
       const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
 
       // Upload to storage bucket
@@ -391,6 +400,7 @@ const Profile = () => {
 
       if (dbError) throw dbError;
 
+      await impact(ImpactStyle.Light);
       toast({
         title: "Photo Uploaded",
         description: "Your photo has been uploaded successfully.",
@@ -409,6 +419,43 @@ const Profile = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    }
+  };
+
+  const handleNativeCameraUpload = async () => {
+    try {
+      await impact(ImpactStyle.Medium);
+      const photo = await pickOrTake();
+      
+      if (!photo || !photo.webPath) return;
+
+      setUploading(true);
+      
+      // Fetch the photo as a blob
+      const response = await fetch(photo.webPath);
+      const blob = await response.blob();
+      
+      // Create a File from the blob
+      const fileName = `photo_${Date.now()}.${photo.format || 'jpeg'}`;
+      const file = new File([blob], fileName, { type: `image/${photo.format || 'jpeg'}` });
+      
+      await uploadPhotoFile(file);
+    } catch (error: any) {
+      if (error.message !== 'User cancelled photos app') {
+        toast({
+          title: "Camera Error",
+          description: error.message || "Failed to capture photo",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleAddPhoto = () => {
+    if (isNativePlatform) {
+      handleNativeCameraUpload();
+    } else {
+      fileInputRef.current?.click();
     }
   };
 
@@ -576,15 +623,21 @@ const Profile = () => {
                   ))}
                   {photos.length < 6 && (
                     <div
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={handleAddPhoto}
                       className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer flex items-center justify-center transition-colors"
                     >
-                      {uploading ? (
+                      {uploading || cameraLoading ? (
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
                       ) : (
                         <div className="text-center">
-                          <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-xs text-muted-foreground">Add Photo</p>
+                          {isNativePlatform ? (
+                            <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          ) : (
+                            <ImagePlus className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {isNativePlatform ? "Take Photo" : "Add Photo"}
+                          </p>
                         </div>
                       )}
                     </div>
