@@ -6,6 +6,7 @@ import { Heart, Menu, User, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import logo from "@/assets/blossom-logo.jpg";
 
 const navLinks = [
@@ -62,6 +63,7 @@ const Navbar = () => {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden lg:flex items-center gap-2">
+          {user && <NotificationCenter />}
           {user ? (
             <>
               <Button
@@ -101,13 +103,15 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Menu */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="lg:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
+        <div className="flex items-center gap-2 lg:hidden">
+          {user && <NotificationCenter />}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="w-5 h-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
           <SheetContent side="right" className="w-[300px] sm:w-[350px]">
             <div className="flex flex-col h-full">
               {/* Mobile Header */}
@@ -179,6 +183,7 @@ const Navbar = () => {
             </div>
           </SheetContent>
         </Sheet>
+        </div>
       </div>
     </header>
   );
