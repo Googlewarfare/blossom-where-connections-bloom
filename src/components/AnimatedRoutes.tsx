@@ -20,6 +20,8 @@ import AdminReports from "@/pages/AdminReports";
 import Premium from "@/pages/Premium";
 import Safety from "@/pages/Safety";
 import About from "@/pages/About";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -47,6 +49,8 @@ export const AnimatedRoutes = () => {
         <Route path="/premium" element={<PageTransition><Premium /></PageTransition>} />
         <Route path="/safety" element={<PageTransition><Safety /></PageTransition>} />
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+        <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+        <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>

@@ -50,8 +50,8 @@ const Footer = () => {
             © 2025 Blossom. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link to="/about" className="hover:text-primary transition-smooth">Privacy Policy</Link>
-            <Link to="/about" className="hover:text-primary transition-smooth">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-primary transition-smooth">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-primary transition-smooth">Terms of Service</Link>
           </div>
         </div>
       </div>
