@@ -24,6 +24,30 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Verify JWT and get authenticated user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      logStep("ERROR: No authorization header");
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: authData, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !authData.user) {
+      logStep("ERROR: Authentication failed");
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const callerUserId = authData.user.id;
+    logStep("User authenticated", { userId: callerUserId });
+
     const { userId1, userId2 } = await req.json();
 
     if (!userId1 || !userId2) {
@@ -32,6 +56,41 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
+    }
+
+    // Authorization: User must be one of the two users being compared
+    if (callerUserId !== userId1 && callerUserId !== userId2) {
+      logStep("ERROR: Unauthorized - user not part of comparison");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    // Additional check: Verify users have a match or at least a like between them
+    const { data: match } = await supabaseClient
+      .from('matches')
+      .select('id')
+      .or(`and(user1_id.eq.${userId1},user2_id.eq.${userId2}),and(user1_id.eq.${userId2},user2_id.eq.${userId1})`)
+      .maybeSingle();
+
+    if (!match) {
+      // Check if there's at least a like from the caller
+      const targetUserId = callerUserId === userId1 ? userId2 : userId1;
+      const { data: like } = await supabaseClient
+        .from('profile_likes')
+        .select('id')
+        .eq('liker_id', callerUserId)
+        .eq('liked_user_id', targetUserId)
+        .maybeSingle();
+
+      if (!like) {
+        logStep("ERROR: No match or like exists between users");
+        return new Response(JSON.stringify({ error: "Users must have interaction to calculate compatibility" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        });
+      }
     }
 
     logStep("Calculating compatibility", { userId1, userId2 });
