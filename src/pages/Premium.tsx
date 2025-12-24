@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth, PREMIUM_PRICE_ID } from "@/lib/auth";
 import { usePremium } from "@/hooks/use-premium";
+import { useNativePurchases, IAP_PRODUCTS } from "@/hooks/use-native-purchases";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,8 @@ import {
   CheckCircle,
   Loader2,
   Sparkles,
+  RotateCcw,
+  Apple,
 } from "lucide-react";
 
 const PREMIUM_FEATURES_LIST = [
@@ -60,16 +63,30 @@ export default function Premium() {
   const { hasPremium, premiumEndDate } = usePremium();
   const [isLoading, setIsLoading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  
+  // Native purchases hook for iOS/Android
+  const {
+    isNative,
+    products,
+    loading: nativeLoading,
+    purchaseProduct,
+    restorePurchases,
+    hasActivePremium: hasNativePremium,
+  } = useNativePurchases();
+
+  // Combined premium status (web or native)
+  const isPremiumActive = hasPremium || hasNativePremium;
 
   useEffect(() => {
     if (searchParams.get("subscription_success") === "true") {
       toast.success("Welcome to Blossom Premium! Your subscription is now active.");
       checkSubscription();
-      // Clean up URL
       window.history.replaceState({}, "", "/premium");
     }
   }, [searchParams, checkSubscription]);
 
+  // Handle web subscription via Stripe
   const handleSubscribe = async () => {
     if (!session) {
       toast.error("Please log in to subscribe");
@@ -98,8 +115,51 @@ export default function Premium() {
     }
   };
 
+  // Handle native iOS/Android purchase
+  const handleNativePurchase = async (productId: string) => {
+    if (!user) {
+      toast.error("Please log in to subscribe");
+      navigate("/auth");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const success = await purchaseProduct(productId);
+      if (success) {
+        toast.success("Welcome to Blossom Premium!");
+      }
+    } catch (error) {
+      console.error("Error with native purchase:", error);
+      toast.error("Failed to complete purchase. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle restore purchases (required by Apple)
+  const handleRestorePurchases = async () => {
+    setIsRestoring(true);
+    try {
+      await restorePurchases();
+      toast.success("Purchases restored successfully!");
+    } catch (error) {
+      console.error("Error restoring purchases:", error);
+      toast.error("Failed to restore purchases. Please try again.");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const handleManageSubscription = async () => {
     if (!session) return;
+
+    // On iOS, direct to App Store subscriptions
+    if (isNative && hasNativePremium) {
+      // Open iOS subscription management
+      window.open("https://apps.apple.com/account/subscriptions", "_blank");
+      return;
+    }
 
     setIsManaging(true);
     try {
@@ -121,6 +181,12 @@ export default function Premium() {
     }
   };
 
+  // Get native product price
+  const getNativePrice = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    return product?.price || "Loading...";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -139,19 +205,26 @@ export default function Premium() {
         </div>
 
         {/* Current Status */}
-        {hasPremium && (
+        {isPremiumActive && (
           <Card className="mb-8 border-yellow-500/50 bg-yellow-500/5">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-yellow-500/10 rounded-full">
                     <Crown className="h-6 w-6 text-yellow-500" />
                   </div>
                   <div>
                     <p className="font-semibold text-lg">You're a Premium Member!</p>
-                    <p className="text-sm text-muted-foreground">
-                      Renews on {new Date(premiumEndDate!).toLocaleDateString()}
-                    </p>
+                    {premiumEndDate && (
+                      <p className="text-sm text-muted-foreground">
+                        Renews on {new Date(premiumEndDate).toLocaleDateString()}
+                      </p>
+                    )}
+                    {hasNativePremium && !premiumEndDate && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Apple className="h-3 w-3" /> Subscribed via App Store
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button variant="outline" onClick={handleManageSubscription} disabled={isManaging}>
@@ -166,44 +239,130 @@ export default function Premium() {
           </Card>
         )}
 
-        {/* Pricing Card */}
-        {!hasPremium && (
-          <Card className="mb-8 border-primary/50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-medium rounded-bl-lg">
-              Most Popular
-            </div>
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-3xl">Premium</CardTitle>
-              <CardDescription>Everything you need to find your match</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="mb-6">
-                <span className="text-5xl font-bold">$14.99</span>
-                <span className="text-muted-foreground">/month</span>
+        {/* Pricing Cards */}
+        {!isPremiumActive && (
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            {/* Monthly Plan */}
+            <Card className="border-primary/50 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-medium rounded-bl-lg">
+                Monthly
               </div>
-              <Button
-                size="lg"
-                className="w-full max-w-xs"
-                onClick={handleSubscribe}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Crown className="h-4 w-4 mr-2" />
-                    Get Premium
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground mt-3">
-                Cancel anytime. No commitments.
-              </p>
-            </CardContent>
-          </Card>
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-2xl">Premium</CardTitle>
+                <CardDescription>Flexible monthly plan</CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="mb-6">
+                  {isNative ? (
+                    <span className="text-4xl font-bold">
+                      {nativeLoading ? "..." : getNativePrice(IAP_PRODUCTS.PREMIUM_MONTHLY)}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold">$14.99</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </>
+                  )}
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={() => isNative 
+                    ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_MONTHLY) 
+                    : handleSubscribe()
+                  }
+                  disabled={isLoading || nativeLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      {isNative && <Apple className="h-4 w-4 mr-2" />}
+                      <Crown className="h-4 w-4 mr-2" />
+                      Subscribe Monthly
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Yearly Plan */}
+            <Card className="border-green-500/50 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 text-sm font-medium rounded-bl-lg">
+                Best Value
+              </div>
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-2xl">Premium Yearly</CardTitle>
+                <CardDescription>Save over 40%</CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="mb-6">
+                  {isNative ? (
+                    <span className="text-4xl font-bold">
+                      {nativeLoading ? "..." : getNativePrice(IAP_PRODUCTS.PREMIUM_YEARLY)}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold">$99.99</span>
+                      <span className="text-muted-foreground">/year</span>
+                    </>
+                  )}
+                </div>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => isNative 
+                    ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_YEARLY) 
+                    : handleSubscribe()
+                  }
+                  disabled={isLoading || nativeLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      {isNative && <Apple className="h-4 w-4 mr-2" />}
+                      <Crown className="h-4 w-4 mr-2" />
+                      Subscribe Yearly
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Restore Purchases - Required by Apple */}
+        {isNative && !isPremiumActive && (
+          <div className="text-center mb-8">
+            <Button
+              variant="ghost"
+              onClick={handleRestorePurchases}
+              disabled={isRestoring}
+              className="text-muted-foreground"
+            >
+              {isRestoring ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4 mr-2" />
+              )}
+              Restore Purchases
+            </Button>
+          </div>
+        )}
+
+        {!isPremiumActive && (
+          <p className="text-xs text-muted-foreground text-center mb-8">
+            Cancel anytime. No commitments.
+            {isNative && " Subscription will be charged to your Apple ID."}
+          </p>
         )}
 
         {/* Features Grid */}
@@ -211,7 +370,7 @@ export default function Premium() {
           <h2 className="text-xl font-semibold mb-4">Premium Features</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {PREMIUM_FEATURES_LIST.map((feature, index) => (
-              <Card key={index} className={hasPremium ? "border-green-500/30" : ""}>
+              <Card key={index} className={isPremiumActive ? "border-green-500/30" : ""}>
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                     <feature.icon className="h-5 w-5 text-primary" />
@@ -219,7 +378,7 @@ export default function Premium() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{feature.title}</h3>
-                      {hasPremium && (
+                      {isPremiumActive && (
                         <Badge variant="outline" className="text-green-500 border-green-500/50 text-xs">
                           Active
                         </Badge>
@@ -257,6 +416,14 @@ export default function Premium() {
                 Your matches and conversations stay intact. You'll just lose access to premium features like seeing who liked you.
               </p>
             </div>
+            {isNative && (
+              <div>
+                <h4 className="font-medium">How do I manage my subscription?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Go to Settings → Apple ID → Subscriptions on your device to manage or cancel your subscription.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
