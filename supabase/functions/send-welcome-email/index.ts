@@ -122,187 +122,173 @@ const handler = async (req: Request): Promise<Response> => {
     await resend.emails.send({
       from: "Blossom <onboarding@resend.dev>",
       to: [user.email!],
-      subject: "Welcome to Blossom! 🌸",
+      subject: "💕 Your Love Story Begins Now - Welcome to Blossom!",
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-                background-color: #f9fafb;
-              }
-              .container {
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
-                padding: 40px 20px;
-                text-align: center;
-                border-radius: 12px 12px 0 0;
-              }
-              .header-text {
-                color: #ffffff;
-                font-size: 32px;
-                font-weight: bold;
-                margin: 0;
-              }
-              .content {
-                background: #ffffff;
-                padding: 40px 30px;
-                border-radius: 0 0 12px 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              }
-              .title {
-                color: #1f2937;
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0 0 20px;
-                line-height: 1.3;
-              }
-              .paragraph {
-                color: #4b5563;
-                font-size: 16px;
-                line-height: 1.6;
-                margin: 16px 0;
-              }
-              .highlight-box {
-                background-color: #fef3f6;
-                border: 2px solid #FF6B9D;
-                border-radius: 8px;
-                padding: 20px;
-                margin: 24px 0;
-              }
-              .highlight-title {
-                color: #C06C84;
-                font-size: 18px;
-                font-weight: bold;
-                margin: 0 0 12px;
-              }
-              .list-item {
-                color: #4b5563;
-                font-size: 15px;
-                line-height: 1.8;
-                margin: 8px 0;
-                padding-left: 4px;
-              }
-              .button-container {
-                text-align: center;
-                margin: 32px 0;
-              }
-              .button {
-                background-color: #FF6B9D;
-                border-radius: 8px;
-                color: #ffffff;
-                font-size: 16px;
-                font-weight: bold;
-                text-decoration: none;
-                display: inline-block;
-                padding: 14px 32px;
-                box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
-              }
-              .hr {
-                border: none;
-                border-top: 1px solid #e5e7eb;
-                margin: 24px 0;
-              }
-              .small-text {
-                color: #6b7280;
-                font-size: 14px;
-                line-height: 1.6;
-                margin: 6px 0;
-              }
-              .signature {
-                color: #4b5563;
-                font-size: 16px;
-                line-height: 1.6;
-                margin: 24px 0 0;
-              }
-              .footer {
-                background-color: #f9fafb;
-                padding: 20px;
-                text-align: center;
-                border-top: 1px solid #e5e7eb;
-                margin-top: 20px;
-              }
-              .footer-text {
-                color: #9ca3af;
-                font-size: 12px;
-                line-height: 1.5;
-                margin: 4px 0;
-              }
-            </style>
           </head>
-          <body>
-            <div class="container">
-              <!-- Header -->
-              <div class="header">
-                <h1 class="header-text">🌸 Blossom</h1>
+          <body style="margin: 0; padding: 0; background: linear-gradient(180deg, #FFF5F7 0%, #FFFFFF 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+              
+              <!-- Hero Section -->
+              <div style="background: linear-gradient(135deg, #FF6B9D 0%, #C44569 50%, #9B2C4D 100%); border-radius: 24px 24px 0 0; padding: 50px 30px; text-align: center; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                <div style="position: absolute; bottom: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                
+                <div style="font-size: 60px; margin-bottom: 16px;">💕</div>
+                <h1 style="color: #ffffff; font-size: 36px; font-weight: 800; margin: 0 0 12px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  Welcome to Blossom
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin: 0; font-weight: 500;">
+                  Where meaningful connections bloom 🌸
+                </p>
               </div>
 
-              <!-- Content -->
-              <div class="content">
-                <h1 class="title">Welcome to Blossom, ${firstName}!</h1>
+              <!-- Main Content -->
+              <div style="background: #ffffff; padding: 40px 35px; border-radius: 0 0 24px 24px; box-shadow: 0 20px 60px rgba(196, 69, 105, 0.15);">
                 
-                <p class="paragraph">
-                  We're thrilled to have you join our community! Your journey to meaningful 
-                  connections starts now.
+                <h2 style="color: #1a1a2e; font-size: 28px; font-weight: 700; margin: 0 0 20px; text-align: center;">
+                  Hey ${firstName}! 👋
+                </h2>
+                
+                <p style="color: #4a4a5a; font-size: 17px; line-height: 1.7; margin: 0 0 24px; text-align: center;">
+                  <strong style="color: #C44569;">You just took the first step</strong> toward finding someone special. 
+                  We're so excited to have you here!
                 </p>
 
-                <div class="highlight-box">
-                  <p class="highlight-title">✨ What's Next?</p>
-                  <p class="list-item">📸 Complete your profile with photos</p>
-                  <p class="list-item">💝 Add your interests and preferences</p>
-                  <p class="list-item">🗺️ Start discovering amazing people nearby</p>
-                  <p class="list-item">💕 Begin your journey to finding love</p>
+                <!-- Exciting Stats Box -->
+                <div style="background: linear-gradient(135deg, #FFF5F7 0%, #FFE8EE 100%); border-radius: 16px; padding: 28px; margin: 24px 0; border: 2px solid #FFD0DC;">
+                  <p style="color: #C44569; font-size: 16px; font-weight: 700; margin: 0 0 16px; text-align: center;">
+                    ✨ Join thousands finding love every day ✨
+                  </p>
+                  <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div style="flex: 1;">
+                      <div style="font-size: 32px; font-weight: 800; color: #C44569;">10K+</div>
+                      <div style="font-size: 12px; color: #666; margin-top: 4px;">Active Members</div>
+                    </div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 32px; font-weight: 800; color: #C44569;">500+</div>
+                      <div style="font-size: 12px; color: #666; margin-top: 4px;">Matches Daily</div>
+                    </div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 32px; font-weight: 800; color: #C44569;">98%</div>
+                      <div style="font-size: 12px; color: #666; margin-top: 4px;">Happy Users</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Steps Section -->
+                <h3 style="color: #1a1a2e; font-size: 20px; font-weight: 700; margin: 32px 0 20px; text-align: center;">
+                  🚀 Get Started in 3 Easy Steps
+                </h3>
+
+                <div style="margin: 20px 0;">
+                  <!-- Step 1 -->
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(196, 69, 105, 0.3);">
+                      <span style="color: #fff; font-size: 20px; font-weight: 700;">1</span>
+                    </div>
+                    <div style="margin-left: 16px; padding-top: 4px;">
+                      <p style="color: #1a1a2e; font-size: 16px; font-weight: 700; margin: 0 0 4px;">Add Your Best Photos 📸</p>
+                      <p style="color: #666; font-size: 14px; margin: 0; line-height: 1.5;">Show off your smile! Profiles with 4+ photos get 3x more matches.</p>
+                    </div>
+                  </div>
+
+                  <!-- Step 2 -->
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(196, 69, 105, 0.3);">
+                      <span style="color: #fff; font-size: 20px; font-weight: 700;">2</span>
+                    </div>
+                    <div style="margin-left: 16px; padding-top: 4px;">
+                      <p style="color: #1a1a2e; font-size: 16px; font-weight: 700; margin: 0 0 4px;">Share Your Story 💬</p>
+                      <p style="color: #666; font-size: 14px; margin: 0; line-height: 1.5;">Write a bio that shows your personality. Be authentic - that's what attracts the right person!</p>
+                    </div>
+                  </div>
+
+                  <!-- Step 3 -->
+                  <div style="display: flex; align-items: flex-start;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(196, 69, 105, 0.3);">
+                      <span style="color: #fff; font-size: 20px; font-weight: 700;">3</span>
+                    </div>
+                    <div style="margin-left: 16px; padding-top: 4px;">
+                      <p style="color: #1a1a2e; font-size: 16px; font-weight: 700; margin: 0 0 4px;">Start Discovering 💕</p>
+                      <p style="color: #666; font-size: 14px; margin: 0; line-height: 1.5;">Swipe through profiles, find your match, and start meaningful conversations!</p>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- CTA Button -->
-                <div class="button-container">
-                  <a href="${profileUrl}" class="button">
-                    Complete Your Profile
+                <div style="text-align: center; margin: 36px 0;">
+                  <a href="${profileUrl}" style="background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%); color: #ffffff; font-size: 18px; font-weight: 700; text-decoration: none; display: inline-block; padding: 18px 48px; border-radius: 50px; box-shadow: 0 8px 30px rgba(196, 69, 105, 0.4); transition: all 0.3s ease;">
+                    ✨ Complete My Profile ✨
                   </a>
                 </div>
 
-                <p class="paragraph">
-                  Ready to make your profile shine? Add photos, share your interests, and 
-                  let others know what makes you unique.
+                <!-- Motivational Quote -->
+                <div style="background: #1a1a2e; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center;">
+                  <p style="color: #FF6B9D; font-size: 20px; font-style: italic; margin: 0 0 8px; font-weight: 500;">
+                    "The best love stories start with a single hello."
+                  </p>
+                  <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin: 0;">
+                    Your next chapter begins today 💫
+                  </p>
+                </div>
+
+                <!-- Features Grid -->
+                <h3 style="color: #1a1a2e; font-size: 18px; font-weight: 700; margin: 28px 0 16px; text-align: center;">
+                  🎁 What Makes Blossom Special
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div style="background: #F8F9FA; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 8px;">🔒</div>
+                    <p style="color: #1a1a2e; font-size: 14px; font-weight: 600; margin: 0 0 4px;">Verified Profiles</p>
+                    <p style="color: #666; font-size: 12px; margin: 0;">Real people, real connections</p>
+                  </div>
+                  <div style="background: #F8F9FA; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 8px;">🎯</div>
+                    <p style="color: #1a1a2e; font-size: 14px; font-weight: 600; margin: 0 0 4px;">Smart Matching</p>
+                    <p style="color: #666; font-size: 12px; margin: 0;">AI-powered compatibility</p>
+                  </div>
+                  <div style="background: #F8F9FA; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 8px;">📹</div>
+                    <p style="color: #1a1a2e; font-size: 14px; font-weight: 600; margin: 0 0 4px;">Video Dates</p>
+                    <p style="color: #666; font-size: 12px; margin: 0;">Meet before you meet</p>
+                  </div>
+                  <div style="background: #F8F9FA; border-radius: 12px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 8px;">🌟</div>
+                    <p style="color: #1a1a2e; font-size: 14px; font-weight: 600; margin: 0 0 4px;">Daily Questions</p>
+                    <p style="color: #666; font-size: 12px; margin: 0;">Fun icebreakers</p>
+                  </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid #eee; margin: 28px 0;">
+
+                <!-- Closing -->
+                <p style="color: #4a4a5a; font-size: 16px; line-height: 1.7; margin: 0 0 20px; text-align: center;">
+                  Remember, every great love story started somewhere. 
+                  <strong style="color: #C44569;">Yours starts here.</strong>
                 </p>
 
-                <hr class="hr">
-
-                <p class="small-text"><strong>💡 Pro Tips:</strong></p>
-                <p class="small-text">• Use high-quality photos that show your personality</p>
-                <p class="small-text">• Be authentic in your bio - it helps find better matches</p>
-                <p class="small-text">• Set your preferences to find people you'll truly connect with</p>
-
-                <hr class="hr">
-
-                <p class="paragraph">
-                  If you have any questions or need help getting started, we're here for you!
-                </p>
-
-                <p class="signature">
-                  Happy matching! 💕<br>
-                  <strong>The Blossom Team</strong>
+                <p style="color: #1a1a2e; font-size: 16px; text-align: center; margin: 0;">
+                  With love,<br>
+                  <strong style="color: #C44569;">💕 The Blossom Team</strong>
                 </p>
               </div>
 
               <!-- Footer -->
-              <div class="footer">
-                <p class="footer-text">
-                  You're receiving this email because you signed up for Blossom.
+              <div style="padding: 24px; text-align: center;">
+                <p style="color: #999; font-size: 12px; margin: 0 0 8px;">
+                  You received this email because you joined Blossom.
                 </p>
-                <p class="footer-text">
-                  © 2025 Blossom. All rights reserved.
+                <p style="color: #999; font-size: 12px; margin: 0;">
+                  © 2025 Blossom. Made with 💕 for people seeking love.
                 </p>
               </div>
+
             </div>
           </body>
         </html>
