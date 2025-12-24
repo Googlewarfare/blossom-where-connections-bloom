@@ -309,7 +309,7 @@ export const useMessages = (conversationId?: string) => {
     }
   };
 
-  // Upload media file
+  // Upload media file and return the storage path (not public URL)
   const uploadMedia = async (
     file: File,
     onProgress?: (progress: number) => void
@@ -329,15 +329,27 @@ export const useMessages = (conversationId?: string) => {
 
       if (error) throw error;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(data.path);
-
-      return urlData.publicUrl;
+      // Return the storage path instead of public URL for security
+      // Signed URLs will be generated when displaying media
+      return data.path;
     } catch (error) {
       console.error('Error uploading media:', error);
       toast.error('Failed to upload media');
+      return null;
+    }
+  };
+
+  // Get signed URL for secure media access (1 hour expiration)
+  const getSignedMediaUrl = async (filePath: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('chat-media')
+        .createSignedUrl(filePath, 3600); // 1 hour expiration
+
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
       return null;
     }
   };
@@ -507,6 +519,7 @@ export const useMessages = (conversationId?: string) => {
     addReaction,
     removeReaction,
     uploadMedia,
+    getSignedMediaUrl,
     refreshConversations: fetchConversations,
   };
 };
