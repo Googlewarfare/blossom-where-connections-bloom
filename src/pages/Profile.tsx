@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, X, Star, MapPin } from "lucide-react";
+import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -500,10 +500,16 @@ const Profile = () => {
               <p className="text-muted-foreground">Manage your Blossom profile</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut} className="rounded-full">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate("/safety")} className="rounded-full">
+              <Shield className="w-4 h-4 mr-2" />
+              Safety
+            </Button>
+            <Button variant="outline" onClick={handleSignOut} className="rounded-full">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {/* Profile Completion Banner */}
