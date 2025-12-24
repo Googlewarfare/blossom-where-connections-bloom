@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, MapPin } from "lucide-react";
+import { Heart, MapPin, ShieldAlert } from "lucide-react";
 import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
+import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
 import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
@@ -131,12 +132,27 @@ const Auth = () => {
       }
 
       if (isLogin) {
+        // Check if account is locked due to failed attempts
+        const isLocked = await checkAccountLockout(validation.data.email);
+        if (isLocked) {
+          toast({
+            title: "Account Temporarily Locked",
+            description: "Too many failed login attempts. Please try again in 15 minutes.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
           email: validation.data.email,
           password: validation.data.password,
         });
 
         if (error) {
+          // Record failed login attempt
+          await recordLoginAttempt(validation.data.email, false);
+          
           if (error.message.includes("Invalid login credentials")) {
             toast({
               title: "Login Failed",
@@ -151,6 +167,9 @@ const Auth = () => {
             });
           }
         } else {
+          // Record successful login
+          await recordLoginAttempt(validation.data.email, true);
+          
           toast({
             title: "Welcome back!",
             description: "You've successfully logged in.",

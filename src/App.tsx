@@ -7,6 +7,7 @@ import { AuthProvider } from "./lib/auth";
 import { VideoCallProvider } from "./components/VideoCallProvider";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { SkipLink } from "./components/ui/skip-link";
+import { SessionTimeoutProvider } from "./components/SessionTimeoutProvider";
 
 const queryClient = new QueryClient();
 
@@ -19,9 +20,11 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <main id="main-content">
-              <AnimatedRoutes />
-            </main>
+            <SessionTimeoutProvider>
+              <main id="main-content">
+                <AnimatedRoutes />
+              </main>
+            </SessionTimeoutProvider>
           </BrowserRouter>
         </TooltipProvider>
       </VideoCallProvider>

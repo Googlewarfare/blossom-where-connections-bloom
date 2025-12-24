@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Clock, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { logAuditEvent } from '@/hooks/use-security';
 
 interface VerificationRequest {
   id: string;
@@ -111,6 +112,15 @@ const AdminVerification = () => {
 
       if (error) throw error;
 
+      // Log audit event
+      await logAuditEvent(
+        'VERIFY_USER_APPROVED',
+        'profiles',
+        userId,
+        { verification_status: 'pending', verified: false },
+        { verification_status: 'approved', verified: true }
+      );
+
       toast({
         title: "Verification approved",
         description: "User has been verified successfully"
@@ -137,6 +147,15 @@ const AdminVerification = () => {
         .eq('id', userId);
 
       if (error) throw error;
+
+      // Log audit event
+      await logAuditEvent(
+        'VERIFY_USER_REJECTED',
+        'profiles',
+        userId,
+        { verification_status: 'pending' },
+        { verification_status: 'rejected', verified: false }
+      );
 
       toast({
         title: "Verification rejected",
