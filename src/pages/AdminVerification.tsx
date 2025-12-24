@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Clock, Shield } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/lib/auth';
 
 interface VerificationRequest {
   id: string;
@@ -21,11 +22,41 @@ interface VerificationRequest {
 const AdminVerification = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    const checkAccess = async () => {
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdminOrMod = roles?.some(r => r.role === 'admin' || r.role === 'moderator');
+
+      if (!isAdminOrMod) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access this page",
+          variant: "destructive"
+        });
+        navigate('/discover');
+        return;
+      }
+
+      setHasAccess(true);
+      fetchRequests();
+    };
+
+    checkAccess();
+  }, [user, navigate]);
 
   const fetchRequests = async () => {
     try {
@@ -112,10 +143,10 @@ const AdminVerification = () => {
     return data?.signedUrl || '';
   };
 
-  if (loading) {
+  if (loading || !hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Loading verification requests...</p>
+        <p>{loading ? 'Loading verification requests...' : 'Checking access...'}</p>
       </div>
     );
   }
