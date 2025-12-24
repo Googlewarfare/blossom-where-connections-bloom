@@ -27,6 +27,35 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     logStep("Function started");
 
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Verify JWT and get authenticated user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      logStep("ERROR: No authorization header");
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !authData.user) {
+      logStep("ERROR: Authentication failed", { error: authError?.message });
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const callerUserId = authData.user.id;
+    logStep("User authenticated", { userId: callerUserId });
+
     const { userId }: WelcomeEmailRequest = await req.json();
 
     if (!userId) {
@@ -37,10 +66,27 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    // Authorization check: User can only send welcome email to themselves
+    // This prevents abuse where someone could spam emails to other users
+    if (callerUserId !== userId) {
+      // Check if caller is an admin
+      const { data: hasAdminRole } = await supabaseAdmin.rpc('has_role', { 
+        _user_id: callerUserId, 
+        _role: 'admin' 
+      });
+      
+      if (!hasAdminRole) {
+        logStep("ERROR: Unauthorized - user trying to send email to different user", { 
+          callerId: callerUserId, 
+          targetId: userId 
+        });
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      logStep("Admin sending welcome email to user", { adminId: callerUserId, targetId: userId });
+    }
 
     // Get user profile
     const { data: profile, error: profileError } = await supabaseAdmin
@@ -71,7 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
     const firstName = profile?.full_name?.split(" ")[0] || "there";
     const profileUrl = `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || ""}/profile`;
 
-    logStep("Sending welcome email");
+    logStep("Sending welcome email", { recipientEmail: user.email });
 
     await resend.emails.send({
       from: "Blossom <onboarding@resend.dev>",

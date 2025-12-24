@@ -4,7 +4,7 @@ project_id = "cldpflpfyoalxxioaqab"
 verify_jwt = false
 
 [functions.send-welcome-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-super-like-checkout]
 verify_jwt = true
