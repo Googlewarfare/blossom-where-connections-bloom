@@ -47,6 +47,7 @@ import {
   Ban,
   ShieldCheck,
 } from "lucide-react";
+import { logAuditEvent } from "@/hooks/use-security";
 
 type ReportStatus = "pending" | "reviewing" | "resolved" | "dismissed";
 type ReportCategory = "fake_profile" | "inappropriate_photos" | "harassment" | "spam" | "scam" | "underage" | "other";
@@ -195,6 +196,11 @@ export default function AdminReports() {
 
     setIsUpdating(true);
     try {
+      const oldData = {
+        status: selectedReport.status,
+        admin_notes: selectedReport.admin_notes,
+      };
+      
       const { error } = await supabase
         .from("reports")
         .update({
@@ -206,6 +212,15 @@ export default function AdminReports() {
         .eq("id", selectedReport.id);
 
       if (error) throw error;
+
+      // Log audit event
+      await logAuditEvent(
+        'REPORT_STATUS_UPDATED',
+        'reports',
+        selectedReport.id,
+        oldData,
+        { status: newStatus, admin_notes: adminNotes.trim() || null }
+      );
 
       toast.success("Report updated successfully");
       setSelectedReport(null);
@@ -245,6 +260,15 @@ export default function AdminReports() {
 
       if (error) throw error;
 
+      // Log audit event for blocking user
+      await logAuditEvent(
+        'USER_BLOCKED',
+        'blocked_users',
+        userToBlock.id,
+        null,
+        { user_id: userToBlock.id, report_id: userToBlock.reportId, reason: 'Blocked from report review' }
+      );
+
       setBlockedUserIds(prev => new Set([...prev, userToBlock.id]));
       toast.success(`${userToBlock.name || "User"} has been blocked`);
       setBlockDialogOpen(false);
@@ -269,6 +293,15 @@ export default function AdminReports() {
         .eq("user_id", userId);
 
       if (error) throw error;
+
+      // Log audit event for unblocking user
+      await logAuditEvent(
+        'USER_UNBLOCKED',
+        'blocked_users',
+        userId,
+        { user_id: userId },
+        null
+      );
 
       setBlockedUserIds(prev => {
         const newSet = new Set(prev);
