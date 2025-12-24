@@ -93,16 +93,6 @@ const Hero = () => {
               </Link>
             </div>
 
-            <div className="flex items-center gap-8 justify-center lg:justify-start pt-6">
-              <div className="text-center lg:text-left group">
-                <div className="text-4xl font-bold text-gradient font-display group-hover:scale-105 transition-transform">
-                  100%
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Verified Profiles
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right content - Logo */}
