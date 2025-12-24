@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -18,28 +19,28 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-4">Product</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-smooth">Features</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Pricing</a></li>
-              <li><a href="/success-stories" className="hover:text-primary transition-smooth">Success Stories</a></li>
-              <li><a href="/events" className="hover:text-primary transition-smooth">Events</a></li>
+              <li><Link to="/discover" className="hover:text-primary transition-smooth">Discover</Link></li>
+              <li><Link to="/premium" className="hover:text-primary transition-smooth">Premium</Link></li>
+              <li><Link to="/success-stories" className="hover:text-primary transition-smooth">Success Stories</Link></li>
+              <li><Link to="/events" className="hover:text-primary transition-smooth">Events</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-smooth">About Us</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Blog</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Careers</a></li>
+              <li><Link to="/about" className="hover:text-primary transition-smooth">About Us</Link></li>
+              <li><Link to="/safety" className="hover:text-primary transition-smooth">Safety Center</Link></li>
+              <li><Link to="/verification" className="hover:text-primary transition-smooth">Get Verified</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-smooth">Help Center</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Safety Tips</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Contact</a></li>
+              <li><Link to="/about" className="hover:text-primary transition-smooth">Help Center</Link></li>
+              <li><Link to="/safety" className="hover:text-primary transition-smooth">Safety Tips</Link></li>
+              <li><Link to="/about" className="hover:text-primary transition-smooth">Contact Us</Link></li>
             </ul>
           </div>
         </div>
@@ -49,8 +50,8 @@ const Footer = () => {
             © 2025 Blossom. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-smooth">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-smooth">Terms of Service</a>
+            <Link to="/about" className="hover:text-primary transition-smooth">Privacy Policy</Link>
+            <Link to="/about" className="hover:text-primary transition-smooth">Terms of Service</Link>
           </div>
         </div>
       </div>
