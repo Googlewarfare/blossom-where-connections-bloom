@@ -11,6 +11,7 @@ import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
 import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
 import { checkPasswordBreach } from "@/hooks/use-password-check";
+import { TwoFactorVerify } from "@/components/TwoFactorVerify";
 import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
@@ -33,6 +34,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [checkingPassword, setCheckingPassword] = useState(false);
   const [passwordWarning, setPasswordWarning] = useState<string | null>(null);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [showMfaVerify, setShowMfaVerify] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -165,7 +168,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: validation.data.email,
           password: validation.data.password,
         });
@@ -188,6 +191,18 @@ const Auth = () => {
             });
           }
         } else {
+          // Check if MFA is required
+          const { data: factorsData } = await supabase.auth.mfa.listFactors();
+          const verifiedFactor = factorsData?.totp.find(f => f.status === 'verified');
+          
+          if (verifiedFactor) {
+            // MFA is required - show verification screen
+            setMfaFactorId(verifiedFactor.id);
+            setShowMfaVerify(true);
+            setLoading(false);
+            return;
+          }
+
           // Record successful login
           await recordLoginAttempt(validation.data.email, true);
           
@@ -286,6 +301,34 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleMfaSuccess = async () => {
+    await recordLoginAttempt(email, true);
+    toast({
+      title: "Welcome back!",
+      description: "You've successfully logged in.",
+    });
+    navigate("/discover");
+  };
+
+  const handleMfaCancel = async () => {
+    await supabase.auth.signOut();
+    setShowMfaVerify(false);
+    setMfaFactorId(null);
+  };
+
+  // Show MFA verification screen if needed
+  if (showMfaVerify && mfaFactorId) {
+    return (
+      <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12">
+        <TwoFactorVerify
+          factorId={mfaFactorId}
+          onSuccess={handleMfaSuccess}
+          onCancel={handleMfaCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12">

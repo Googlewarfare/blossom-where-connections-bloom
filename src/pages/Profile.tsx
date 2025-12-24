@@ -15,6 +15,7 @@ import { Slider } from "@/components/ui/slider";
 import { getCurrentLocation } from "@/lib/location-utils";
 import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
+import { TwoFactorSetup } from "@/components/TwoFactorSetup";
 
 interface ProfileData {
   full_name: string;
@@ -525,10 +526,11 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="interests">Interests</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -990,6 +992,23 @@ const Profile = () => {
                 {saving ? "Saving..." : "Save Preferences"}
               </Button>
             </Card>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security">
+            <div className="space-y-6">
+              <TwoFactorSetup />
+              
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Security Overview</h3>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>• Your account is protected with password authentication</p>
+                  <p>• Enable 2FA above for additional security</p>
+                  <p>• Session timeout: 30 minutes of inactivity</p>
+                  <p>• Failed login attempts are tracked and accounts are temporarily locked after 5 attempts</p>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
