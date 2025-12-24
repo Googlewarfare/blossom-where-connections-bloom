@@ -8,6 +8,7 @@ import { Heart, MessageCircle, MapPin, Briefcase, Sparkles } from "lucide-react"
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
@@ -138,16 +139,19 @@ const Matches = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen gradient-hero">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-96 rounded-2xl" />
-            ))}
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="gradient-hero">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-8">
+              <Skeleton className="h-10 w-48" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-96 rounded-2xl" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -155,7 +159,9 @@ const Matches = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-hero">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="gradient-hero">
       <div className="container mx-auto px-4 py-8">
         {/* Profile Completion Banner */}
         <div className="mb-6">
@@ -300,6 +306,7 @@ const Matches = () => {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
 import { MessageReactions } from '@/components/MessageReactions';
 import { MessageActions } from '@/components/MessageActions';
 import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
@@ -232,9 +233,12 @@ const Chat = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="container mx-auto max-w-6xl">
-          <Skeleton className="h-[600px] w-full" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="p-4">
+          <div className="container mx-auto max-w-6xl">
+            <Skeleton className="h-[600px] w-full" />
+          </div>
         </div>
       </div>
     );
@@ -242,6 +246,7 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto max-w-6xl p-4">
         <div className="mb-6 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/matches')}>

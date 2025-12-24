@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/Navbar";
 import {
   ArrowLeft,
   Crown,
@@ -122,6 +123,7 @@ export default function Premium() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

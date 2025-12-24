@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Heart, Eye, Users, Sparkles, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
 import { VerificationBadge } from '@/components/VerificationBadge';
 
 interface ActivityUser {
@@ -234,13 +235,16 @@ const Activity = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="container mx-auto max-w-4xl">
-          <Skeleton className="h-8 w-48 mb-6" />
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="p-4">
+          <div className="container mx-auto max-w-4xl">
+            <Skeleton className="h-8 w-48 mb-6" />
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -248,7 +252,9 @@ const Activity = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-hero">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="gradient-hero">
       <div className="container mx-auto max-w-4xl p-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -406,6 +412,7 @@ const Activity = () => {
             </div>
           </TabsContent>
         </Tabs>
+      </div>
       </div>
     </div>
   );

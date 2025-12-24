@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import Navbar from '@/components/Navbar';
 
 interface Event {
   id: string;
@@ -101,6 +102,7 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Local Singles Events</h1>

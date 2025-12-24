@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { getCurrentLocation } from "@/lib/location-utils";
+import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 
 interface ProfileData {
@@ -482,14 +483,19 @@ const Profile = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="py-12 px-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -986,6 +992,7 @@ const Profile = () => {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
       </div>
     </div>
   );
