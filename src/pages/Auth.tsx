@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, MapPin, ShieldAlert } from "lucide-react";
+import { Heart, MapPin, ShieldAlert, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
 import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
+import { checkPasswordBreach } from "@/hooks/use-password-check";
 import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
@@ -30,8 +31,28 @@ const Auth = () => {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingPassword, setCheckingPassword] = useState(false);
+  const [passwordWarning, setPasswordWarning] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check password against breach database on blur (signup only)
+  const handlePasswordBlur = async () => {
+    if (isLogin || password.length < 6) return;
+    
+    setCheckingPassword(true);
+    setPasswordWarning(null);
+    
+    const { breached, count } = await checkPasswordBreach(password);
+    
+    if (breached) {
+      setPasswordWarning(
+        `This password has appeared in ${count.toLocaleString()} data breaches. Please choose a different password for your security.`
+      );
+    }
+    
+    setCheckingPassword(false);
+  };
 
   const handleGetLocation = async () => {
     setLoadingLocation(true);
@@ -177,6 +198,18 @@ const Auth = () => {
           navigate("/discover");
         }
       } else {
+        // Check password against breach database before signup
+        const { breached, count } = await checkPasswordBreach(validation.data.password);
+        if (breached) {
+          toast({
+            title: "Compromised Password Detected",
+            description: `This password has appeared in ${count.toLocaleString()} data breaches. Please choose a different password.`,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         const redirectUrl = `${window.location.origin}/`;
         const { error: signUpError } = await supabase.auth.signUp({
           email: validation.data.email,
@@ -381,12 +414,27 @@ const Auth = () => {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordWarning(null);
+                }}
+                onBlur={handlePasswordBlur}
                 required
                 minLength={6}
                 maxLength={100}
               />
-              {!isLogin && (
+              {checkingPassword && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span className="animate-pulse">●</span> Checking password security...
+                </p>
+              )}
+              {passwordWarning && (
+                <div className="flex items-start gap-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-xs text-destructive">{passwordWarning}</p>
+                </div>
+              )}
+              {!isLogin && !passwordWarning && !checkingPassword && (
                 <p className="text-xs text-muted-foreground">
                   Minimum 6 characters
                 </p>
