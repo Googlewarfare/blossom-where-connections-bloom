@@ -8,6 +8,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[SEND-PASSWORD-RESET] ${step}${detailsStr}`);
+};
+
 interface PasswordResetRequest {
   email: string;
   resetLink: string;
@@ -19,9 +24,19 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    logStep("Function started");
+
     const { email, resetLink }: PasswordResetRequest = await req.json();
 
-    console.log("Sending password reset email to:", email);
+    if (!email || !resetLink) {
+      logStep("ERROR: Missing required fields");
+      return new Response(JSON.stringify({ error: "Email and reset link are required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    logStep("Sending password reset email");
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -107,19 +122,22 @@ const handler = async (req: Request): Promise<Response> => {
       html: htmlContent,
     });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+    logStep("Password reset email sent successfully");
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
-    console.error("Error in send-password-reset function:", error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    
+    // Return generic error to client
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Failed to send password reset email" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
