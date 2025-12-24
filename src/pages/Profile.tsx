@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield, ImagePlus } from "lucide-react";
+import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield, ImagePlus, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -19,6 +19,17 @@ import { TwoFactorSetup } from "@/components/TwoFactorSetup";
 import { useCamera } from "@/hooks/use-camera";
 import { useHaptics } from "@/hooks/use-haptics";
 import { Capacitor } from "@capacitor/core";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileData {
   full_name: string;
@@ -1059,6 +1070,73 @@ const Profile = () => {
                   <p>• Enable 2FA above for additional security</p>
                   <p>• Session timeout: 30 minutes of inactivity</p>
                   <p>• Failed login attempts are tracked and accounts are temporarily locked after 5 attempts</p>
+                </div>
+              </Card>
+
+              {/* Delete Account Section */}
+              <Card className="p-6 border-destructive/50">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-full bg-destructive/10">
+                    <Trash2 className="w-5 h-5 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-destructive mb-1">Delete Account</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Permanently delete your account and all associated data. This action cannot be undone.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete My Account
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription className="space-y-2">
+                            <p>This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including:</p>
+                            <ul className="list-disc list-inside text-sm space-y-1 mt-2">
+                              <li>Your profile and photos</li>
+                              <li>All your matches and conversations</li>
+                              <li>Your preferences and settings</li>
+                              <li>Any active subscriptions</li>
+                            </ul>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={async () => {
+                              try {
+                                // Delete user data from profiles (cascades to related tables)
+                                await supabase.from("profiles").delete().eq("id", user!.id);
+                                
+                                // Sign out the user
+                                await supabase.auth.signOut();
+                                
+                                toast({
+                                  title: "Account Deleted",
+                                  description: "Your account has been permanently deleted.",
+                                });
+                                
+                                navigate("/");
+                              } catch (error: any) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete account. Please contact support.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            Yes, delete my account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </Card>
             </div>
