@@ -65,6 +65,28 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchAllAnalytics();
+
+    // Subscribe to real-time page_views updates
+    const channel = supabase
+      .channel('analytics-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'page_views',
+        },
+        () => {
+          // Refresh page views and overview when new page view is recorded
+          fetchPageViewsData();
+          fetchOverviewMetrics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAllAnalytics = async () => {
