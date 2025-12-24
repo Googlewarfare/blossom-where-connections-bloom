@@ -25,6 +25,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   Shield,
   AlertTriangle,
@@ -34,6 +44,8 @@ import {
   Eye,
   Loader2,
   User,
+  Ban,
+  ShieldCheck,
 } from "lucide-react";
 
 type ReportStatus = "pending" | "reviewing" | "resolved" | "dismissed";
@@ -77,11 +89,16 @@ export default function AdminReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [newStatus, setNewStatus] = useState<ReportStatus>("pending");
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [userToBlock, setUserToBlock] = useState<{ id: string; name: string; reportId: string } | null>(null);
+  const [isBlocking, setIsBlocking] = useState(false);
 
   useEffect(() => {
     checkAccessAndFetchReports();
@@ -100,16 +117,32 @@ export default function AdminReports() {
         .select("role")
         .eq("user_id", user.id);
 
+      const hasAdminRole = roles?.some(r => r.role === "admin");
       const isAdminOrMod = roles?.some(r => r.role === "admin" || r.role === "moderator");
       setHasAccess(!!isAdminOrMod);
+      setIsAdmin(!!hasAdminRole);
 
       if (isAdminOrMod) {
-        await fetchReports();
+        await Promise.all([fetchReports(), fetchBlockedUsers()]);
       }
     } catch (error) {
       console.error("Error checking access:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBlockedUsers = async () => {
+    try {
+      const { data } = await supabase
+        .from("blocked_users")
+        .select("user_id");
+      
+      if (data) {
+        setBlockedUserIds(new Set(data.map(b => b.user_id)));
+      }
+    } catch (error) {
+      console.error("Error fetching blocked users:", error);
     }
   };
 
@@ -189,6 +222,64 @@ export default function AdminReports() {
     setSelectedReport(report);
     setAdminNotes(report.admin_notes || "");
     setNewStatus(report.status);
+  };
+
+  const handleBlockUser = (userId: string, userName: string, reportId: string) => {
+    setUserToBlock({ id: userId, name: userName, reportId });
+    setBlockDialogOpen(true);
+  };
+
+  const confirmBlockUser = async () => {
+    if (!userToBlock || !user) return;
+
+    setIsBlocking(true);
+    try {
+      const { error } = await supabase
+        .from("blocked_users")
+        .insert({
+          user_id: userToBlock.id,
+          blocked_by: user.id,
+          report_id: userToBlock.reportId,
+          reason: `Blocked from report review`,
+        });
+
+      if (error) throw error;
+
+      setBlockedUserIds(prev => new Set([...prev, userToBlock.id]));
+      toast.success(`${userToBlock.name || "User"} has been blocked`);
+      setBlockDialogOpen(false);
+      setUserToBlock(null);
+    } catch (error: any) {
+      console.error("Error blocking user:", error);
+      if (error.code === "23505") {
+        toast.error("User is already blocked");
+      } else {
+        toast.error("Failed to block user");
+      }
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
+  const handleUnblockUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("blocked_users")
+        .delete()
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      setBlockedUserIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast.success("User has been unblocked");
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      toast.error("Failed to unblock user");
+    }
   };
 
   const filteredReports = reports.filter(r => {
@@ -304,6 +395,12 @@ export default function AdminReports() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {blockedUserIds.has(report.reported_user_id) && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <Ban className="h-3 w-3" />
+                            Blocked
+                          </Badge>
+                        )}
                         <Badge className={STATUS_CONFIG[report.status].color}>
                           {STATUS_CONFIG[report.status].icon}
                           <span className="ml-1">{STATUS_CONFIG[report.status].label}</span>
@@ -378,25 +475,84 @@ export default function AdminReports() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setSelectedReport(null)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleUpdateReport} disabled={isUpdating}>
-                    {isUpdating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      "Update Report"
+                <div className="flex justify-between gap-3">
+                  <div>
+                    {isAdmin && !blockedUserIds.has(selectedReport.reported_user_id) && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleBlockUser(
+                          selectedReport.reported_user_id,
+                          selectedReport.reported_user?.full_name || "Unknown User",
+                          selectedReport.id
+                        )}
+                      >
+                        <Ban className="h-4 w-4 mr-2" />
+                        Block User
+                      </Button>
                     )}
-                  </Button>
+                    {isAdmin && blockedUserIds.has(selectedReport.reported_user_id) && (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleUnblockUser(selectedReport.reported_user_id)}
+                      >
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Unblock User
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => setSelectedReport(null)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdateReport} disabled={isUpdating}>
+                      {isUpdating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Report"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Block Confirmation Dialog */}
+        <AlertDialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Block User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to block {userToBlock?.name || "this user"}? 
+                They will no longer be able to use the platform.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isBlocking}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmBlockUser}
+                disabled={isBlocking}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isBlocking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Blocking...
+                  </>
+                ) : (
+                  <>
+                    <Ban className="h-4 w-4 mr-2" />
+                    Block User
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
