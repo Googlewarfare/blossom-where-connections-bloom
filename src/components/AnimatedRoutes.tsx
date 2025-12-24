@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "./PageTransition";
+import { usePageTracking } from "@/hooks/use-analytics";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
@@ -22,6 +23,9 @@ import About from "@/pages/About";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
+  
+  // Track page views for analytics
+  usePageTracking();
 
   return (
     <AnimatePresence mode="wait">
