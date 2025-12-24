@@ -96,25 +96,6 @@ const Hero = () => {
             <div className="flex items-center gap-8 justify-center lg:justify-start pt-6">
               <div className="text-center lg:text-left group">
                 <div className="text-4xl font-bold text-gradient font-display group-hover:scale-105 transition-transform">
-                  50K+
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Happy Couples
-                </div>
-              </div>
-              <div className="w-px h-14 bg-gradient-to-b from-transparent via-border to-transparent" />
-              <div className="text-center lg:text-left group">
-                <div className="text-4xl font-bold text-gradient font-display group-hover:scale-105 transition-transform flex items-center gap-1">
-                  4.8
-                  <span className="text-blossom-gold">★</span>
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  App Rating
-                </div>
-              </div>
-              <div className="w-px h-14 bg-gradient-to-b from-transparent via-border to-transparent hidden sm:block" />
-              <div className="text-center lg:text-left group hidden sm:block">
-                <div className="text-4xl font-bold text-gradient font-display group-hover:scale-105 transition-transform">
                   100%
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
