@@ -190,21 +190,24 @@ const Auth = () => {
 
         // Update profile with location data after signup
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && (validation.data.location || latitude !== null)) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .update({
-              location: validation.data.location || null,
-              latitude: latitude,
-              longitude: longitude,
-            })
-            .eq("id", user.id);
+        if (user) {
+          // Update location if provided
+          if (validation.data.location || latitude !== null) {
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .update({
+                location: validation.data.location || null,
+                latitude: latitude,
+                longitude: longitude,
+              })
+              .eq("id", user.id);
 
-          if (profileError) {
-            console.error("Error updating profile location:", profileError);
+            if (profileError) {
+              console.error("Error updating profile location:", profileError);
+            }
           }
           
-          // Send welcome email
+          // Send welcome email (always try for new signups)
           try {
             await supabase.functions.invoke('send-welcome-email', {
               body: { userId: user.id }
