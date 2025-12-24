@@ -34,18 +34,22 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
+    // Get price from request body or use default premium price
+    const { priceId } = await req.json().catch(() => ({}));
+    const finalPriceId = priceId || "price_1ShsZ5D2qFqWAuNmmh2UjMgz"; // Blossom Premium
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SZdWXD2qFqWAuNmKyy2aU5M",
+          price: finalPriceId,
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/discover?subscription_success=true`,
-      cancel_url: `${req.headers.get("origin")}/discover`,
+      success_url: `${req.headers.get("origin")}/premium?subscription_success=true`,
+      cancel_url: `${req.headers.get("origin")}/premium`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

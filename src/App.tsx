@@ -19,6 +19,7 @@ import Events from "./pages/Events";
 import Verification from "./pages/Verification";
 import AdminVerification from "./pages/AdminVerification";
 import AdminReports from "./pages/AdminReports";
+import Premium from "./pages/Premium";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/verification" element={<Verification />} />
             <Route path="/admin/verification" element={<AdminVerification />} />
             <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/premium" element={<Premium />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
