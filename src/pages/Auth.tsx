@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, MapPin, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Heart, MapPin, ShieldAlert, AlertTriangle, Fingerprint, ScanFace } from "lucide-react";
 import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
 import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
 import { checkPasswordBreach } from "@/hooks/use-password-check";
 import { TwoFactorVerify } from "@/components/TwoFactorVerify";
+import { useBiometricAuth } from "@/hooks/use-biometric-auth";
 import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
@@ -36,8 +37,19 @@ const Auth = () => {
   const [passwordWarning, setPasswordWarning] = useState<string | null>(null);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [showMfaVerify, setShowMfaVerify] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { 
+    isAvailable: biometricAvailable, 
+    hasStoredCredentials, 
+    biometryType,
+    authenticate: biometricAuthenticate,
+    saveCredentials,
+    getBiometryLabel,
+    isNative,
+    loading: biometricStateLoading
+  } = useBiometricAuth();
 
   // Check password against breach database on blur (signup only)
   const handlePasswordBlur = async () => {
@@ -206,10 +218,19 @@ const Auth = () => {
           // Record successful login
           await recordLoginAttempt(validation.data.email, true);
           
-          toast({
-            title: "Welcome back!",
-            description: "You've successfully logged in.",
-          });
+          // Offer to save credentials for biometric login (on native platforms)
+          if (biometricAvailable && !hasStoredCredentials) {
+            await saveCredentials(validation.data.email, validation.data.password);
+            toast({
+              title: "Welcome back!",
+              description: `${getBiometryLabel()} enabled for faster login next time.`,
+            });
+          } else {
+            toast({
+              title: "Welcome back!",
+              description: "You've successfully logged in.",
+            });
+          }
           navigate("/discover");
         }
       } else {
@@ -315,6 +336,73 @@ const Auth = () => {
     await supabase.auth.signOut();
     setShowMfaVerify(false);
     setMfaFactorId(null);
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!biometricAvailable || !hasStoredCredentials) return;
+    
+    setBiometricLoading(true);
+    try {
+      const credentials = await biometricAuthenticate();
+      
+      if (!credentials) {
+        setBiometricLoading(false);
+        return;
+      }
+
+      // Check account lockout
+      const isLocked = await checkAccountLockout(credentials.email);
+      if (isLocked) {
+        toast({
+          title: "Account Temporarily Locked",
+          description: "Too many failed login attempts. Please try again in 15 minutes.",
+          variant: "destructive",
+        });
+        setBiometricLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (error) {
+        await recordLoginAttempt(credentials.email, false);
+        toast({
+          title: "Login Failed",
+          description: "Biometric login failed. Please sign in with your password.",
+          variant: "destructive",
+        });
+      } else {
+        // Check if MFA is required
+        const { data: factorsData } = await supabase.auth.mfa.listFactors();
+        const verifiedFactor = factorsData?.totp.find(f => f.status === 'verified');
+        
+        if (verifiedFactor) {
+          setMfaFactorId(verifiedFactor.id);
+          setShowMfaVerify(true);
+          setEmail(credentials.email);
+          setBiometricLoading(false);
+          return;
+        }
+
+        await recordLoginAttempt(credentials.email, true);
+        toast({
+          title: "Welcome back!",
+          description: `Signed in with ${getBiometryLabel()}.`,
+        });
+        navigate("/discover");
+      }
+    } catch (error) {
+      toast({
+        title: "Authentication Failed",
+        description: "Biometric authentication was cancelled or failed.",
+        variant: "destructive",
+      });
+    } finally {
+      setBiometricLoading(false);
+    }
   };
 
   // Show MFA verification screen if needed
@@ -488,10 +576,45 @@ const Auth = () => {
               type="submit"
               className="w-full rounded-full"
               size="lg"
-              disabled={loading}
+              disabled={loading || biometricLoading}
             >
               {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
+
+            {/* Biometric Login Button */}
+            {isLogin && biometricAvailable && hasStoredCredentials && !biometricStateLoading && (
+              <>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full rounded-full"
+                  size="lg"
+                  onClick={handleBiometricLogin}
+                  disabled={loading || biometricLoading}
+                >
+                  {biometricLoading ? (
+                    "Authenticating..."
+                  ) : (
+                    <>
+                      {biometryType === 'face' ? (
+                        <ScanFace className="w-5 h-5 mr-2" />
+                      ) : (
+                        <Fingerprint className="w-5 h-5 mr-2" />
+                      )}
+                      Sign in with {getBiometryLabel()}
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
             </form>
           )}
 
