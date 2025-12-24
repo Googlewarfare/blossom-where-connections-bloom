@@ -22,41 +22,58 @@ interface VerificationRequest {
 const AdminVerification = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Don't check access until auth is loaded
+    if (authLoading) return;
+
     const checkAccess = async () => {
       if (!user) {
         navigate('/auth');
         return;
       }
 
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+      try {
+        const { data: roles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
 
-      const isAdminOrMod = roles?.some(r => r.role === 'admin' || r.role === 'moderator');
+        if (error) {
+          // RLS will deny access if user doesn't have admin/moderator role
+          console.error('Access check failed:', error);
+          navigate('/discover');
+          return;
+        }
 
-      if (!isAdminOrMod) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page",
-          variant: "destructive"
-        });
+        const isAdminOrMod = roles?.some(r => r.role === 'admin' || r.role === 'moderator');
+
+        if (!isAdminOrMod) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access this page",
+            variant: "destructive"
+          });
+          navigate('/discover');
+          return;
+        }
+
+        setHasAccess(true);
+        setCheckingAccess(false);
+        fetchRequests();
+      } catch (error) {
+        console.error('Access check error:', error);
         navigate('/discover');
-        return;
       }
-
-      setHasAccess(true);
-      fetchRequests();
     };
 
     checkAccess();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchRequests = async () => {
     try {
@@ -143,10 +160,26 @@ const AdminVerification = () => {
     return data?.signedUrl || '';
   };
 
-  if (loading || !hasAccess) {
+  // Show loading immediately while checking access - prevents UI flash
+  if (authLoading || checkingAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>{loading ? 'Loading verification requests...' : 'Checking access...'}</p>
+        <div className="flex flex-col items-center gap-2">
+          <Shield className="h-8 w-8 text-muted-foreground animate-pulse" />
+          <p className="text-muted-foreground">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return null; // Will redirect via useEffect
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading verification requests...</p>
       </div>
     );
   }
