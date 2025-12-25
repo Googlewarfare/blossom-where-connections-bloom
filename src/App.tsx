@@ -10,6 +10,8 @@ import { SkipLink } from "./components/ui/skip-link";
 import { SessionTimeoutProvider } from "./components/SessionTimeoutProvider";
 import { OfflineFallback } from "./components/OfflineFallback";
 import { useDeepLinks } from "./hooks/use-deep-links";
+import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
+import { AppRatingPrompt } from "./components/AppRatingPrompt";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <OfflineFallback />
+          <PushNotificationPrompt />
+          <AppRatingPrompt />
           <BrowserRouter>
             <DeepLinkHandler />
             <SessionTimeoutProvider>

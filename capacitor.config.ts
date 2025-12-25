@@ -26,12 +26,23 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      launchAutoHide: true,
+      launchAutoHide: false, // We hide manually after app loads
+      launchFadeOutDuration: 300,
       backgroundColor: "#FBD5D5",
       showSpinner: false,
+      androidSpinnerStyle: "small",
       androidScaleType: "CENTER_CROP",
       splashFullScreen: true,
       splashImmersive: true,
+      // iOS-specific
+      iosSpinnerStyle: "small",
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+    Keyboard: {
+      resize: "body",
+      resizeOnFullScreen: true,
     },
   },
 };
