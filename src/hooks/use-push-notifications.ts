@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PushNotificationState {
   token: string | null;
@@ -18,6 +19,21 @@ export const usePushNotifications = () => {
   });
   
   const isNative = Capacitor.isNativePlatform();
+
+  // Save token to user metadata (could also be a separate table)
+  const saveTokenToBackend = useCallback(async (token: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Store in user metadata
+        await supabase.auth.updateUser({
+          data: { push_token: token, push_token_updated_at: new Date().toISOString() }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save push token:', error);
+    }
+  }, []);
 
   const register = useCallback(async () => {
     if (!isNative) {
@@ -51,9 +67,12 @@ export const usePushNotifications = () => {
     if (!isNative) return;
 
     // Registration success
-    const tokenListener = PushNotifications.addListener('registration', (token: Token) => {
+    const tokenListener = PushNotifications.addListener('registration', async (token: Token) => {
       setState(prev => ({ ...prev, token: token.value, isRegistered: true }));
       console.log('Push registration success, token:', token.value);
+      
+      // Save token to backend
+      await saveTokenToBackend(token.value);
     });
 
     // Registration error

@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
+import { useAppRating } from "@/hooks/use-app-rating";
 
 interface MatchProfile {
   id: string;
@@ -30,8 +31,16 @@ const Matches = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { recordPositiveInteraction } = useAppRating();
   const [matches, setMatches] = useState<MatchProfile[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Record positive interaction when user has matches (for app rating)
+  useEffect(() => {
+    if (matches.length > 0) {
+      recordPositiveInteraction();
+    }
+  }, [matches.length, recordPositiveInteraction]);
 
   useEffect(() => {
     if (!user) {
