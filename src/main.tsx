@@ -17,8 +17,11 @@ declare global {
 // Defensive shim: prevents blank-screen crashes if the native bridge doesn't
 // inject `triggerEvent` (seen on some iOS WebView starts).
 const ensureCapacitorTriggerEvent = () => {
-  const cap = window.Capacitor as any;
-  if (cap && typeof cap.triggerEvent !== "function") {
+  const win = window as any;
+  if (!win.Capacitor) win.Capacitor = {};
+  const cap = win.Capacitor;
+
+  if (typeof cap.triggerEvent !== "function") {
     cap.triggerEvent = (eventName: string, _target: string, data?: any) => {
       const evt = new CustomEvent(eventName, { detail: data });
       window.dispatchEvent(evt);
