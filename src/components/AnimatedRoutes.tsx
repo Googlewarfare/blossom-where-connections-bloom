@@ -25,6 +25,7 @@ import TermsOfService from "@/pages/TermsOfService";
 import Support from "@/pages/Support";
 import CommunityGuidelines from "@/pages/CommunityGuidelines";
 import PrivacyLabels from "@/pages/PrivacyLabels";
+import Settings from "@/pages/Settings";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -57,6 +58,7 @@ export const AnimatedRoutes = () => {
         <Route path="/support" element={<PageTransition><Support /></PageTransition>} />
         <Route path="/community-guidelines" element={<PageTransition><CommunityGuidelines /></PageTransition>} />
         <Route path="/privacy-labels" element={<PageTransition><PrivacyLabels /></PageTransition>} />
+        <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
