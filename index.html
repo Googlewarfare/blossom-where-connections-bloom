@@ -11,6 +11,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
+    <!-- Capacitor defensive shim: prevents early native->web calls from crashing before app JS loads -->
+    <script>
+      (function () {
+        try {
+          if (!window.Capacitor) window.Capacitor = {};
+          if (typeof window.Capacitor.triggerEvent !== "function") {
+            window.Capacitor.triggerEvent = function (eventName, _target, data) {
+              var evt = new CustomEvent(eventName, { detail: data });
+              window.dispatchEvent(evt);
+              document.dispatchEvent(evt);
+            };
+          }
+        } catch (e) {
+          // no-op
+        }
+      })();
+    </script>
+
     <meta property="og:title" content="Blossom - Blossom into Love" />
     <meta property="og:description" content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships." />
     <meta property="og:type" content="website" />
