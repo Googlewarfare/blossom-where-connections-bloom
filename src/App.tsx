@@ -8,8 +8,15 @@ import { VideoCallProvider } from "./components/VideoCallProvider";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { SkipLink } from "./components/ui/skip-link";
 import { SessionTimeoutProvider } from "./components/SessionTimeoutProvider";
+import { OfflineFallback } from "./components/OfflineFallback";
+import { useDeepLinks } from "./hooks/use-deep-links";
 
 const queryClient = new QueryClient();
+
+const DeepLinkHandler = () => {
+  useDeepLinks();
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -19,7 +26,9 @@ const App = () => (
           <SkipLink />
           <Toaster />
           <Sonner />
+          <OfflineFallback />
           <BrowserRouter>
+            <DeepLinkHandler />
             <SessionTimeoutProvider>
               <main id="main-content">
                 <AnimatedRoutes />
