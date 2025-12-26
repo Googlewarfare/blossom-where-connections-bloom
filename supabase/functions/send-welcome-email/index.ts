@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
     logStep("Sending welcome email", { recipientEmail: user.email });
 
     await resend.emails.send({
-      from: "Blossom <onboarding@resend.dev>",
+      from: "Blossom <team@myblossom.app>",
       to: [user.email!],
       subject: "💕 Your Love Story Begins Now - Welcome to Blossom!",
       html: `
