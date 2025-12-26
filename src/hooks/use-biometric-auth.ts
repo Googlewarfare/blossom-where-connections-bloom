@@ -53,8 +53,11 @@ export const useBiometricAuth = () => {
         biometryType,
         hasStoredCredentials,
       });
-    } catch (error) {
-      console.error('Biometric check failed:', error);
+    } catch (error: any) {
+      // Silently handle UNIMPLEMENTED (common on simulators) and other expected errors
+      if (error?.code !== 'UNIMPLEMENTED') {
+        console.warn('Biometric check unavailable:', error?.message || error);
+      }
     } finally {
       setLoading(false);
     }
