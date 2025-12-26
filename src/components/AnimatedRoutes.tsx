@@ -24,6 +24,7 @@ const Verification = lazy(() => import("@/pages/Verification"));
 const AdminVerification = lazy(() => import("@/pages/AdminVerification"));
 const AdminReports = lazy(() => import("@/pages/AdminReports"));
 const AdminAuditLogs = lazy(() => import("@/pages/AdminAuditLogs"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const Premium = lazy(() => import("@/pages/Premium"));
 const Safety = lazy(() => import("@/pages/Safety"));
 const About = lazy(() => import("@/pages/About"));
@@ -59,6 +60,7 @@ export const AnimatedRoutes = () => {
           <Route path="/success-stories" element={<PageTransition><SuccessStories /></PageTransition>} />
           <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
           <Route path="/verification" element={<PageTransition><Verification /></PageTransition>} />
+          <Route path="/admin" element={<PageTransition><AdminDashboard /></PageTransition>} />
           <Route path="/admin/verification" element={<PageTransition><AdminVerification /></PageTransition>} />
           <Route path="/admin/reports" element={<PageTransition><AdminReports /></PageTransition>} />
           <Route path="/admin/audit-logs" element={<PageTransition><AdminAuditLogs /></PageTransition>} />
