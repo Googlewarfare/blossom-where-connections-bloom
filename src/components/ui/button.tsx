@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Capacitor } from "@capacitor/core";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 import { cn } from "@/lib/utils";
 
@@ -46,19 +48,50 @@ const buttonVariants = cva(
   }
 );
 
+// Haptic feedback helper
+const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Light) => {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await Haptics.impact({ style });
+  } catch {
+    // Silently fail if haptics unavailable
+  }
+};
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  haptic?: boolean | "light" | "medium" | "heavy";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, haptic = true, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    
+    const handleClick = React.useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        // Trigger haptic feedback
+        if (haptic && !props.disabled) {
+          const style = haptic === "heavy" 
+            ? ImpactStyle.Heavy 
+            : haptic === "medium" 
+              ? ImpactStyle.Medium 
+              : ImpactStyle.Light;
+          triggerHaptic(style);
+        }
+        
+        // Call original onClick handler
+        onClick?.(e);
+      },
+      [haptic, onClick, props.disabled]
+    );
+    
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        onClick={handleClick}
         {...props}
       />
     );

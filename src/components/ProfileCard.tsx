@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VerificationBadge } from '@/components/VerificationBadge';
-import { MapPin, Briefcase, Heart } from 'lucide-react';
+import { MapPin, Briefcase } from 'lucide-react';
+import { haptics } from '@/hooks/use-haptics';
 
 interface ProfileCardProps {
   profile: {
@@ -20,10 +21,15 @@ interface ProfileCardProps {
 }
 
 export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
+  const handleClick = () => {
+    haptics.light();
+    onClick?.();
+  };
+
   return (
     <Card 
       className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
