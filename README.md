@@ -1,73 +1,136 @@
-# Welcome to your Lovable project
+# Blossom - Modern Dating App
 
-## Project info
+A thoughtfully designed dating application built with modern web technologies and native mobile capabilities.
 
-**URL**: https://lovable.dev/projects/83c9e8a9-9a41-4ffa-abb0-41590982157d
+## What is Blossom?
 
-## How can I edit this code?
+Blossom is a dating app focused on meaningful connections through verified profiles, safety features, and genuine conversations. It emphasizes user safety with background checks, trusted contacts, and date check-ins while providing a polished, native mobile experience.
 
-There are several ways of editing your application.
+## Core Features
 
-**Use Lovable**
+- **Profile Discovery** - Swipe-based matching with compatibility scores
+- **Verified Profiles** - Photo verification and optional background checks
+- **Real-time Chat** - Messaging with reactions, media sharing, and voice notes
+- **Video Calls** - In-app video calling with matches
+- **Events** - Discover and attend local dating events
+- **Stories** - Share moments with 24-hour stories
+- **Safety Tools** - Date check-ins, trusted contacts, and reporting
+- **Premium Features** - Super likes, read receipts, advanced filters
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/83c9e8a9-9a41-4ffa-abb0-41590982157d) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **State**: TanStack Query (React Query)
+- **Backend**: Supabase (Auth, Database, Edge Functions, Storage)
+- **Mobile**: Capacitor (iOS & Android)
+- **Maps**: Mapbox GL
+- **Animations**: Framer Motion
 
-**Use your preferred IDE**
+## Local Development
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+
+- npm (recommended for Capacitor compatibility)
 
-Follow these steps:
+### Setup
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file based on `.env.example`:
 
-**Use GitHub Codespaces**
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
+VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_MAPBOX_PUBLIC_TOKEN=your_mapbox_token
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## iOS Build (Capacitor)
 
-## What technologies are used for this project?
+```bash
+# Add iOS platform (first time only)
+npx cap add ios
 
-This project is built with:
+# Sync web assets to native
+npm run build
+npx cap sync ios
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Open in Xcode
+npx cap open ios
+```
 
-## How can I deploy this project?
+### iOS Requirements
 
-Simply open [Lovable](https://lovable.dev/projects/83c9e8a9-9a41-4ffa-abb0-41590982157d) and click on Share -> Publish.
+- macOS with Xcode 15+
+- Apple Developer account (for device testing)
+- Configured signing certificates and provisioning profiles
 
-## Can I connect a custom domain to my Lovable project?
+### Native Capabilities
 
-Yes, you can!
+The iOS build includes:
+- Push Notifications (APNs)
+- In-App Purchases (StoreKit)
+- Biometric Authentication (Face ID / Touch ID)
+- Camera access for photo uploads
+- Haptic feedback
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Android Build
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+# Add Android platform (first time only)
+npx cap add android
+
+# Sync and run
+npm run build
+npx cap sync android
+npx cap open android
+```
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+│   └── ui/         # shadcn/ui primitives
+├── pages/          # Route pages
+├── hooks/          # Custom React hooks
+├── lib/            # Utilities and helpers
+└── integrations/   # Supabase client and types
+
+supabase/
+├── functions/      # Edge functions
+└── migrations/     # Database migrations
+
+ios/                # Native iOS project
+android/            # Native Android project
+```
+
+## Deployment
+
+### Web
+
+Deploy via Lovable: Open project → Share → Publish
+
+### Mobile
+
+1. Build for production: `npm run build`
+2. Sync native projects: `npx cap sync`
+3. Archive and submit via Xcode (iOS) or Android Studio
+
+## License
+
+Private - All rights reserved
