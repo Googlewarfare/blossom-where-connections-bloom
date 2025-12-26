@@ -35,6 +35,7 @@ const CommunityGuidelines = lazy(() => import("@/pages/CommunityGuidelines"));
 const PrivacyLabels = lazy(() => import("@/pages/PrivacyLabels"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const PrivacySettings = lazy(() => import("@/pages/PrivacySettings"));
+const SecurityDashboard = lazy(() => import("@/pages/SecurityDashboard"));
 
 // Loading fallback component
 const PageLoader = () => <AppLoader message="Loading page..." />;
@@ -75,6 +76,7 @@ export const AnimatedRoutes = () => {
           <Route path="/privacy-labels" element={<PageTransition><PrivacyLabels /></PageTransition>} />
           <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
           <Route path="/settings/privacy" element={<PageTransition><PrivacySettings /></PageTransition>} />
+          <Route path="/settings/security" element={<PageTransition><SecurityDashboard /></PageTransition>} />
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
       </Suspense>
