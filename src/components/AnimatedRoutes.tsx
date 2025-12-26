@@ -3,7 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { PageTransition } from "./PageTransition";
 import { usePageTracking } from "@/hooks/use-analytics";
-import { LoadingSpinner } from "./ui/loading-spinner";
+import AppLoader from "./AppLoader";
 
 // Eagerly load the main landing page for fast initial load
 import Index from "@/pages/Index";
@@ -34,11 +34,7 @@ const PrivacyLabels = lazy(() => import("@/pages/PrivacyLabels"));
 const Settings = lazy(() => import("@/pages/Settings"));
 
 // Loading fallback component
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <LoadingSpinner size="lg" />
-  </div>
-);
+const PageLoader = () => <AppLoader message="Loading page..." />;
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
