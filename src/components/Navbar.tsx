@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Heart, Menu, User, LogOut, Sparkles, Crown } from "lucide-react";
+import { Heart, Menu, User, LogOut, Sparkles, Crown, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
@@ -20,8 +20,27 @@ const navLinks = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAdminOrMod, setIsAdminOrMod] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdminOrMod(false);
+        return;
+      }
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
+      setIsAdminOrMod(roles?.some(r => r.role === "admin" || r.role === "moderator") || false);
+    };
+
+    checkAdminRole();
+  }, [user]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -79,6 +98,17 @@ const Navbar = () => {
           {user && <NotificationCenter />}
           {user ? (
             <>
+              {isAdminOrMod && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="gap-2 hover:bg-primary/10 text-primary"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -171,6 +201,19 @@ const Navbar = () => {
                 <div className="p-4 border-t border-border space-y-3 bg-gradient-to-t from-muted/20 to-transparent">
                   {user ? (
                     <>
+                      {isAdminOrMod && (
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start gap-3 h-12 text-primary border-primary/20"
+                          onClick={() => {
+                            navigate("/admin");
+                            setIsOpen(false);
+                          }}
+                        >
+                          <Shield className="w-5 h-5" />
+                          Admin Dashboard
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         className="w-full justify-start gap-3 h-12"
