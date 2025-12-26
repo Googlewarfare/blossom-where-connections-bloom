@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 interface ActivityUser {
   id: string;
@@ -28,6 +29,7 @@ const Activity = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [recentMatches, setRecentMatches] = useState<ActivityUser[]>([]);
   const [profileLikes, setProfileLikes] = useState<ActivityUser[]>([]);
   const [superLikes, setSuperLikes] = useState<ActivityUser[]>([]);
@@ -44,7 +46,7 @@ const Activity = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const loadActivity = async () => {
+  const loadActivity = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -125,8 +127,14 @@ const Activity = () => {
       console.error('Error loading activity:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [user]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadActivity();
+  }, [loadActivity]);
 
   const fetchUserDetails = async (userId: string, timestamp: string): Promise<ActivityUser | null> => {
     try {
@@ -255,6 +263,7 @@ const Activity = () => {
     <div className="min-h-screen">
       <Navbar />
       <div className="gradient-hero">
+      <PullToRefresh onRefresh={handleRefresh} disabled={refreshing} className="min-h-[calc(100vh-64px)]">
       <div className="container mx-auto max-w-4xl p-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -413,6 +422,7 @@ const Activity = () => {
           </TabsContent>
         </Tabs>
       </div>
+      </PullToRefresh>
       </div>
     </div>
   );

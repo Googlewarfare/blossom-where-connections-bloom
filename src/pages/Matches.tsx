@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { useAppRating } from "@/hooks/use-app-rating";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 interface MatchProfile {
   id: string;
@@ -34,6 +35,7 @@ const Matches = () => {
   const { recordPositiveInteraction } = useAppRating();
   const [matches, setMatches] = useState<MatchProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Record positive interaction when user has matches (for app rating)
   useEffect(() => {
@@ -42,77 +44,84 @@ const Matches = () => {
     }
   }, [matches.length, recordPositiveInteraction]);
 
+  const fetchMatches = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch all matches for the current user
+      const { data: matchesData, error: matchesError } = await supabase
+        .from("matches")
+        .select("*")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+
+      if (matchesError) throw matchesError;
+
+      // Fetch profile data for each match
+      const matchProfiles = await Promise.all(
+        (matchesData || []).map(async (match) => {
+          const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, full_name, age, bio, location, occupation, verified")
+            .eq("id", otherUserId)
+            .single();
+
+          // Fetch primary photo
+          const { data: photoData } = await supabase
+            .from("profile_photos")
+            .select("photo_url")
+            .eq("user_id", otherUserId)
+            .order("is_primary", { ascending: false })
+            .order("display_order", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          // Generate signed URL for private photo bucket
+          let signedPhotoUrl = null;
+          if (photoData?.photo_url) {
+            const { data: signedUrlData } = await supabase.storage
+              .from("profile-photos")
+              .createSignedUrl(photoData.photo_url, 3600); // 1 hour expiration
+            signedPhotoUrl = signedUrlData?.signedUrl || null;
+          }
+
+          return {
+            ...profileData,
+            photo_url: signedPhotoUrl,
+            match_id: match.id,
+            matched_at: match.created_at,
+          } as MatchProfile;
+        })
+      );
+
+      setMatches(matchProfiles.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching matches:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load matches",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user, toast]);
+
   useEffect(() => {
     if (!user) {
       navigate("/auth");
       return;
     }
-
-    const fetchMatches = async () => {
-      try {
-        // Fetch all matches for the current user
-        const { data: matchesData, error: matchesError } = await supabase
-          .from("matches")
-          .select("*")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-          .order("created_at", { ascending: false });
-
-        if (matchesError) throw matchesError;
-
-        // Fetch profile data for each match
-        const matchProfiles = await Promise.all(
-          (matchesData || []).map(async (match) => {
-            const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("id, full_name, age, bio, location, occupation, verified")
-              .eq("id", otherUserId)
-              .single();
-
-            // Fetch primary photo
-            const { data: photoData } = await supabase
-              .from("profile_photos")
-              .select("photo_url")
-              .eq("user_id", otherUserId)
-              .order("is_primary", { ascending: false })
-              .order("display_order", { ascending: true })
-              .limit(1)
-              .maybeSingle();
-
-            // Generate signed URL for private photo bucket
-            let signedPhotoUrl = null;
-            if (photoData?.photo_url) {
-              const { data: signedUrlData } = await supabase.storage
-                .from("profile-photos")
-                .createSignedUrl(photoData.photo_url, 3600); // 1 hour expiration
-              signedPhotoUrl = signedUrlData?.signedUrl || null;
-            }
-
-            return {
-              ...profileData,
-              photo_url: signedPhotoUrl,
-              match_id: match.id,
-              matched_at: match.created_at,
-            } as MatchProfile;
-          })
-        );
-
-        setMatches(matchProfiles.filter(Boolean));
-      } catch (error) {
-        console.error("Error fetching matches:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load matches",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMatches();
-  }, [user, navigate, toast]);
+  }, [user, navigate, fetchMatches]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchMatches();
+  }, [fetchMatches]);
 
   const handleStartConversation = async (matchProfile: MatchProfile) => {
     try {
@@ -171,6 +180,7 @@ const Matches = () => {
     <div className="min-h-screen">
       <Navbar />
       <div className="gradient-hero">
+      <PullToRefresh onRefresh={handleRefresh} disabled={refreshing} className="min-h-[calc(100vh-64px)]">
       <div className="container mx-auto px-4 py-8">
         {/* Profile Completion Banner */}
         <div className="mb-6">
@@ -316,6 +326,7 @@ const Matches = () => {
           </div>
         )}
       </div>
+      </PullToRefresh>
       </div>
     </div>
   );
