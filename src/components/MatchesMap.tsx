@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { fuzzLocationDeterministic } from '@/lib/location-utils';
 import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
@@ -247,29 +248,38 @@ const MatchesMap = ({
         .addTo(map.current);
     }
 
-    // Create GeoJSON with clustering
+    // Create GeoJSON with clustering - using fuzzed coordinates for privacy
     const geojsonData: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
       features: filteredProfiles
         .filter(profile => profile.latitude && profile.longitude)
-        .map(profile => ({
-          type: 'Feature',
-          properties: {
-            id: profile.id,
-            name: profile.full_name,
-            age: profile.age,
-            location: profile.location,
-            photo_url: profile.photo_url || '',
-            bio: profile.bio || '',
-            distance: profile.distance || 0,
-            verified: profile.verified || false,
-            interests: profile.interests?.join(', ') || ''
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [profile.longitude, profile.latitude]
-          }
-        }))
+        .map(profile => {
+          // Apply deterministic location fuzzing for privacy
+          const fuzzed = fuzzLocationDeterministic(
+            profile.latitude,
+            profile.longitude,
+            profile.id,
+            0.5 // 0.5 mile fuzzing radius
+          );
+          return {
+            type: 'Feature',
+            properties: {
+              id: profile.id,
+              name: profile.full_name,
+              age: profile.age,
+              location: profile.location,
+              photo_url: profile.photo_url || '',
+              bio: profile.bio || '',
+              distance: profile.distance || 0,
+              verified: profile.verified || false,
+              interests: profile.interests?.join(', ') || ''
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [fuzzed.longitude, fuzzed.latitude]
+            }
+          };
+        })
     };
 
     // Add clustered source
