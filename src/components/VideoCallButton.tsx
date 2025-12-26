@@ -1,13 +1,21 @@
-import { Button } from '@/components/ui/button';
-import { Video } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from "@/components/ui/button";
+import { Video } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface VideoCallButtonProps {
   onStartCall: () => void;
   disabled?: boolean;
 }
 
-export const VideoCallButton = ({ onStartCall, disabled }: VideoCallButtonProps) => {
+export const VideoCallButton = ({
+  onStartCall,
+  disabled,
+}: VideoCallButtonProps) => {
   return (
     <TooltipProvider>
       <Tooltip>

@@ -1,22 +1,29 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Heart, ThumbsUp, Laugh, Smile } from 'lucide-react';
-import { MessageReaction } from '@/hooks/use-messages';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Heart, ThumbsUp, Laugh, Smile } from "lucide-react";
+import { MessageReaction } from "@/hooks/use-messages";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MessageReactionsProps {
   messageId: string;
   reactions: MessageReaction[];
   userId: string;
-  onAddReaction: (messageId: string, reaction: 'heart' | 'like' | 'laugh') => void;
+  onAddReaction: (
+    messageId: string,
+    reaction: "heart" | "like" | "laugh",
+  ) => void;
   onRemoveReaction: (messageId: string) => void;
 }
 
 const REACTION_ICONS = {
-  heart: { icon: Heart, emoji: '❤️', label: 'Heart' },
-  like: { icon: ThumbsUp, emoji: '👍', label: 'Like' },
-  laugh: { icon: Laugh, emoji: '😂', label: 'Laugh' },
+  heart: { icon: Heart, emoji: "❤️", label: "Heart" },
+  like: { icon: ThumbsUp, emoji: "👍", label: "Like" },
+  laugh: { icon: Laugh, emoji: "😂", label: "Laugh" },
 };
 
 export const MessageReactions = ({
@@ -29,15 +36,18 @@ export const MessageReactions = ({
   const [open, setOpen] = useState(false);
 
   // Group reactions by type
-  const reactionCounts = reactions.reduce((acc, r) => {
-    acc[r.reaction] = (acc[r.reaction] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const reactionCounts = reactions.reduce(
+    (acc, r) => {
+      acc[r.reaction] = (acc[r.reaction] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   // Check if user has reacted
   const userReaction = reactions.find((r) => r.user_id === userId);
 
-  const handleReactionClick = (reaction: 'heart' | 'like' | 'laugh') => {
+  const handleReactionClick = (reaction: "heart" | "like" | "laugh") => {
     if (userReaction?.reaction === reaction) {
       onRemoveReaction(messageId);
     } else {
@@ -51,7 +61,8 @@ export const MessageReactions = ({
       {/* Display existing reactions */}
       <AnimatePresence>
         {Object.entries(reactionCounts).map(([reaction, count]) => {
-          const { emoji } = REACTION_ICONS[reaction as keyof typeof REACTION_ICONS];
+          const { emoji } =
+            REACTION_ICONS[reaction as keyof typeof REACTION_ICONS];
           const isUserReaction = userReaction?.reaction === reaction;
 
           return (
@@ -62,11 +73,13 @@ export const MessageReactions = ({
               exit={{ scale: 0 }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => handleReactionClick(reaction as 'heart' | 'like' | 'laugh')}
+              onClick={() =>
+                handleReactionClick(reaction as "heart" | "like" | "laugh")
+              }
               className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors ${
                 isUserReaction
-                  ? 'bg-primary/20 border border-primary'
-                  : 'bg-muted/50 hover:bg-muted border border-border'
+                  ? "bg-primary/20 border border-primary"
+                  : "bg-muted/50 hover:bg-muted border border-border"
               }`}
             >
               <span>{emoji}</span>
@@ -94,11 +107,13 @@ export const MessageReactions = ({
                 key={key}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => handleReactionClick(key as 'heart' | 'like' | 'laugh')}
+                onClick={() =>
+                  handleReactionClick(key as "heart" | "like" | "laugh")
+                }
                 className={`text-2xl p-2 rounded-lg transition-colors ${
                   userReaction?.reaction === key
-                    ? 'bg-primary/20'
-                    : 'hover:bg-muted'
+                    ? "bg-primary/20"
+                    : "hover:bg-muted"
                 }`}
                 title={label}
               >

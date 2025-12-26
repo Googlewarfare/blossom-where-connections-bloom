@@ -35,14 +35,14 @@ export function LoadingSpinner({
         <Heart
           className={cn(
             sizeClasses[size],
-            "text-primary fill-primary animate-heartbeat"
+            "text-primary fill-primary animate-heartbeat",
           )}
         />
         {label && (
           <span
             className={cn(
               "text-muted-foreground animate-pulse-soft",
-              labelSizes[size]
+              labelSizes[size],
             )}
           >
             {label}
@@ -68,7 +68,7 @@ export function LoadingSpinner({
               key={i}
               className={cn(
                 "rounded-full bg-primary animate-bounce-soft",
-                dotSize[size]
+                dotSize[size],
               )}
               style={{ animationDelay: `${i * 0.15}s` }}
             />
@@ -90,13 +90,13 @@ export function LoadingSpinner({
           <div
             className={cn(
               "rounded-full bg-primary/20 animate-ping absolute inset-0",
-              sizeClasses[size]
+              sizeClasses[size],
             )}
           />
           <div
             className={cn(
               "rounded-full bg-primary relative",
-              sizeClasses[size]
+              sizeClasses[size],
             )}
           />
         </div>

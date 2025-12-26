@@ -51,7 +51,10 @@ export function usePageTracking() {
 export function useEventTracking() {
   const { user } = useAuth();
 
-  const trackEvent = async (eventName: string, properties?: Record<string, unknown>) => {
+  const trackEvent = async (
+    eventName: string,
+    properties?: Record<string, unknown>,
+  ) => {
     try {
       const sessionId = getSessionId();
 

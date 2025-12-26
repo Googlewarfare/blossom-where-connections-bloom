@@ -6,7 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, MapPin, ShieldAlert, AlertTriangle, Fingerprint, ScanFace, Apple } from "lucide-react";
+import {
+  Heart,
+  MapPin,
+  ShieldAlert,
+  AlertTriangle,
+  Fingerprint,
+  ScanFace,
+  Apple,
+} from "lucide-react";
 import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
 import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
@@ -17,7 +25,10 @@ import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" })
+    .max(100),
   fullName: z.string().trim().max(100).optional(),
   location: z.string().trim().max(200).optional(),
 });
@@ -40,32 +51,32 @@ const Auth = () => {
   const [biometricLoading, setBiometricLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { 
-    isAvailable: biometricAvailable, 
-    hasStoredCredentials, 
+  const {
+    isAvailable: biometricAvailable,
+    hasStoredCredentials,
     biometryType,
     authenticate: biometricAuthenticate,
     saveCredentials,
     getBiometryLabel,
     isNative,
-    loading: biometricStateLoading
+    loading: biometricStateLoading,
   } = useBiometricAuth();
 
   // Check password against breach database on blur (signup only)
   const handlePasswordBlur = async () => {
     if (isLogin || password.length < 6) return;
-    
+
     setCheckingPassword(true);
     setPasswordWarning(null);
-    
+
     const { breached, count } = await checkPasswordBreach(password);
-    
+
     if (breached) {
       setPasswordWarning(
-        `This password has appeared in ${count.toLocaleString()} data breaches. Please choose a different password for your security.`
+        `This password has appeared in ${count.toLocaleString()} data breaches. Please choose a different password for your security.`,
       );
     }
-    
+
     setCheckingPassword(false);
   };
 
@@ -120,11 +131,11 @@ const Auth = () => {
         // Send branded password reset email
         try {
           const resetLink = `${window.location.origin}/reset-password`;
-          await supabase.functions.invoke('send-password-reset', {
-            body: { email, resetLink }
+          await supabase.functions.invoke("send-password-reset", {
+            body: { email, resetLink },
           });
         } catch (emailError) {
-          console.error('Failed to send password reset email:', emailError);
+          console.error("Failed to send password reset email:", emailError);
         }
 
         toast({
@@ -173,7 +184,8 @@ const Auth = () => {
         if (isLocked) {
           toast({
             title: "Account Temporarily Locked",
-            description: "Too many failed login attempts. Please try again in 15 minutes.",
+            description:
+              "Too many failed login attempts. Please try again in 15 minutes.",
             variant: "destructive",
           });
           setLoading(false);
@@ -188,7 +200,7 @@ const Auth = () => {
         if (error) {
           // Record failed login attempt
           await recordLoginAttempt(validation.data.email, false);
-          
+
           if (error.message.includes("Invalid login credentials")) {
             toast({
               title: "Login Failed",
@@ -205,8 +217,10 @@ const Auth = () => {
         } else {
           // Check if MFA is required
           const { data: factorsData } = await supabase.auth.mfa.listFactors();
-          const verifiedFactor = factorsData?.totp.find(f => f.status === 'verified');
-          
+          const verifiedFactor = factorsData?.totp.find(
+            (f) => f.status === "verified",
+          );
+
           if (verifiedFactor) {
             // MFA is required - show verification screen
             setMfaFactorId(verifiedFactor.id);
@@ -217,10 +231,13 @@ const Auth = () => {
 
           // Record successful login
           await recordLoginAttempt(validation.data.email, true);
-          
+
           // Offer to save credentials for biometric login (on native platforms)
           if (biometricAvailable && !hasStoredCredentials) {
-            await saveCredentials(validation.data.email, validation.data.password);
+            await saveCredentials(
+              validation.data.email,
+              validation.data.password,
+            );
             toast({
               title: "Welcome back!",
               description: `${getBiometryLabel()} enabled for faster login next time.`,
@@ -235,7 +252,9 @@ const Auth = () => {
         }
       } else {
         // Check password against breach database before signup
-        const { breached, count } = await checkPasswordBreach(validation.data.password);
+        const { breached, count } = await checkPasswordBreach(
+          validation.data.password,
+        );
         if (breached) {
           toast({
             title: "Compromised Password Detected",
@@ -262,7 +281,8 @@ const Auth = () => {
           if (signUpError.message.includes("already registered")) {
             toast({
               title: "Account Exists",
-              description: "This email is already registered. Please login instead.",
+              description:
+                "This email is already registered. Please login instead.",
               variant: "destructive",
             });
           } else {
@@ -277,7 +297,9 @@ const Auth = () => {
         }
 
         // Update profile with location data after signup
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           // Update location if provided
           if (validation.data.location || latitude !== null) {
@@ -294,21 +316,22 @@ const Auth = () => {
               console.error("Error updating profile location:", profileError);
             }
           }
-          
+
           // Send welcome email (always try for new signups)
           try {
-            await supabase.functions.invoke('send-welcome-email', {
-              body: { userId: user.id }
+            await supabase.functions.invoke("send-welcome-email", {
+              body: { userId: user.id },
             });
           } catch (emailError) {
-            console.error('Failed to send welcome email:', emailError);
+            console.error("Failed to send welcome email:", emailError);
             // Don't block signup if email fails
           }
         }
 
         toast({
           title: "Account Created!",
-          description: "Welcome to Blossom! Check your email for a welcome message.",
+          description:
+            "Welcome to Blossom! Check your email for a welcome message.",
         });
         navigate("/onboarding");
       }
@@ -340,11 +363,11 @@ const Auth = () => {
 
   const handleBiometricLogin = async () => {
     if (!biometricAvailable || !hasStoredCredentials) return;
-    
+
     setBiometricLoading(true);
     try {
       const credentials = await biometricAuthenticate();
-      
+
       if (!credentials) {
         setBiometricLoading(false);
         return;
@@ -355,7 +378,8 @@ const Auth = () => {
       if (isLocked) {
         toast({
           title: "Account Temporarily Locked",
-          description: "Too many failed login attempts. Please try again in 15 minutes.",
+          description:
+            "Too many failed login attempts. Please try again in 15 minutes.",
           variant: "destructive",
         });
         setBiometricLoading(false);
@@ -371,14 +395,17 @@ const Auth = () => {
         await recordLoginAttempt(credentials.email, false);
         toast({
           title: "Login Failed",
-          description: "Biometric login failed. Please sign in with your password.",
+          description:
+            "Biometric login failed. Please sign in with your password.",
           variant: "destructive",
         });
       } else {
         // Check if MFA is required
         const { data: factorsData } = await supabase.auth.mfa.listFactors();
-        const verifiedFactor = factorsData?.totp.find(f => f.status === 'verified');
-        
+        const verifiedFactor = factorsData?.totp.find(
+          (f) => f.status === "verified",
+        );
+
         if (verifiedFactor) {
           setMfaFactorId(verifiedFactor.id);
           setShowMfaVerify(true);
@@ -428,13 +455,17 @@ const Auth = () => {
             <span className="text-2xl font-bold">Blossom</span>
           </div>
           <h1 className="text-3xl font-bold">
-            {isResetPassword ? "Reset Password" : isLogin ? "Welcome Back" : "Join Blossom"}
+            {isResetPassword
+              ? "Reset Password"
+              : isLogin
+                ? "Welcome Back"
+                : "Join Blossom"}
           </h1>
           <p className="text-muted-foreground">
-            {isResetPassword 
-              ? "Enter your email to receive reset instructions" 
-              : isLogin 
-                ? "Sign in to continue your journey" 
+            {isResetPassword
+              ? "Enter your email to receive reset instructions"
+              : isLogin
+                ? "Sign in to continue your journey"
                 : "Start your journey to finding love"}
           </p>
         </div>
@@ -481,288 +512,322 @@ const Auth = () => {
           ) : (
             <form onSubmit={handleAuth} className="space-y-6">
               {!isLogin && (
-              <>
-                {/* Age Verification & Terms */}
-                <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="ageConfirmation"
-                      required
-                      className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <label htmlFor="ageConfirmation" className="text-sm">
-                      <span className="font-medium">I confirm that I am 18 years of age or older</span>
-                      <p className="text-muted-foreground mt-1">
-                        By checking this box, you confirm you meet the minimum age requirement to use Blossom.
-                      </p>
-                    </label>
-                  </div>
-                  
-                  <div className="border-t border-border pt-4">
+                <>
+                  {/* Age Verification & Terms */}
+                  <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
-                        id="termsAcceptance"
+                        id="ageConfirmation"
                         required
                         className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
-                      <label htmlFor="termsAcceptance" className="text-sm">
-                        <span className="font-medium">I agree to the Terms of Service and Privacy Policy</span>
+                      <label htmlFor="ageConfirmation" className="text-sm">
+                        <span className="font-medium">
+                          I confirm that I am 18 years of age or older
+                        </span>
                         <p className="text-muted-foreground mt-1">
-                          By checking this box, you agree to our{" "}
-                          <a href="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</a>
-                          {" "}and{" "}
-                          <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>.
+                          By checking this box, you confirm you meet the minimum
+                          age requirement to use Blossom.
                         </p>
                       </label>
                     </div>
+
+                    <div className="border-t border-border pt-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id="termsAcceptance"
+                          required
+                          className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                        <label htmlFor="termsAcceptance" className="text-sm">
+                          <span className="font-medium">
+                            I agree to the Terms of Service and Privacy Policy
+                          </span>
+                          <p className="text-muted-foreground mt-1">
+                            By checking this box, you agree to our{" "}
+                            <a
+                              href="/terms"
+                              target="_blank"
+                              className="text-primary hover:underline"
+                            >
+                              Terms of Service
+                            </a>{" "}
+                            and{" "}
+                            <a
+                              href="/privacy"
+                              target="_blank"
+                              className="text-primary hover:underline"
+                            >
+                              Privacy Policy
+                            </a>
+                            .
+                          </p>
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Enter your name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required={!isLogin}
-                    maxLength={100}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="Enter your name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required={!isLogin}
+                      maxLength={100}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location (City, State)</Label>
-                  <Input
-                    id="location"
-                    type="text"
-                    placeholder="e.g., New York, NY"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    maxLength={200}
-                  />
-                  <div className="flex gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location (City, State)</Label>
+                    <Input
+                      id="location"
+                      type="text"
+                      placeholder="e.g., New York, NY"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      maxLength={200}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGetLocation}
+                        disabled={loadingLocation}
+                        className="w-full"
+                      >
+                        <MapPin className="w-4 h-4 mr-2" />
+                        {loadingLocation
+                          ? "Getting location..."
+                          : "Use My Location"}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      We use your location to show distance to other users
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  maxLength={255}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordWarning(null);
+                  }}
+                  onBlur={handlePasswordBlur}
+                  required
+                  minLength={6}
+                  maxLength={100}
+                />
+                {checkingPassword && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className="animate-pulse">●</span> Checking password
+                    security...
+                  </p>
+                )}
+                {passwordWarning && (
+                  <div className="flex items-start gap-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                    <p className="text-xs text-destructive">
+                      {passwordWarning}
+                    </p>
+                  </div>
+                )}
+                {!isLogin && !passwordWarning && !checkingPassword && (
+                  <p className="text-xs text-muted-foreground">
+                    Minimum 6 characters
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full rounded-full"
+                size="lg"
+                disabled={loading || biometricLoading}
+              >
+                {loading
+                  ? "Please wait..."
+                  : isLogin
+                    ? "Sign In"
+                    : "Create Account"}
+              </Button>
+
+              {/* Biometric Login Button */}
+              {isLogin &&
+                biometricAvailable &&
+                hasStoredCredentials &&
+                !biometricStateLoading && (
+                  <>
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">
+                          or
+                        </span>
+                      </div>
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
-                      onClick={handleGetLocation}
-                      disabled={loadingLocation}
-                      className="w-full"
+                      className="w-full rounded-full"
+                      size="lg"
+                      onClick={handleBiometricLogin}
+                      disabled={loading || biometricLoading}
                     >
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {loadingLocation ? "Getting location..." : "Use My Location"}
+                      {biometricLoading ? (
+                        "Authenticating..."
+                      ) : (
+                        <>
+                          {biometryType === "face" ? (
+                            <ScanFace className="w-5 h-5 mr-2" />
+                          ) : (
+                            <Fingerprint className="w-5 h-5 mr-2" />
+                          )}
+                          Sign in with {getBiometryLabel()}
+                        </>
+                      )}
                     </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    We use your location to show distance to other users
-                  </p>
+                  </>
+                )}
+
+              {/* Social Sign In Divider */}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
                 </div>
-              </>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                maxLength={255}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setPasswordWarning(null);
-                }}
-                onBlur={handlePasswordBlur}
-                required
-                minLength={6}
-                maxLength={100}
-              />
-              {checkingPassword && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="animate-pulse">●</span> Checking password security...
-                </p>
-              )}
-              {passwordWarning && (
-                <div className="flex items-start gap-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
-                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-xs text-destructive">{passwordWarning}</p>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    or continue with
+                  </span>
                 </div>
-              )}
-              {!isLogin && !passwordWarning && !checkingPassword && (
-                <p className="text-xs text-muted-foreground">
-                  Minimum 6 characters
-                </p>
-              )}
-            </div>
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full rounded-full"
-              size="lg"
-              disabled={loading || biometricLoading}
-            >
-              {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
-            </Button>
+              {/* Social Sign In Buttons */}
+              <div className="space-y-3">
+                {/* Apple Sign In */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full rounded-full bg-black text-white hover:bg-black/90 hover:text-white border-black"
+                  size="lg"
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.auth.signInWithOAuth({
+                        provider: "apple",
+                        options: {
+                          redirectTo: `${window.location.origin}/discover`,
+                        },
+                      });
+                      if (error) {
+                        toast({
+                          title: "Sign in failed",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to sign in with Apple",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                >
+                  <Apple className="w-5 h-5 mr-2" />
+                  Sign in with Apple
+                </Button>
 
-            {/* Biometric Login Button */}
-            {isLogin && biometricAvailable && hasStoredCredentials && !biometricStateLoading && (
-              <>
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">or</span>
-                  </div>
-                </div>
+                {/* Google Sign In */}
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full rounded-full"
                   size="lg"
-                  onClick={handleBiometricLogin}
-                  disabled={loading || biometricLoading}
-                >
-                  {biometricLoading ? (
-                    "Authenticating..."
-                  ) : (
-                    <>
-                      {biometryType === 'face' ? (
-                        <ScanFace className="w-5 h-5 mr-2" />
-                      ) : (
-                        <Fingerprint className="w-5 h-5 mr-2" />
-                      )}
-                      Sign in with {getBiometryLabel()}
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-
-            {/* Social Sign In Divider */}
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or continue with</span>
-              </div>
-            </div>
-
-            {/* Social Sign In Buttons */}
-            <div className="space-y-3">
-              {/* Apple Sign In */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full rounded-full bg-black text-white hover:bg-black/90 hover:text-white border-black"
-                size="lg"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const { error } = await supabase.auth.signInWithOAuth({
-                      provider: 'apple',
-                      options: {
-                        redirectTo: `${window.location.origin}/discover`,
-                      },
-                    });
-                    if (error) {
-                      toast({
-                        title: "Sign in failed",
-                        description: error.message,
-                        variant: "destructive",
-                      });
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "Error",
-                      description: "Failed to sign in with Apple",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={loading}
-              >
-                <Apple className="w-5 h-5 mr-2" />
-                Sign in with Apple
-              </Button>
-
-              {/* Google Sign In */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full rounded-full"
-                size="lg"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const { error } = await supabase.auth.signInWithOAuth({
-                      provider: 'google',
-                      options: {
-                        redirectTo: `${window.location.origin}/discover`,
-                        queryParams: {
-                          access_type: 'offline',
-                          prompt: 'consent',
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.auth.signInWithOAuth({
+                        provider: "google",
+                        options: {
+                          redirectTo: `${window.location.origin}/discover`,
+                          queryParams: {
+                            access_type: "offline",
+                            prompt: "consent",
+                          },
                         },
-                      },
-                    });
-                    if (error) {
+                      });
+                      if (error) {
+                        toast({
+                          title: "Sign in failed",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }
+                    } catch (error) {
                       toast({
-                        title: "Sign in failed",
-                        description: error.message,
+                        title: "Error",
+                        description: "Failed to sign in with Google",
                         variant: "destructive",
                       });
+                    } finally {
+                      setLoading(false);
                     }
-                  } catch (error) {
-                    toast({
-                      title: "Error",
-                      description: "Failed to sign in with Google",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={loading}
-              >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Sign in with Google
-              </Button>
-            </div>
+                  }}
+                  disabled={loading}
+                >
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  Sign in with Google
+                </Button>
+              </div>
             </form>
           )}
 
@@ -782,7 +847,9 @@ const Auth = () => {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-sm text-muted-foreground hover:text-primary transition-smooth"
               >
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                {isLogin
+                  ? "Don't have an account? "
+                  : "Already have an account? "}
                 <span className="font-semibold">
                   {isLogin ? "Sign Up" : "Sign In"}
                 </span>

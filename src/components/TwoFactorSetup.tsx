@@ -1,11 +1,24 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Shield, ShieldCheck, ShieldOff, Loader2, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Shield,
+  ShieldCheck,
+  ShieldOff,
+  Loader2,
+  Copy,
+  Check,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 export const TwoFactorSetup = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -24,8 +37,8 @@ export const TwoFactorSetup = () => {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [factorId, setFactorId] = useState<string | null>(null);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [disableCode, setDisableCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState("");
+  const [disableCode, setDisableCode] = useState("");
   const [showDisableDialog, setShowDisableDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -39,13 +52,13 @@ export const TwoFactorSetup = () => {
       const { data, error } = await supabase.auth.mfa.listFactors();
       if (error) throw error;
 
-      const verifiedFactor = data.totp.find(f => f.status === 'verified');
+      const verifiedFactor = data.totp.find((f) => f.status === "verified");
       setIsEnrolled(!!verifiedFactor);
       if (verifiedFactor) {
         setFactorId(verifiedFactor.id);
       }
     } catch (error) {
-      console.error('Error checking MFA status:', error);
+      console.error("Error checking MFA status:", error);
     } finally {
       setLoading(false);
     }
@@ -55,8 +68,8 @@ export const TwoFactorSetup = () => {
     setEnrolling(true);
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
-        friendlyName: 'Blossom Authenticator',
+        factorType: "totp",
+        friendlyName: "Blossom Authenticator",
       });
 
       if (error) throw error;
@@ -66,9 +79,9 @@ export const TwoFactorSetup = () => {
       setFactorId(data.id);
     } catch (error: any) {
       toast({
-        title: 'Enrollment Failed',
-        description: error.message || 'Failed to start 2FA enrollment',
-        variant: 'destructive',
+        title: "Enrollment Failed",
+        description: error.message || "Failed to start 2FA enrollment",
+        variant: "destructive",
       });
     } finally {
       setEnrolling(false);
@@ -80,9 +93,10 @@ export const TwoFactorSetup = () => {
 
     setVerifying(true);
     try {
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId,
-      });
+      const { data: challengeData, error: challengeError } =
+        await supabase.auth.mfa.challenge({
+          factorId,
+        });
 
       if (challengeError) throw challengeError;
 
@@ -97,17 +111,18 @@ export const TwoFactorSetup = () => {
       setIsEnrolled(true);
       setQrCode(null);
       setSecret(null);
-      setVerificationCode('');
+      setVerificationCode("");
 
       toast({
-        title: '2FA Enabled',
-        description: 'Two-factor authentication has been successfully enabled.',
+        title: "2FA Enabled",
+        description: "Two-factor authentication has been successfully enabled.",
       });
     } catch (error: any) {
       toast({
-        title: 'Verification Failed',
-        description: error.message || 'Invalid verification code. Please try again.',
-        variant: 'destructive',
+        title: "Verification Failed",
+        description:
+          error.message || "Invalid verification code. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setVerifying(false);
@@ -120,9 +135,10 @@ export const TwoFactorSetup = () => {
     setDisabling(true);
     try {
       // First verify the code
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId,
-      });
+      const { data: challengeData, error: challengeError } =
+        await supabase.auth.mfa.challenge({
+          factorId,
+        });
 
       if (challengeError) throw challengeError;
 
@@ -144,17 +160,17 @@ export const TwoFactorSetup = () => {
       setIsEnrolled(false);
       setFactorId(null);
       setShowDisableDialog(false);
-      setDisableCode('');
+      setDisableCode("");
 
       toast({
-        title: '2FA Disabled',
-        description: 'Two-factor authentication has been disabled.',
+        title: "2FA Disabled",
+        description: "Two-factor authentication has been disabled.",
       });
     } catch (error: any) {
       toast({
-        title: 'Failed to Disable',
-        description: error.message || 'Invalid code. Please try again.',
-        variant: 'destructive',
+        title: "Failed to Disable",
+        description: error.message || "Invalid code. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setDisabling(false);
@@ -180,7 +196,7 @@ export const TwoFactorSetup = () => {
     setQrCode(null);
     setSecret(null);
     setFactorId(null);
-    setVerificationCode('');
+    setVerificationCode("");
   };
 
   if (loading) {
@@ -201,7 +217,8 @@ export const TwoFactorSetup = () => {
           <CardTitle>Two-Factor Authentication</CardTitle>
         </div>
         <CardDescription>
-          Add an extra layer of security to your account using an authenticator app.
+          Add an extra layer of security to your account using an authenticator
+          app.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -214,7 +231,10 @@ export const TwoFactorSetup = () => {
               </span>
             </div>
 
-            <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+            <Dialog
+              open={showDisableDialog}
+              onOpenChange={setShowDisableDialog}
+            >
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">
                   <ShieldOff className="w-4 h-4 mr-2" />
@@ -239,7 +259,9 @@ export const TwoFactorSetup = () => {
                       maxLength={6}
                       placeholder="000000"
                       value={disableCode}
-                      onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) =>
+                        setDisableCode(e.target.value.replace(/\D/g, ""))
+                      }
                       className="text-center text-2xl tracking-widest"
                     />
                   </div>
@@ -255,7 +277,7 @@ export const TwoFactorSetup = () => {
                         Disabling...
                       </>
                     ) : (
-                      'Confirm Disable'
+                      "Confirm Disable"
                     )}
                   </Button>
                 </div>
@@ -266,7 +288,8 @@ export const TwoFactorSetup = () => {
           <div className="space-y-6">
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+                Scan this QR code with your authenticator app (Google
+                Authenticator, Authy, etc.)
               </p>
               <div className="flex justify-center">
                 <div className="bg-white p-4 rounded-lg">
@@ -285,7 +308,11 @@ export const TwoFactorSetup = () => {
                     {secret}
                   </code>
                   <Button variant="outline" size="icon" onClick={copySecret}>
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -301,13 +328,19 @@ export const TwoFactorSetup = () => {
                 maxLength={6}
                 placeholder="000000"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) =>
+                  setVerificationCode(e.target.value.replace(/\D/g, ""))
+                }
                 className="text-center text-2xl tracking-widest"
               />
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" onClick={cancelEnrollment} className="flex-1">
+              <Button
+                variant="outline"
+                onClick={cancelEnrollment}
+                className="flex-1"
+              >
                 Cancel
               </Button>
               <Button
@@ -321,7 +354,7 @@ export const TwoFactorSetup = () => {
                     Verifying...
                   </>
                 ) : (
-                  'Enable 2FA'
+                  "Enable 2FA"
                 )}
               </Button>
             </div>
@@ -335,7 +368,11 @@ export const TwoFactorSetup = () => {
               </span>
             </div>
 
-            <Button onClick={startEnrollment} disabled={enrolling} className="w-full">
+            <Button
+              onClick={startEnrollment}
+              disabled={enrolling}
+              className="w-full"
+            >
               {enrolling ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

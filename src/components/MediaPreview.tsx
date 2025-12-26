@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { X, File, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { MessageMedia } from '@/hooks/use-messages';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { X, File, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MessageMedia } from "@/hooks/use-messages";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MediaPreviewProps {
   media: MessageMedia[];
@@ -21,43 +21,49 @@ const getSignedUrl = async (filePath: string): Promise<string | null> => {
 
   try {
     const { data, error } = await supabase.storage
-      .from('chat-media')
+      .from("chat-media")
       .createSignedUrl(filePath, 3600); // 1 hour expiration
 
     if (error) throw error;
-    
+
     // Cache for 55 minutes (leave 5 min buffer before expiry)
     signedUrlCache.set(filePath, {
       url: data.signedUrl,
-      expiry: Date.now() + 55 * 60 * 1000
+      expiry: Date.now() + 55 * 60 * 1000,
     });
-    
+
     return data.signedUrl;
   } catch (error) {
-    console.error('Error getting signed URL:', error);
+    console.error("Error getting signed URL:", error);
     return null;
   }
 };
 
-const MediaItem = ({ item, onRemove }: { item: MessageMedia; onRemove?: (media: MessageMedia) => void }) => {
+const MediaItem = ({
+  item,
+  onRemove,
+}: {
+  item: MessageMedia;
+  onRemove?: (media: MessageMedia) => void;
+}) => {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const isImage = (type: string) => type.startsWith('image/');
-  const isVideo = (type: string) => type.startsWith('video/');
-  const isAudio = (type: string) => type.startsWith('audio/');
+  const isImage = (type: string) => type.startsWith("image/");
+  const isVideo = (type: string) => type.startsWith("video/");
+  const isAudio = (type: string) => type.startsWith("audio/");
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
       setLoading(true);
       setError(false);
-      
+
       // file_url now contains the storage path, not a full URL
-      const filePath = item.file_url.includes('://') 
-        ? item.file_url.split('/').slice(-3).join('/') // Extract path from full URL
+      const filePath = item.file_url.includes("://")
+        ? item.file_url.split("/").slice(-3).join("/") // Extract path from full URL
         : item.file_url;
-      
+
       const url = await getSignedUrl(filePath);
       if (url) {
         setSignedUrl(url);
@@ -93,7 +99,7 @@ const MediaItem = ({ item, onRemove }: { item: MessageMedia; onRemove?: (media: 
           src={signedUrl}
           alt={item.file_name}
           className="h-20 w-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-          onClick={() => window.open(signedUrl, '_blank')}
+          onClick={() => window.open(signedUrl, "_blank")}
         />
       ) : isVideo(item.file_type) ? (
         <video
@@ -106,8 +112,10 @@ const MediaItem = ({ item, onRemove }: { item: MessageMedia; onRemove?: (media: 
           <audio src={signedUrl} controls className="w-full h-8" />
         </div>
       ) : (
-        <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80"
-             onClick={() => window.open(signedUrl, '_blank')}>
+        <div
+          className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80"
+          onClick={() => window.open(signedUrl, "_blank")}
+        >
           <File className="h-8 w-8 text-muted-foreground" />
         </div>
       )}
@@ -143,22 +151,23 @@ interface UploadingMediaPreviewProps {
   onRemove?: (file: File) => void;
 }
 
-export const UploadingMediaPreview = ({ 
-  files, 
-  progress = {}, 
-  onRemove 
+export const UploadingMediaPreview = ({
+  files,
+  progress = {},
+  onRemove,
 }: UploadingMediaPreviewProps) => {
-  const isImage = (type: string) => type.startsWith('image/');
-  const isVideo = (type: string) => type.startsWith('video/');
+  const isImage = (type: string) => type.startsWith("image/");
+  const isVideo = (type: string) => type.startsWith("video/");
 
   if (files.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2 p-2 border-t">
       {files.map((file, index) => {
-        const objectUrl = isImage(file.type) || isVideo(file.type) 
-          ? URL.createObjectURL(file) 
-          : null;
+        const objectUrl =
+          isImage(file.type) || isVideo(file.type)
+            ? URL.createObjectURL(file)
+            : null;
 
         return (
           <div key={index} className="relative group">
@@ -178,7 +187,7 @@ export const UploadingMediaPreview = ({
                 <File className="h-8 w-8 text-muted-foreground" />
               </div>
             )}
-            
+
             {/* Progress overlay */}
             {progress[file.name] !== undefined && progress[file.name] < 100 && (
               <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">

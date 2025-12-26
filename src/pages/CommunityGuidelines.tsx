@@ -1,4 +1,13 @@
-import { Heart, Shield, Users, AlertTriangle, Ban, Eye, MessageCircle, Camera } from "lucide-react";
+import {
+  Heart,
+  Shield,
+  Users,
+  AlertTriangle,
+  Ban,
+  Eye,
+  MessageCircle,
+  Camera,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,7 +17,8 @@ const guidelines = [
   {
     icon: Heart,
     title: "Be Respectful",
-    description: "Treat others the way you want to be treated. Harassment, hate speech, and discrimination have no place on Blossom.",
+    description:
+      "Treat others the way you want to be treated. Harassment, hate speech, and discrimination have no place on Blossom.",
     rules: [
       "No bullying, threats, or intimidation",
       "No hate speech based on race, ethnicity, religion, gender, or sexual orientation",
@@ -19,7 +29,8 @@ const guidelines = [
   {
     icon: Users,
     title: "Be Authentic",
-    description: "Represent yourself honestly. Fake profiles undermine trust in our community.",
+    description:
+      "Represent yourself honestly. Fake profiles undermine trust in our community.",
     rules: [
       "Use your real name and age",
       "Only upload photos of yourself",
@@ -79,11 +90,14 @@ const CommunityGuidelines = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Community Guidelines | Blossom</title>
-        <meta name="description" content="Learn about Blossom's community guidelines and content moderation policies. We're committed to creating a safe and respectful dating environment." />
+        <meta
+          name="description"
+          content="Learn about Blossom's community guidelines and content moderation policies. We're committed to creating a safe and respectful dating environment."
+        />
       </Helmet>
-      
+
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         {/* Header */}
         <div className="text-center space-y-4 mb-12">
@@ -92,7 +106,8 @@ const CommunityGuidelines = () => {
           </div>
           <h1 className="text-4xl font-bold">Community Guidelines</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Blossom is built on respect, authenticity, and safety. These guidelines help us maintain a positive environment for everyone.
+            Blossom is built on respect, authenticity, and safety. These
+            guidelines help us maintain a positive environment for everyone.
           </p>
         </div>
 
@@ -101,10 +116,13 @@ const CommunityGuidelines = () => {
           <div className="flex items-start gap-4">
             <AlertTriangle className="w-6 h-6 text-primary shrink-0 mt-1" />
             <div>
-              <h2 className="font-semibold text-lg mb-2">Our Commitment to Safety</h2>
+              <h2 className="font-semibold text-lg mb-2">
+                Our Commitment to Safety
+              </h2>
               <p className="text-muted-foreground">
-                Every member of Blossom agrees to follow these guidelines. Violations may result in warnings, 
-                temporary suspensions, or permanent bans depending on severity. We review all reports and 
+                Every member of Blossom agrees to follow these guidelines.
+                Violations may result in warnings, temporary suspensions, or
+                permanent bans depending on severity. We review all reports and
                 take action to protect our community.
               </p>
             </div>
@@ -120,11 +138,18 @@ const CommunityGuidelines = () => {
                   <guideline.icon className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2">{guideline.title}</h3>
-                  <p className="text-muted-foreground mb-4">{guideline.description}</p>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {guideline.title}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {guideline.description}
+                  </p>
                   <ul className="space-y-2">
                     {guideline.rules.map((rule, ruleIndex) => (
-                      <li key={ruleIndex} className="flex items-start gap-2 text-sm">
+                      <li
+                        key={ruleIndex}
+                        className="flex items-start gap-2 text-sm"
+                      >
                         <span className="text-primary mt-1">•</span>
                         <span>{rule}</span>
                       </li>
@@ -140,24 +165,41 @@ const CommunityGuidelines = () => {
         <Card className="p-6 mt-8">
           <h2 className="text-xl font-semibold mb-4">How to Report</h2>
           <p className="text-muted-foreground mb-4">
-            If you encounter behavior that violates these guidelines, please report it immediately:
+            If you encounter behavior that violates these guidelines, please
+            report it immediately:
           </p>
           <ol className="space-y-3 text-sm">
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
-              <span>On any profile or in chat, tap the menu icon (three dots) and select "Report"</span>
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                1
+              </span>
+              <span>
+                On any profile or in chat, tap the menu icon (three dots) and
+                select "Report"
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                2
+              </span>
               <span>Choose the category that best describes the issue</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
-              <span>Provide any additional details that can help us investigate</span>
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                3
+              </span>
+              <span>
+                Provide any additional details that can help us investigate
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
-              <span>Our team will review within 24-48 hours and take appropriate action</span>
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                4
+              </span>
+              <span>
+                Our team will review within 24-48 hours and take appropriate
+                action
+              </span>
             </li>
           </ol>
         </Card>
@@ -170,12 +212,10 @@ const CommunityGuidelines = () => {
               Contact our support team
             </a>
           </p>
-          <p className="text-sm mt-2">
-            Last updated: January 2025
-          </p>
+          <p className="text-sm mt-2">Last updated: January 2025</p>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

@@ -25,6 +25,7 @@ plugins: {
 Use `src/assets/splash-screen.png` or create a new one.
 
 **Requirements:**
+
 - 2732x2732 pixels (largest iPad size)
 - PNG format
 - Center the logo/content in a safe zone (inner 1200x1200)
@@ -44,16 +45,17 @@ Use `src/assets/splash-screen.png` or create a new one.
 
 Create these sizes in `ios/App/App/Assets.xcassets/Splash.imageset/`:
 
-| Device | Size |
-|--------|------|
+| Device | Size                                                       |
+| ------ | ---------------------------------------------------------- |
 | iPhone | 1242x2688 (XS Max), 1125x2436 (X/XS), 1242x2208 (6+/7+/8+) |
-| iPad | 2048x2732 (12.9"), 1668x2388 (11"), 1536x2048 (9.7") |
+| iPad   | 2048x2732 (12.9"), 1668x2388 (11"), 1536x2048 (9.7")       |
 
 ## Android Setup
 
 ### Splash Image
 
 Place your splash image in:
+
 - `android/app/src/main/res/drawable/splash.png`
 - Or use `drawable-*` folders for different densities
 

@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VideoCallModalProps {
   isOpen: boolean;
   callState: {
     callId: string | null;
-    status: 'idle' | 'calling' | 'ringing' | 'active' | 'ended';
+    status: "idle" | "calling" | "ringing" | "active" | "ended";
     remoteUserId: string | null;
     isCaller: boolean;
   };
@@ -39,34 +39,37 @@ export const VideoCallModal = ({
 }: VideoCallModalProps) => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const [remoteUser, setRemoteUser] = useState<{ full_name: string; photo_url?: string } | null>(null);
+  const [remoteUser, setRemoteUser] = useState<{
+    full_name: string;
+    photo_url?: string;
+  } | null>(null);
 
   // Fetch remote user info
   useEffect(() => {
     const fetchRemoteUser = async () => {
       if (!callState.remoteUserId) return;
-      
+
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', callState.remoteUserId)
+        .from("profiles")
+        .select("full_name")
+        .eq("id", callState.remoteUserId)
         .single();
-      
+
       const { data: photo } = await supabase
-        .from('profile_photos')
-        .select('photo_url')
-        .eq('user_id', callState.remoteUserId)
-        .eq('is_primary', true)
+        .from("profile_photos")
+        .select("photo_url")
+        .eq("user_id", callState.remoteUserId)
+        .eq("is_primary", true)
         .maybeSingle();
-      
+
       if (profile) {
         setRemoteUser({
-          full_name: profile.full_name || 'Unknown',
+          full_name: profile.full_name || "Unknown",
           photo_url: photo?.photo_url,
         });
       }
     };
-    
+
     fetchRemoteUser();
   }, [callState.remoteUserId]);
 
@@ -85,7 +88,7 @@ export const VideoCallModal = ({
   }, [remoteStream]);
 
   const getPhotoUrl = (path: string) => {
-    const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
+    const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
     return data.publicUrl;
   };
 
@@ -96,7 +99,7 @@ export const VideoCallModal = ({
       <DialogContent className="max-w-4xl h-[80vh] p-0 overflow-hidden">
         <div className="relative w-full h-full bg-black">
           {/* Remote Video (Full Screen) */}
-          {callState.status === 'active' && remoteStream ? (
+          {callState.status === "active" && remoteStream ? (
             <video
               ref={remoteVideoRef}
               autoPlay
@@ -110,16 +113,20 @@ export const VideoCallModal = ({
                   <AvatarImage src={getPhotoUrl(remoteUser.photo_url)} />
                 ) : null}
                 <AvatarFallback className="text-4xl">
-                  {remoteUser?.full_name?.[0] || '?'}
+                  {remoteUser?.full_name?.[0] || "?"}
                 </AvatarFallback>
               </Avatar>
               <h2 className="text-2xl font-bold text-white mb-2">
-                {remoteUser?.full_name || 'Unknown'}
+                {remoteUser?.full_name || "Unknown"}
               </h2>
               <p className="text-white/70">
-                {callState.status === 'calling' && 'Calling...'}
-                {callState.status === 'ringing' && !callState.isCaller && 'Incoming call...'}
-                {callState.status === 'ringing' && callState.isCaller && 'Ringing...'}
+                {callState.status === "calling" && "Calling..."}
+                {callState.status === "ringing" &&
+                  !callState.isCaller &&
+                  "Incoming call..."}
+                {callState.status === "ringing" &&
+                  callState.isCaller &&
+                  "Ringing..."}
               </p>
             </div>
           )}
@@ -133,7 +140,7 @@ export const VideoCallModal = ({
                 playsInline
                 muted
                 className="w-full h-full object-cover mirror"
-                style={{ transform: 'scaleX(-1)' }}
+                style={{ transform: "scaleX(-1)" }}
               />
               {isVideoOff && (
                 <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
@@ -145,21 +152,26 @@ export const VideoCallModal = ({
 
           {/* Controls */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4">
-            {callState.status === 'ringing' && !callState.isCaller ? (
+            {callState.status === "ringing" && !callState.isCaller ? (
               <>
                 <Button
                   size="lg"
                   variant="destructive"
                   className="h-16 w-16 rounded-full"
-                  onClick={() => callState.callId && onDecline(callState.callId)}
+                  onClick={() =>
+                    callState.callId && onDecline(callState.callId)
+                  }
                 >
                   <PhoneOff className="h-8 w-8" />
                 </Button>
                 <Button
                   size="lg"
                   className="h-16 w-16 rounded-full bg-green-500 hover:bg-green-600"
-                  onClick={() => callState.callId && callState.remoteUserId && 
-                    onAnswer(callState.callId, callState.remoteUserId)}
+                  onClick={() =>
+                    callState.callId &&
+                    callState.remoteUserId &&
+                    onAnswer(callState.callId, callState.remoteUserId)
+                  }
                 >
                   <Phone className="h-8 w-8" />
                 </Button>
@@ -172,7 +184,11 @@ export const VideoCallModal = ({
                   className="h-14 w-14 rounded-full"
                   onClick={onToggleMute}
                 >
-                  {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                  {isMuted ? (
+                    <MicOff className="h-6 w-6" />
+                  ) : (
+                    <Mic className="h-6 w-6" />
+                  )}
                 </Button>
                 <Button
                   size="lg"
@@ -188,7 +204,11 @@ export const VideoCallModal = ({
                   className="h-14 w-14 rounded-full"
                   onClick={onToggleVideo}
                 >
-                  {isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+                  {isVideoOff ? (
+                    <VideoOff className="h-6 w-6" />
+                  ) : (
+                    <Video className="h-6 w-6" />
+                  )}
                 </Button>
               </>
             )}

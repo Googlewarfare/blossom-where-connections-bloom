@@ -1,5 +1,5 @@
-import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+import { Capacitor } from "@capacitor/core";
 
 export const useHaptics = () => {
   const isNative = Capacitor.isNativePlatform();
@@ -9,7 +9,9 @@ export const useHaptics = () => {
     await Haptics.impact({ style });
   };
 
-  const notification = async (type: NotificationType = NotificationType.Success) => {
+  const notification = async (
+    type: NotificationType = NotificationType.Success,
+  ) => {
     if (!isNative) return;
     await Haptics.notification({ type });
   };

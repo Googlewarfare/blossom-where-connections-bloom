@@ -2,32 +2,45 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Shield, Users, Sparkles, Target, Eye, Zap, MessageCircle } from "lucide-react";
+import {
+  Heart,
+  Shield,
+  Users,
+  Sparkles,
+  Target,
+  Eye,
+  Zap,
+  MessageCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const values = [
   {
     icon: Heart,
     title: "Authenticity",
-    description: "We believe real connections start with real people. Every profile on Blossom is verified to ensure genuine interactions.",
+    description:
+      "We believe real connections start with real people. Every profile on Blossom is verified to ensure genuine interactions.",
     color: "text-rose-500",
   },
   {
     icon: Shield,
     title: "Safety First",
-    description: "Your security is our priority. From background checks to date check-ins, we've built features to keep you safe.",
+    description:
+      "Your security is our priority. From background checks to date check-ins, we've built features to keep you safe.",
     color: "text-emerald-500",
   },
   {
     icon: Users,
     title: "Inclusivity",
-    description: "Love knows no boundaries. We welcome everyone and celebrate diversity in all its beautiful forms.",
+    description:
+      "Love knows no boundaries. We welcome everyone and celebrate diversity in all its beautiful forms.",
     color: "text-blue-500",
   },
   {
     icon: Sparkles,
     title: "Meaningful Matches",
-    description: "Our smart compatibility algorithm goes beyond surface-level to connect people who truly click.",
+    description:
+      "Our smart compatibility algorithm goes beyond surface-level to connect people who truly click.",
     color: "text-amber-500",
   },
 ];
@@ -37,25 +50,29 @@ const howItWorks = [
     step: "01",
     icon: Users,
     title: "Create Your Profile",
-    description: "Sign up and build your authentic profile with photos, interests, and what you're looking for in a partner.",
+    description:
+      "Sign up and build your authentic profile with photos, interests, and what you're looking for in a partner.",
   },
   {
     step: "02",
     icon: Eye,
     title: "Discover Matches",
-    description: "Browse through curated profiles based on your preferences and our compatibility algorithm.",
+    description:
+      "Browse through curated profiles based on your preferences and our compatibility algorithm.",
   },
   {
     step: "03",
     icon: MessageCircle,
     title: "Connect & Chat",
-    description: "When you both like each other, start a conversation. Use our icebreaker questions to break the ice!",
+    description:
+      "When you both like each other, start a conversation. Use our icebreaker questions to break the ice!",
   },
   {
     step: "04",
     icon: Heart,
     title: "Meet & Blossom",
-    description: "Take your connection offline. Use our date check-in feature for added safety on your first dates.",
+    description:
+      "Take your connection offline. Use our date check-in feature for added safety on your first dates.",
   },
 ];
 
@@ -80,12 +97,12 @@ const About = () => {
             About Blossom
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Where Real Love{" "}
-            <span className="text-primary">Blossoms</span>
+            Where Real Love <span className="text-primary">Blossoms</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            We started Blossom with a simple belief: everyone deserves to find genuine love. 
-            Our mission is to create meaningful connections through authenticity, safety, and smart technology.
+            We started Blossom with a simple belief: everyone deserves to find
+            genuine love. Our mission is to create meaningful connections
+            through authenticity, safety, and smart technology.
           </p>
         </div>
       </section>
@@ -99,7 +116,9 @@ const About = () => {
                 <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
                   {stat.value}
                 </div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+                <div className="text-sm text-muted-foreground">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -113,21 +132,25 @@ const About = () => {
             <div>
               <div className="flex items-center gap-2 text-primary mb-4">
                 <Target className="w-5 h-5" />
-                <span className="text-sm font-semibold uppercase tracking-wider">Our Mission</span>
+                <span className="text-sm font-semibold uppercase tracking-wider">
+                  Our Mission
+                </span>
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
                 Creating Connections That Last a Lifetime
               </h2>
               <p className="text-muted-foreground mb-6">
-                In a world of fleeting swipes and superficial matches, Blossom stands apart. 
-                We've built a platform that prioritizes depth over breadth, quality over quantity, 
-                and real compatibility over algorithms that keep you swiping.
+                In a world of fleeting swipes and superficial matches, Blossom
+                stands apart. We've built a platform that prioritizes depth over
+                breadth, quality over quantity, and real compatibility over
+                algorithms that keep you swiping.
               </p>
               <p className="text-muted-foreground mb-8">
-                Our team of relationship experts, psychologists, and engineers work together 
-                to create an experience that truly understands what makes a relationship work. 
-                From our detailed compatibility scoring to our unique daily questions, every 
-                feature is designed to help you find someone who gets you.
+                Our team of relationship experts, psychologists, and engineers
+                work together to create an experience that truly understands
+                what makes a relationship work. From our detailed compatibility
+                scoring to our unique daily questions, every feature is designed
+                to help you find someone who gets you.
               </p>
               <Link to="/discover">
                 <Button size="lg" className="gap-2">
@@ -138,11 +161,16 @@ const About = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {values.map((value) => (
-                <Card key={value.title} className="border-border/50 hover:shadow-lg transition-shadow">
+                <Card
+                  key={value.title}
+                  className="border-border/50 hover:shadow-lg transition-shadow"
+                >
                   <CardContent className="p-6">
                     <value.icon className={`w-8 h-8 ${value.color} mb-4`} />
                     <h3 className="font-semibold mb-2">{value.title}</h3>
-                    <p className="text-sm text-muted-foreground">{value.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {value.description}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -159,7 +187,8 @@ const About = () => {
               How Blossom Works
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Finding love shouldn't be complicated. Here's how Blossom makes it simple.
+              Finding love shouldn't be complicated. Here's how Blossom makes it
+              simple.
             </p>
           </div>
 
@@ -174,7 +203,9 @@ const About = () => {
                     <item.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -189,8 +220,8 @@ const About = () => {
             Ready to Find Your Person?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Join thousands of singles who've found their perfect match on Blossom. 
-            Your love story is waiting to begin.
+            Join thousands of singles who've found their perfect match on
+            Blossom. Your love story is waiting to begin.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">

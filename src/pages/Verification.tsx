@@ -1,12 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Camera, Upload, CheckCircle, Shield, ArrowLeft } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Camera, Upload, CheckCircle, Shield, ArrowLeft } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Verification = () => {
   const { user } = useAuth();
@@ -15,7 +21,8 @@ const Verification = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<string>('unverified');
+  const [verificationStatus, setVerificationStatus] =
+    useState<string>("unverified");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,13 +33,13 @@ const Verification = () => {
     if (!user) return;
 
     const { data } = await supabase
-      .from('profiles')
-      .select('verification_status, verified')
-      .eq('id', user.id)
+      .from("profiles")
+      .select("verification_status, verified")
+      .eq("id", user.id)
       .single();
 
     if (data) {
-      setVerificationStatus(data.verification_status || 'unverified');
+      setVerificationStatus(data.verification_status || "unverified");
     }
   };
 
@@ -40,11 +47,11 @@ const Verification = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file",
         description: "Please select an image file",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -53,7 +60,7 @@ const Verification = () => {
       toast({
         title: "File too large",
         description: "Please select an image under 5MB",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -72,39 +79,40 @@ const Verification = () => {
     setUploading(true);
     try {
       // Upload verification photo
-      const fileExt = selectedFile.name.split('.').pop();
+      const fileExt = selectedFile.name.split(".").pop();
       const fileName = `${user.id}/verification-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-photos')
+        .from("profile-photos")
         .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
       // Update profile with verification request
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           verification_photo_url: fileName,
-          verification_status: 'pending'
+          verification_status: "pending",
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (updateError) throw updateError;
 
       toast({
         title: "Verification submitted! ✓",
-        description: "Your verification request has been submitted. We'll review it within 24-48 hours."
+        description:
+          "Your verification request has been submitted. We'll review it within 24-48 hours.",
       });
 
-      setVerificationStatus('pending');
+      setVerificationStatus("pending");
       setSelectedFile(null);
       setPreviewUrl(null);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setUploading(false);
@@ -144,7 +152,7 @@ const Verification = () => {
             onChange={handleFileSelect}
             className="hidden"
           />
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Button
               variant="outline"
@@ -162,7 +170,7 @@ const Verification = () => {
               onClick={() => {
                 // Open camera
                 if (fileInputRef.current) {
-                  fileInputRef.current.setAttribute('capture', 'user');
+                  fileInputRef.current.setAttribute("capture", "user");
                   fileInputRef.current.click();
                 }
               }}
@@ -199,7 +207,7 @@ const Verification = () => {
               disabled={uploading}
               className="flex-1"
             >
-              {uploading ? 'Submitting...' : 'Submit for Verification'}
+              {uploading ? "Submitting..." : "Submit for Verification"}
             </Button>
           </div>
         </div>
@@ -208,17 +216,22 @@ const Verification = () => {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Your verification photo will only be used to confirm your identity and won't be shown on your profile.
+          Your verification photo will only be used to confirm your identity and
+          won't be shown on your profile.
         </AlertDescription>
       </Alert>
     </>
   );
 
-  if (verificationStatus === 'approved') {
+  if (verificationStatus === "approved") {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Button variant="ghost" onClick={() => navigate('/profile')} className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/profile")}
+            className="mb-6"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
@@ -237,11 +250,15 @@ const Verification = () => {
     );
   }
 
-  if (verificationStatus === 'pending') {
+  if (verificationStatus === "pending") {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Button variant="ghost" onClick={() => navigate('/profile')} className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/profile")}
+            className="mb-6"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
@@ -251,7 +268,8 @@ const Verification = () => {
               <Shield className="h-16 w-16 text-primary mx-auto mb-4 animate-pulse" />
               <h2 className="text-2xl font-bold mb-2">Verification Pending</h2>
               <p className="text-muted-foreground mb-4">
-                Your verification request is being reviewed. We'll notify you once it's complete.
+                Your verification request is being reviewed. We'll notify you
+                once it's complete.
               </p>
               <p className="text-sm text-muted-foreground">
                 This usually takes 24-48 hours.
@@ -263,18 +281,23 @@ const Verification = () => {
     );
   }
 
-  if (verificationStatus === 'rejected') {
+  if (verificationStatus === "rejected") {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Button variant="ghost" onClick={() => navigate('/profile')} className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/profile")}
+            className="mb-6"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
 
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>
-              Your verification was rejected. Please try again with a clearer photo following the guidelines below.
+              Your verification was rejected. Please try again with a clearer
+              photo following the guidelines below.
             </AlertDescription>
           </Alert>
 
@@ -300,7 +323,11 @@ const Verification = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button variant="ghost" onClick={() => navigate('/profile')} className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/profile")}
+          className="mb-6"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Profile
         </Button>

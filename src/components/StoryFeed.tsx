@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Story {
   id: string;
@@ -34,14 +34,16 @@ export const StoryFeed = () => {
 
   const fetchStories = async () => {
     const { data } = await supabase
-      .from('stories')
-      .select(`
+      .from("stories")
+      .select(
+        `
         *,
         profiles:user_id (full_name),
         profile_photos:user_id (photo_url, is_primary)
-      `)
-      .gte('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .gte("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
 
     if (data) {
       setStories(data as any);
@@ -54,26 +56,29 @@ export const StoryFeed = () => {
 
     const { data: userData } = await supabase.auth.getUser();
     if (userData.user) {
-      await supabase.from('story_views').insert({
+      await supabase.from("story_views").insert({
         story_id: story.id,
-        viewer_id: userData.user.id
+        viewer_id: userData.user.id,
       });
     }
   };
 
   const getPrimaryPhoto = (photos: any[]) => {
-    const primary = photos?.find(p => p.is_primary);
+    const primary = photos?.find((p) => p.is_primary);
     return primary?.photo_url || photos?.[0]?.photo_url;
   };
 
   // Group stories by user
-  const groupedStories = stories.reduce((acc, story) => {
-    if (!acc[story.user_id]) {
-      acc[story.user_id] = [];
-    }
-    acc[story.user_id].push(story);
-    return acc;
-  }, {} as Record<string, Story[]>);
+  const groupedStories = stories.reduce(
+    (acc, story) => {
+      if (!acc[story.user_id]) {
+        acc[story.user_id] = [];
+      }
+      acc[story.user_id].push(story);
+      return acc;
+    },
+    {} as Record<string, Story[]>,
+  );
 
   return (
     <>
@@ -96,7 +101,9 @@ export const StoryFeed = () => {
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-primary via-primary/50 to-accent p-0.5">
                   <Avatar className="w-full h-full border-4 border-background">
-                    <AvatarImage src={getPrimaryPhoto(firstStory.profile_photos)} />
+                    <AvatarImage
+                      src={getPrimaryPhoto(firstStory.profile_photos)}
+                    />
                     <AvatarFallback>
                       {firstStory.profiles?.full_name?.[0]}
                     </AvatarFallback>
@@ -120,7 +127,7 @@ export const StoryFeed = () => {
         <DialogContent className="max-w-md p-0 bg-black border-none">
           {selectedStory && (
             <div className="relative h-[600px]">
-              {selectedStory.media_type.startsWith('image') ? (
+              {selectedStory.media_type.startsWith("image") ? (
                 <img
                   src={selectedStory.media_url}
                   alt="Story"
@@ -134,10 +141,12 @@ export const StoryFeed = () => {
                   autoPlay
                 />
               )}
-              
+
               <div className="absolute top-4 left-4 right-4 flex items-center gap-3">
                 <Avatar className="w-10 h-10 border-2 border-white">
-                  <AvatarImage src={getPrimaryPhoto(selectedStory.profile_photos)} />
+                  <AvatarImage
+                    src={getPrimaryPhoto(selectedStory.profile_photos)}
+                  />
                   <AvatarFallback>
                     {selectedStory.profiles?.full_name?.[0]}
                   </AvatarFallback>

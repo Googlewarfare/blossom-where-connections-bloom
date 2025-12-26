@@ -5,7 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Mail, MessageCircle, Shield, HelpCircle, Clock, Phone, Globe, ExternalLink } from "lucide-react";
+import {
+  Heart,
+  Mail,
+  MessageCircle,
+  Shield,
+  HelpCircle,
+  Clock,
+  Phone,
+  Globe,
+  ExternalLink,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet";
@@ -20,35 +30,43 @@ import { Badge } from "@/components/ui/badge";
 const faqs = [
   {
     question: "How do I verify my profile?",
-    answer: "Go to your Profile page, then tap 'Get Verified' in the verification section. Follow the prompts to take a selfie that matches a specific pose. Our team will review it within 24-48 hours."
+    answer:
+      "Go to your Profile page, then tap 'Get Verified' in the verification section. Follow the prompts to take a selfie that matches a specific pose. Our team will review it within 24-48 hours.",
   },
   {
     question: "How do I report someone?",
-    answer: "On any profile or in a chat, tap the three-dot menu and select 'Report'. Choose a reason and provide details. All reports are reviewed by our safety team."
+    answer:
+      "On any profile or in a chat, tap the three-dot menu and select 'Report'. Choose a reason and provide details. All reports are reviewed by our safety team.",
   },
   {
     question: "How do I delete my account?",
-    answer: "Go to your Profile page, scroll down to the Security tab, and tap 'Delete Account'. This action is permanent and cannot be undone."
+    answer:
+      "Go to your Profile page, scroll down to the Security tab, and tap 'Delete Account'. This action is permanent and cannot be undone.",
   },
   {
     question: "How does matching work?",
-    answer: "When you like someone and they like you back, it's a match! You'll both be notified and can start chatting immediately."
+    answer:
+      "When you like someone and they like you back, it's a match! You'll both be notified and can start chatting immediately.",
   },
   {
     question: "What is Blossom Premium?",
-    answer: "Premium gives you unlimited likes, the ability to see who liked you, read receipts, and advanced filters. Check the Premium page for current pricing."
+    answer:
+      "Premium gives you unlimited likes, the ability to see who liked you, read receipts, and advanced filters. Check the Premium page for current pricing.",
   },
   {
     question: "How do I change my location?",
-    answer: "Go to your Profile page and update your location in the basic info section. You can also use the location button to auto-detect your current location."
+    answer:
+      "Go to your Profile page and update your location in the basic info section. You can also use the location button to auto-detect your current location.",
   },
   {
     question: "How do I cancel my subscription?",
-    answer: "If you subscribed via the iOS app, manage your subscription in Settings > Apple ID > Subscriptions. If you subscribed via web, use the 'Manage Subscription' option on the Premium page."
+    answer:
+      "If you subscribed via the iOS app, manage your subscription in Settings > Apple ID > Subscriptions. If you subscribed via web, use the 'Manage Subscription' option on the Premium page.",
   },
   {
     question: "How do I restore my purchases?",
-    answer: "Open the Premium page and tap 'Restore Purchases'. This will restore any active subscriptions linked to your Apple ID or account."
+    answer:
+      "Open the Premium page and tap 'Restore Purchases'. This will restore any active subscriptions linked to your Apple ID or account.",
   },
 ];
 
@@ -62,7 +80,7 @@ const Support = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim() || !email.trim() || !message.trim()) {
       toast({
         title: "Missing Information",
@@ -73,15 +91,15 @@ const Support = () => {
     }
 
     setSending(true);
-    
+
     // Simulate sending (in production, this would call an edge function)
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     toast({
       title: "Message Sent",
       description: "We'll get back to you within 24-48 hours.",
     });
-    
+
     setName("");
     setEmail("");
     setSubject("");
@@ -93,11 +111,14 @@ const Support = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Help & Support | Blossom</title>
-        <meta name="description" content="Get help with your Blossom account. Find answers to frequently asked questions or contact our support team." />
+        <meta
+          name="description"
+          content="Get help with your Blossom account. Find answers to frequently asked questions or contact our support team."
+        />
       </Helmet>
-      
+
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         {/* Header */}
         <div className="text-center space-y-4 mb-12">
@@ -106,7 +127,8 @@ const Support = () => {
           </div>
           <h1 className="text-4xl font-bold">Help & Support</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Find answers to common questions or reach out to our team. We're here to help you have the best experience on Blossom.
+            Find answers to common questions or reach out to our team. We're
+            here to help you have the best experience on Blossom.
           </p>
         </div>
 
@@ -127,7 +149,9 @@ const Support = () => {
               <div className="flex flex-col items-center gap-2">
                 <Mail className="w-6 h-6 text-primary" />
                 <h3 className="font-semibold">Email Support</h3>
-                <p className="text-sm text-muted-foreground">support@blossom.app</p>
+                <p className="text-sm text-muted-foreground">
+                  support@blossom.app
+                </p>
               </div>
             </div>
           </div>
@@ -135,25 +159,37 @@ const Support = () => {
 
         {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => window.location.href = '/safety'}>
+          <Card
+            className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group"
+            onClick={() => (window.location.href = "/safety")}
+          >
             <Shield className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <h3 className="font-semibold text-sm mb-1">Safety Center</h3>
             <p className="text-xs text-muted-foreground">Dating safety tips</p>
           </Card>
-          
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => window.location.href = '/privacy'}>
+
+          <Card
+            className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group"
+            onClick={() => (window.location.href = "/privacy")}
+          >
             <MessageCircle className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <h3 className="font-semibold text-sm mb-1">Privacy Policy</h3>
             <p className="text-xs text-muted-foreground">How we protect data</p>
           </Card>
-          
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => window.location.href = '/terms'}>
+
+          <Card
+            className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group"
+            onClick={() => (window.location.href = "/terms")}
+          >
             <Heart className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <h3 className="font-semibold text-sm mb-1">Terms of Service</h3>
             <p className="text-xs text-muted-foreground">Usage guidelines</p>
           </Card>
 
-          <Card className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => window.location.href = '/community-guidelines'}>
+          <Card
+            className="p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group"
+            onClick={() => (window.location.href = "/community-guidelines")}
+          >
             <Globe className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
             <h3 className="font-semibold text-sm mb-1">Community</h3>
             <p className="text-xs text-muted-foreground">Our guidelines</p>
@@ -162,7 +198,9 @@ const Support = () => {
 
         {/* FAQs */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-6">
+            Frequently Asked Questions
+          </h2>
           <Card className="p-6">
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
@@ -220,7 +258,7 @@ const Support = () => {
                   maxLength={200}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="message">How can we help? *</Label>
                 <Textarea
@@ -232,7 +270,9 @@ const Support = () => {
                   rows={6}
                   required
                 />
-                <p className="text-xs text-muted-foreground">{message.length}/2000 characters</p>
+                <p className="text-xs text-muted-foreground">
+                  {message.length}/2000 characters
+                </p>
               </div>
 
               <Button
@@ -248,9 +288,11 @@ const Support = () => {
             <div className="mt-6 pt-6 border-t border-border">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Email us directly:</p>
-                  <a 
-                    href="mailto:support@blossom.app" 
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Email us directly:
+                  </p>
+                  <a
+                    href="mailto:support@blossom.app"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
                     <Mail className="w-4 h-4" />
@@ -258,9 +300,11 @@ const Support = () => {
                   </a>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">For urgent safety issues:</p>
-                  <a 
-                    href="mailto:safety@blossom.app" 
+                  <p className="text-sm text-muted-foreground mb-1">
+                    For urgent safety issues:
+                  </p>
+                  <a
+                    href="mailto:safety@blossom.app"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
                     <Shield className="w-4 h-4" />
@@ -274,7 +318,9 @@ const Support = () => {
 
         {/* App Version Info */}
         <Card className="p-6 text-center bg-muted/50">
-          <p className="text-sm text-muted-foreground mb-2">Blossom Dating App</p>
+          <p className="text-sm text-muted-foreground mb-2">
+            Blossom Dating App
+          </p>
           <div className="flex items-center justify-center gap-4">
             <Badge variant="outline">Version 1.0.0</Badge>
             <Badge variant="outline">iOS & Android</Badge>
@@ -284,7 +330,7 @@ const Support = () => {
           </p>
         </Card>
       </main>
-      
+
       <Footer />
     </div>
   );

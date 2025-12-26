@@ -23,16 +23,48 @@ interface ReportDialogProps {
 }
 
 const REPORT_CATEGORIES = [
-  { value: "fake_profile", label: "Fake Profile", description: "This profile appears to be fake or impersonating someone" },
-  { value: "inappropriate_photos", label: "Inappropriate Photos", description: "Profile contains inappropriate or explicit content" },
-  { value: "harassment", label: "Harassment", description: "This user has harassed or threatened me" },
-  { value: "spam", label: "Spam", description: "This profile is sending spam messages" },
-  { value: "scam", label: "Scam/Fraud", description: "This user is trying to scam or defraud others" },
-  { value: "underage", label: "Underage User", description: "This user appears to be under 18 years old" },
-  { value: "other", label: "Other", description: "Other safety concern not listed above" },
+  {
+    value: "fake_profile",
+    label: "Fake Profile",
+    description: "This profile appears to be fake or impersonating someone",
+  },
+  {
+    value: "inappropriate_photos",
+    label: "Inappropriate Photos",
+    description: "Profile contains inappropriate or explicit content",
+  },
+  {
+    value: "harassment",
+    label: "Harassment",
+    description: "This user has harassed or threatened me",
+  },
+  {
+    value: "spam",
+    label: "Spam",
+    description: "This profile is sending spam messages",
+  },
+  {
+    value: "scam",
+    label: "Scam/Fraud",
+    description: "This user is trying to scam or defraud others",
+  },
+  {
+    value: "underage",
+    label: "Underage User",
+    description: "This user appears to be under 18 years old",
+  },
+  {
+    value: "other",
+    label: "Other",
+    description: "Other safety concern not listed above",
+  },
 ] as const;
 
-export const ReportDialog = ({ reportedUserId, reportedUserName, trigger }: ReportDialogProps) => {
+export const ReportDialog = ({
+  reportedUserId,
+  reportedUserName,
+  trigger,
+}: ReportDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<string>("");
@@ -56,14 +88,22 @@ export const ReportDialog = ({ reportedUserId, reportedUserName, trigger }: Repo
       const { error } = await supabase.from("reports").insert({
         reporter_id: user.id,
         reported_user_id: reportedUserId,
-        category: category as "fake_profile" | "inappropriate_photos" | "harassment" | "spam" | "scam" | "underage" | "other",
+        category: category as
+          | "fake_profile"
+          | "inappropriate_photos"
+          | "harassment"
+          | "spam"
+          | "scam"
+          | "underage"
+          | "other",
         description: description.trim() || null,
       });
 
       if (error) throw error;
 
       toast.success("Report submitted", {
-        description: "Thank you for helping keep our community safe. We'll review this report shortly.",
+        description:
+          "Thank you for helping keep our community safe. We'll review this report shortly.",
       });
       setOpen(false);
       setCategory("");
@@ -80,7 +120,11 @@ export const ReportDialog = ({ reportedUserId, reportedUserName, trigger }: Repo
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+          >
             <Flag className="h-4 w-4 mr-1" />
             Report
           </Button>
@@ -93,26 +137,40 @@ export const ReportDialog = ({ reportedUserId, reportedUserName, trigger }: Repo
             Report {reportedUserName ? reportedUserName : "User"}
           </DialogTitle>
           <DialogDescription>
-            Help us keep the community safe. Your report will be reviewed by our team.
+            Help us keep the community safe. Your report will be reviewed by our
+            team.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-3">
             <Label className="text-sm font-medium">What's the issue?</Label>
-            <RadioGroup value={category} onValueChange={setCategory} className="space-y-2">
+            <RadioGroup
+              value={category}
+              onValueChange={setCategory}
+              className="space-y-2"
+            >
               {REPORT_CATEGORIES.map((cat) => (
                 <div
                   key={cat.value}
                   className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => setCategory(cat.value)}
                 >
-                  <RadioGroupItem value={cat.value} id={cat.value} className="mt-0.5" />
+                  <RadioGroupItem
+                    value={cat.value}
+                    id={cat.value}
+                    className="mt-0.5"
+                  />
                   <div className="space-y-1">
-                    <Label htmlFor={cat.value} className="font-medium cursor-pointer">
+                    <Label
+                      htmlFor={cat.value}
+                      className="font-medium cursor-pointer"
+                    >
                       {cat.label}
                     </Label>
-                    <p className="text-xs text-muted-foreground">{cat.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {cat.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -132,7 +190,11 @@ export const ReportDialog = ({ reportedUserId, reportedUserName, trigger }: Repo
         </div>
 
         <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
           <Button

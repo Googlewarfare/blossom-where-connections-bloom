@@ -93,7 +93,13 @@ export function SkeletonMessage({ count = 5 }: { count?: number }) {
   );
 }
 
-export function SkeletonGrid({ count = 6, cols = 3 }: { count?: number; cols?: number }) {
+export function SkeletonGrid({
+  count = 6,
+  cols = 3,
+}: {
+  count?: number;
+  cols?: number;
+}) {
   return (
     <div
       className={`grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-${cols}`}

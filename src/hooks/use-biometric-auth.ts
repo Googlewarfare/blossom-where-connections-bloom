@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { NativeBiometric, BiometryType } from 'capacitor-native-biometric';
+import { useState, useEffect, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
+import { NativeBiometric, BiometryType } from "capacitor-native-biometric";
 
-const BIOMETRIC_SERVER = 'app.lovable.blossom';
+const BIOMETRIC_SERVER = "app.lovable.blossom";
 
 interface BiometricAuthState {
   isAvailable: boolean;
-  biometryType: 'face' | 'fingerprint' | 'none';
+  biometryType: "face" | "fingerprint" | "none";
   hasStoredCredentials: boolean;
 }
 
 export const useBiometricAuth = () => {
   const [state, setState] = useState<BiometricAuthState>({
     isAvailable: false,
-    biometryType: 'none',
+    biometryType: "none",
     hasStoredCredentials: false,
   });
   const [loading, setLoading] = useState(true);
@@ -28,12 +28,18 @@ export const useBiometricAuth = () => {
 
     try {
       const result = await NativeBiometric.isAvailable();
-      
-      let biometryType: 'face' | 'fingerprint' | 'none' = 'none';
-      if (result.biometryType === BiometryType.FACE_ID || result.biometryType === BiometryType.FACE_AUTHENTICATION) {
-        biometryType = 'face';
-      } else if (result.biometryType === BiometryType.FINGERPRINT || result.biometryType === BiometryType.TOUCH_ID) {
-        biometryType = 'fingerprint';
+
+      let biometryType: "face" | "fingerprint" | "none" = "none";
+      if (
+        result.biometryType === BiometryType.FACE_ID ||
+        result.biometryType === BiometryType.FACE_AUTHENTICATION
+      ) {
+        biometryType = "face";
+      } else if (
+        result.biometryType === BiometryType.FINGERPRINT ||
+        result.biometryType === BiometryType.TOUCH_ID
+      ) {
+        biometryType = "fingerprint";
       }
 
       // Check if we have stored credentials
@@ -42,7 +48,9 @@ export const useBiometricAuth = () => {
         const credentials = await NativeBiometric.getCredentials({
           server: BIOMETRIC_SERVER,
         });
-        hasStoredCredentials = !!(credentials?.username && credentials?.password);
+        hasStoredCredentials = !!(
+          credentials?.username && credentials?.password
+        );
       } catch {
         // No credentials stored
         hasStoredCredentials = false;
@@ -54,7 +62,7 @@ export const useBiometricAuth = () => {
         hasStoredCredentials,
       });
     } catch (error) {
-      console.error('Biometric check failed:', error);
+      console.error("Biometric check failed:", error);
     } finally {
       setLoading(false);
     }
@@ -64,16 +72,22 @@ export const useBiometricAuth = () => {
     checkAvailability();
   }, [checkAvailability]);
 
-  const authenticate = useCallback(async (): Promise<{ email: string; password: string } | null> => {
+  const authenticate = useCallback(async (): Promise<{
+    email: string;
+    password: string;
+  } | null> => {
     if (!isNative || !state.isAvailable) return null;
 
     try {
       // Verify identity first
       await NativeBiometric.verifyIdentity({
-        reason: 'Authenticate to access your account',
-        title: 'Blossom Login',
-        subtitle: state.biometryType === 'face' ? 'Use Face ID to sign in' : 'Use fingerprint to sign in',
-        description: 'Quick and secure access to your matches',
+        reason: "Authenticate to access your account",
+        title: "Blossom Login",
+        subtitle:
+          state.biometryType === "face"
+            ? "Use Face ID to sign in"
+            : "Use fingerprint to sign in",
+        description: "Quick and secure access to your matches",
       });
 
       // Get stored credentials
@@ -90,28 +104,31 @@ export const useBiometricAuth = () => {
 
       return null;
     } catch (error) {
-      console.error('Biometric authentication failed:', error);
+      console.error("Biometric authentication failed:", error);
       return null;
     }
   }, [isNative, state.isAvailable, state.biometryType]);
 
-  const saveCredentials = useCallback(async (email: string, password: string): Promise<boolean> => {
-    if (!isNative || !state.isAvailable) return false;
+  const saveCredentials = useCallback(
+    async (email: string, password: string): Promise<boolean> => {
+      if (!isNative || !state.isAvailable) return false;
 
-    try {
-      await NativeBiometric.setCredentials({
-        username: email,
-        password: password,
-        server: BIOMETRIC_SERVER,
-      });
+      try {
+        await NativeBiometric.setCredentials({
+          username: email,
+          password: password,
+          server: BIOMETRIC_SERVER,
+        });
 
-      setState(prev => ({ ...prev, hasStoredCredentials: true }));
-      return true;
-    } catch (error) {
-      console.error('Failed to save credentials:', error);
-      return false;
-    }
-  }, [isNative, state.isAvailable]);
+        setState((prev) => ({ ...prev, hasStoredCredentials: true }));
+        return true;
+      } catch (error) {
+        console.error("Failed to save credentials:", error);
+        return false;
+      }
+    },
+    [isNative, state.isAvailable],
+  );
 
   const deleteCredentials = useCallback(async (): Promise<boolean> => {
     if (!isNative) return false;
@@ -121,18 +138,18 @@ export const useBiometricAuth = () => {
         server: BIOMETRIC_SERVER,
       });
 
-      setState(prev => ({ ...prev, hasStoredCredentials: false }));
+      setState((prev) => ({ ...prev, hasStoredCredentials: false }));
       return true;
     } catch (error) {
-      console.error('Failed to delete credentials:', error);
+      console.error("Failed to delete credentials:", error);
       return false;
     }
   }, [isNative]);
 
   const getBiometryLabel = useCallback(() => {
-    if (state.biometryType === 'face') return 'Face ID';
-    if (state.biometryType === 'fingerprint') return 'Fingerprint';
-    return 'Biometric';
+    if (state.biometryType === "face") return "Face ID";
+    if (state.biometryType === "fingerprint") return "Fingerprint";
+    return "Biometric";
   }, [state.biometryType]);
 
   return {

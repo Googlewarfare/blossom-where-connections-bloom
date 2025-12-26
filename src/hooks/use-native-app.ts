@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { App, URLOpenListenerEvent } from '@capacitor/app';
-import { StatusBar, Style } from '@capacitor/status-bar';
-import { Capacitor } from '@capacitor/core';
+import { useEffect, useState } from "react";
+import { App, URLOpenListenerEvent } from "@capacitor/app";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { Capacitor } from "@capacitor/core";
 
 interface AppState {
   isActive: boolean;
@@ -13,24 +13,27 @@ export const useNativeApp = () => {
     isActive: true,
     deepLinkUrl: null,
   });
-  
+
   const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     if (!isNative) return;
 
     // Listen for app state changes
-    const stateListener = App.addListener('appStateChange', ({ isActive }) => {
-      setAppState(prev => ({ ...prev, isActive }));
+    const stateListener = App.addListener("appStateChange", ({ isActive }) => {
+      setAppState((prev) => ({ ...prev, isActive }));
     });
 
     // Listen for deep links
-    const urlListener = App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
-      setAppState(prev => ({ ...prev, deepLinkUrl: event.url }));
-    });
+    const urlListener = App.addListener(
+      "appUrlOpen",
+      (event: URLOpenListenerEvent) => {
+        setAppState((prev) => ({ ...prev, deepLinkUrl: event.url }));
+      },
+    );
 
     // Listen for back button (Android)
-    const backListener = App.addListener('backButton', ({ canGoBack }) => {
+    const backListener = App.addListener("backButton", ({ canGoBack }) => {
       if (!canGoBack) {
         App.exitApp();
       } else {
@@ -39,15 +42,17 @@ export const useNativeApp = () => {
     });
 
     return () => {
-      stateListener.then(l => l.remove());
-      urlListener.then(l => l.remove());
-      backListener.then(l => l.remove());
+      stateListener.then((l) => l.remove());
+      urlListener.then((l) => l.remove());
+      backListener.then((l) => l.remove());
     };
   }, [isNative]);
 
-  const setStatusBarStyle = async (style: 'dark' | 'light') => {
+  const setStatusBarStyle = async (style: "dark" | "light") => {
     if (!isNative) return;
-    await StatusBar.setStyle({ style: style === 'dark' ? Style.Dark : Style.Light });
+    await StatusBar.setStyle({
+      style: style === "dark" ? Style.Dark : Style.Light,
+    });
   };
 
   const hideStatusBar = async () => {

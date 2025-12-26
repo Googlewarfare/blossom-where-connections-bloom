@@ -95,7 +95,10 @@ const PrivacyLabels = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+              <Badge
+                variant="outline"
+                className="bg-green-500/10 text-green-600 border-green-500/30"
+              >
                 No Tracking
               </Badge>
               Data Used to Track You
@@ -133,7 +136,11 @@ const PrivacyLabels = () => {
                       <h3 className="font-medium mb-1">{category.category}</h3>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {category.types.map((type, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
+                          <Badge
+                            key={i}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {type}
                           </Badge>
                         ))}
@@ -173,7 +180,11 @@ const PrivacyLabels = () => {
                       <h3 className="font-medium mb-1">{category.category}</h3>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {category.types.map((type, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
+                          <Badge
+                            key={i}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {type}
                           </Badge>
                         ))}

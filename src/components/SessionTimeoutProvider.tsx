@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 const WARNING_TIME = 5 * 60 * 1000; // 5 minutes before timeout
@@ -20,7 +20,9 @@ interface SessionTimeoutProviderProps {
   children: React.ReactNode;
 }
 
-export const SessionTimeoutProvider = ({ children }: SessionTimeoutProviderProps) => {
+export const SessionTimeoutProvider = ({
+  children,
+}: SessionTimeoutProviderProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showWarning, setShowWarning] = useState(false);
@@ -28,7 +30,7 @@ export const SessionTimeoutProvider = ({ children }: SessionTimeoutProviderProps
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
-    navigate('/auth');
+    navigate("/auth");
   }, [navigate]);
 
   const resetTimer = useCallback(() => {
@@ -44,25 +46,32 @@ export const SessionTimeoutProvider = ({ children }: SessionTimeoutProviderProps
   useEffect(() => {
     if (!user) return;
 
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-    
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+
     let debounceTimer: NodeJS.Timeout | null = null;
-    
+
     const handleActivity = () => {
       if (debounceTimer) return;
-      
+
       debounceTimer = setTimeout(() => {
         debounceTimer = null;
         resetTimer();
       }, 1000);
     };
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
 
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleActivity);
       });
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -74,7 +83,7 @@ export const SessionTimeoutProvider = ({ children }: SessionTimeoutProviderProps
 
     const checkTimeout = setInterval(() => {
       const elapsed = Date.now() - lastActivity;
-      
+
       if (elapsed >= SESSION_TIMEOUT) {
         handleLogout();
       } else if (elapsed >= SESSION_TIMEOUT - WARNING_TIME && !showWarning) {
@@ -88,14 +97,14 @@ export const SessionTimeoutProvider = ({ children }: SessionTimeoutProviderProps
   return (
     <>
       {children}
-      
+
       <AlertDialog open={showWarning && !!user} onOpenChange={setShowWarning}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Session Expiring Soon</AlertDialogTitle>
             <AlertDialogDescription>
-              Your session will expire in 5 minutes due to inactivity. 
-              Would you like to stay signed in?
+              Your session will expire in 5 minutes due to inactivity. Would you
+              like to stay signed in?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -5,11 +5,12 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SEND-PASSWORD-RESET] ${step}${detailsStr}`);
 };
 
@@ -30,10 +31,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!email || !resetLink) {
       logStep("ERROR: Missing required fields");
-      return new Response(JSON.stringify({ error: "Email and reset link are required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Email and reset link are required" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     logStep("Sending password reset email");
@@ -134,14 +138,14 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    
+
     // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to send password reset email" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      },
     );
   }
 };

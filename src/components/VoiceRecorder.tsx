@@ -1,14 +1,17 @@
-import { useState, useRef } from 'react';
-import { Mic, Square, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useRef } from "react";
+import { Mic, Square, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (blob: Blob, duration: number) => void;
   disabled?: boolean;
 }
 
-export const VoiceRecorder = ({ onRecordingComplete, disabled }: VoiceRecorderProps) => {
+export const VoiceRecorder = ({
+  onRecordingComplete,
+  disabled,
+}: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -21,7 +24,7 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled }: VoiceRecorderPr
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: "audio/webm;codecs=opus",
       });
 
       chunksRef.current = [];
@@ -34,10 +37,10 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled }: VoiceRecorderPr
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
         onRecordingComplete(blob, duration);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -46,14 +49,15 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled }: VoiceRecorderPr
 
       // Update timer every second
       timerRef.current = setInterval(() => {
-        setRecordingTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        setRecordingTime(
+          Math.floor((Date.now() - startTimeRef.current) / 1000),
+        );
       }, 1000);
-
     } catch (error) {
       toast({
         title: "Error",
         description: "Could not access microphone. Please check permissions.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -73,7 +77,7 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled }: VoiceRecorderPr
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (

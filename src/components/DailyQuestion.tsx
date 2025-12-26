@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { MessageCircle, Send } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { MessageCircle, Send } from "lucide-react";
 
 interface DailyQuestionData {
   id: string;
@@ -25,7 +25,7 @@ interface Answer {
 
 export const DailyQuestion = () => {
   const [question, setQuestion] = useState<DailyQuestionData | null>(null);
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState("");
   const [hasAnswered, setHasAnswered] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,13 +37,13 @@ export const DailyQuestion = () => {
 
   const fetchTodayQuestion = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
+      const today = new Date().toISOString().split("T")[0];
+
       const { data: questionData, error: qError } = await supabase
-        .from('daily_questions')
-        .select('*')
-        .eq('date', today)
-        .eq('is_active', true)
+        .from("daily_questions")
+        .select("*")
+        .eq("date", today)
+        .eq("is_active", true)
         .maybeSingle();
 
       if (qError) throw qError;
@@ -54,10 +54,10 @@ export const DailyQuestion = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
         const { data: userAnswer } = await supabase
-          .from('user_question_answers')
-          .select('*')
-          .eq('question_id', questionData.id)
-          .eq('user_id', userData.user.id)
+          .from("user_question_answers")
+          .select("*")
+          .eq("question_id", questionData.id)
+          .eq("user_id", userData.user.id)
           .maybeSingle();
 
         if (userAnswer) {
@@ -67,17 +67,19 @@ export const DailyQuestion = () => {
 
         // Fetch public answers
         const { data: answersData } = await supabase
-          .from('user_question_answers')
-          .select(`
+          .from("user_question_answers")
+          .select(
+            `
             id,
             user_id,
             answer,
             profiles:user_id (
               full_name
             )
-          `)
-          .eq('question_id', questionData.id)
-          .eq('is_public', true)
+          `,
+          )
+          .eq("question_id", questionData.id)
+          .eq("is_public", true)
           .limit(10);
 
         if (answersData) {
@@ -85,7 +87,7 @@ export const DailyQuestion = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching question:', error);
+      console.error("Error fetching question:", error);
     }
   };
 
@@ -95,22 +97,20 @@ export const DailyQuestion = () => {
     setLoading(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Not authenticated');
+      if (!userData.user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from('user_question_answers')
-        .insert({
-          user_id: userData.user.id,
-          question_id: question.id,
-          answer: answer.trim(),
-          is_public: true
-        });
+      const { error } = await supabase.from("user_question_answers").insert({
+        user_id: userData.user.id,
+        question_id: question.id,
+        answer: answer.trim(),
+        is_public: true,
+      });
 
       if (error) throw error;
 
       toast({
         title: "Answer submitted!",
-        description: "Your answer has been shared with the community."
+        description: "Your answer has been shared with the community.",
       });
 
       setHasAnswered(true);
@@ -119,7 +119,7 @@ export const DailyQuestion = () => {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -148,7 +148,7 @@ export const DailyQuestion = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-lg font-medium">{question.question}</p>
-          
+
           {!hasAnswered ? (
             <>
               <Textarea
@@ -162,11 +162,11 @@ export const DailyQuestion = () => {
                 <span className="text-sm text-muted-foreground">
                   {answer.length}/500
                 </span>
-                <Button 
-                  onClick={submitAnswer} 
+                <Button
+                  onClick={submitAnswer}
                   disabled={loading || !answer.trim()}
                 >
-                  {loading ? 'Submitting...' : 'Submit Answer'}
+                  {loading ? "Submitting..." : "Submit Answer"}
                   <Send className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -189,7 +189,7 @@ export const DailyQuestion = () => {
             {answers.map((ans) => (
               <div key={ans.id} className="p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium text-sm mb-2">
-                  {ans.profiles?.full_name || 'Anonymous'}
+                  {ans.profiles?.full_name || "Anonymous"}
                 </p>
                 <p className="text-sm">{ans.answer}</p>
               </div>

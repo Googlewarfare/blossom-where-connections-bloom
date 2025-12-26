@@ -46,7 +46,7 @@ export const useNotifications = () => {
 
     if (!error) {
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
@@ -71,7 +71,7 @@ export const useNotifications = () => {
   // Delete notification
   const deleteNotification = async (notificationId: string) => {
     const notification = notifications.find((n) => n.id === notificationId);
-    
+
     const { error } = await supabase
       .from("notifications")
       .delete()
@@ -105,7 +105,7 @@ export const useNotifications = () => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
-        }
+        },
       )
       .subscribe();
 

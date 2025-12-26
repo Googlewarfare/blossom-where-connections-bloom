@@ -11,9 +11,11 @@ const cardVariants = cva(
         default: "bg-card shadow-card hover:shadow-card-hover",
         glass: "glass",
         elevated: "bg-card shadow-elevated border-border/50",
-        outline: "bg-transparent border-2 border-border hover:border-primary/50",
+        outline:
+          "bg-transparent border-2 border-border hover:border-primary/50",
         ghost: "bg-transparent border-none shadow-none hover:bg-muted/50",
-        gradient: "bg-card border-0 shadow-card hover:shadow-card-hover relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:to-accent/5 before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+        gradient:
+          "bg-card border-0 shadow-card hover:shadow-card-hover relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:to-accent/5 before:opacity-0 hover:before:opacity-100 before:transition-opacity",
       },
       interactive: {
         true: "cursor-pointer hover-lift active:scale-[0.98]",
@@ -24,11 +26,12 @@ const cardVariants = cva(
       variant: "default",
       interactive: false,
     },
-  }
+  },
 );
 
 export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {}
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -38,7 +41,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       className={cn(cardVariants({ variant, interactive, className }))}
       {...props}
     />
-  )
+  ),
 );
 Card.displayName = "Card";
 
@@ -62,7 +65,7 @@ const CardTitle = React.forwardRef<
     ref={ref}
     className={cn(
       "text-2xl font-semibold leading-none tracking-tight font-display",
-      className
+      className,
     )}
     {...props}
   />

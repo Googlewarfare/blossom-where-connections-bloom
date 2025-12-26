@@ -11,7 +11,7 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SEND-WELCOME-EMAIL] ${step}${detailsStr}`);
 };
 
@@ -29,28 +29,35 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Verify JWT and get authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       logStep("ERROR: No authorization header");
-      return new Response(JSON.stringify({ error: "Authentication required" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.getUser(token);
+
     if (authError || !authData.user) {
       logStep("ERROR: Authentication failed", { error: authError?.message });
-      return new Response(JSON.stringify({ error: "Authentication required" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     const callerUserId = authData.user.id;
@@ -70,22 +77,28 @@ const handler = async (req: Request): Promise<Response> => {
     // This prevents abuse where someone could spam emails to other users
     if (callerUserId !== userId) {
       // Check if caller is an admin
-      const { data: hasAdminRole } = await supabaseAdmin.rpc('has_role', { 
-        _user_id: callerUserId, 
-        _role: 'admin' 
+      const { data: hasAdminRole } = await supabaseAdmin.rpc("has_role", {
+        _user_id: callerUserId,
+        _role: "admin",
       });
-      
+
       if (!hasAdminRole) {
-        logStep("ERROR: Unauthorized - user trying to send email to different user", { 
-          callerId: callerUserId, 
-          targetId: userId 
-        });
+        logStep(
+          "ERROR: Unauthorized - user trying to send email to different user",
+          {
+            callerId: callerUserId,
+            targetId: userId,
+          },
+        );
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 403,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
-      logStep("Admin sending welcome email to user", { adminId: callerUserId, targetId: userId });
+      logStep("Admin sending welcome email to user", {
+        adminId: callerUserId,
+        targetId: userId,
+      });
     }
 
     // Get user profile
@@ -96,22 +109,33 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError) {
-      logStep("ERROR: Failed to fetch profile", { error: profileError.message });
-      return new Response(JSON.stringify({ error: "Failed to send welcome email" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+      logStep("ERROR: Failed to fetch profile", {
+        error: profileError.message,
       });
+      return new Response(
+        JSON.stringify({ error: "Failed to send welcome email" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     // Get user email from auth
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (userError || !user) {
       logStep("ERROR: Failed to fetch user", { error: userError?.message });
-      return new Response(JSON.stringify({ error: "Failed to send welcome email" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Failed to send welcome email" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     const firstName = profile?.full_name?.split(" ")[0] || "there";
@@ -307,14 +331,14 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    
+
     // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to send welcome email" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      },
     );
   }
 };

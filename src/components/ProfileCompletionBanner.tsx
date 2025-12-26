@@ -36,7 +36,8 @@ export const ProfileCompletionBanner = () => {
                       Complete Your Profile
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {completion.percentage}% complete - Stand out and get more matches!
+                      {completion.percentage}% complete - Stand out and get more
+                      matches!
                     </p>
                   </div>
                   <Button

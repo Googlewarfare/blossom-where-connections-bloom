@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Lightbulb, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { Lightbulb, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface IcebreakerQuestion {
   id: string;
@@ -17,7 +17,8 @@ interface IcebreakerQuestionsProps {
 
 export const IcebreakerQuestions = ({ onSend }: IcebreakerQuestionsProps) => {
   const [questions, setQuestions] = useState<IcebreakerQuestion[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<IcebreakerQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] =
+    useState<IcebreakerQuestion | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -26,11 +27,11 @@ export const IcebreakerQuestions = ({ onSend }: IcebreakerQuestionsProps) => {
 
   const fetchQuestions = async () => {
     const { data } = await supabase
-      .from('icebreaker_questions')
-      .select('*')
-      .eq('is_active', true)
+      .from("icebreaker_questions")
+      .select("*")
+      .eq("is_active", true)
       .limit(20);
-    
+
     if (data) {
       setQuestions(data);
       setCurrentQuestion(data[Math.floor(Math.random() * data.length)]);
@@ -78,7 +79,9 @@ export const IcebreakerQuestions = ({ onSend }: IcebreakerQuestionsProps) => {
                 <Lightbulb className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-semibold text-sm mb-1">Icebreaker</h4>
-                  <p className="text-sm text-muted-foreground">{currentQuestion.question}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {currentQuestion.question}
+                  </p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -90,11 +93,7 @@ export const IcebreakerQuestions = ({ onSend }: IcebreakerQuestionsProps) => {
                 >
                   New Question
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSend}
-                  className="flex-1 gap-2"
-                >
+                <Button size="sm" onClick={handleSend} className="flex-1 gap-2">
                   <Send className="h-4 w-4" />
                   Send
                 </Button>

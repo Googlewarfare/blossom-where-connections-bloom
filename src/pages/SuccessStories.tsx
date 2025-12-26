@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
-import { Heart } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Heart } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 interface SuccessStory {
   id: string;
@@ -21,11 +21,11 @@ const SuccessStories = () => {
 
   const fetchSuccessStories = async () => {
     const { data } = await supabase
-      .from('success_stories')
-      .select('*')
-      .eq('approved', true)
-      .order('featured', { ascending: false })
-      .order('created_at', { ascending: false });
+      .from("success_stories")
+      .select("*")
+      .eq("approved", true)
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false });
 
     if (data) {
       setStories(data);
@@ -46,7 +46,10 @@ const SuccessStories = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
           {stories.map((story) => (
-            <Card key={story.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={story.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
               {story.photo_url && (
                 <div className="aspect-video overflow-hidden">
                   <img
@@ -57,7 +60,9 @@ const SuccessStories = () => {
                 </div>
               )}
               <CardContent className="p-6">
-                <p className="text-sm leading-relaxed mb-4">{story.story_text}</p>
+                <p className="text-sm leading-relaxed mb-4">
+                  {story.story_text}
+                </p>
                 {story.meet_date && (
                   <p className="text-xs text-muted-foreground">
                     Met: {new Date(story.meet_date).toLocaleDateString()}

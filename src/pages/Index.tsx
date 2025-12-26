@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
@@ -16,13 +16,13 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
-      
+
       {/* Stories Section */}
       <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Stories</h2>
-            <Button variant="link" onClick={() => navigate('/discover')}>
+            <Button variant="link" onClick={() => navigate("/discover")}>
               View All
             </Button>
           </div>

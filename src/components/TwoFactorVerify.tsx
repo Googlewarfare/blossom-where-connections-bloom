@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Shield, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Shield, Loader2 } from "lucide-react";
 
 interface TwoFactorVerifyProps {
   factorId: string;
@@ -13,8 +19,12 @@ interface TwoFactorVerifyProps {
   onCancel: () => void;
 }
 
-export const TwoFactorVerify = ({ factorId, onSuccess, onCancel }: TwoFactorVerifyProps) => {
-  const [code, setCode] = useState('');
+export const TwoFactorVerify = ({
+  factorId,
+  onSuccess,
+  onCancel,
+}: TwoFactorVerifyProps) => {
+  const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const { toast } = useToast();
 
@@ -23,9 +33,10 @@ export const TwoFactorVerify = ({ factorId, onSuccess, onCancel }: TwoFactorVeri
 
     setVerifying(true);
     try {
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId,
-      });
+      const { data: challengeData, error: challengeError } =
+        await supabase.auth.mfa.challenge({
+          factorId,
+        });
 
       if (challengeError) throw challengeError;
 
@@ -40,18 +51,18 @@ export const TwoFactorVerify = ({ factorId, onSuccess, onCancel }: TwoFactorVeri
       onSuccess();
     } catch (error: any) {
       toast({
-        title: 'Verification Failed',
-        description: 'Invalid code. Please try again.',
-        variant: 'destructive',
+        title: "Verification Failed",
+        description: "Invalid code. Please try again.",
+        variant: "destructive",
       });
-      setCode('');
+      setCode("");
     } finally {
       setVerifying(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && code.length === 6) {
+    if (e.key === "Enter" && code.length === 6) {
       handleVerify();
     }
   };
@@ -82,7 +93,7 @@ export const TwoFactorVerify = ({ factorId, onSuccess, onCancel }: TwoFactorVeri
             maxLength={6}
             placeholder="000000"
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             onKeyDown={handleKeyDown}
             className="text-center text-3xl tracking-[0.5em] font-mono"
             autoFocus
@@ -104,7 +115,7 @@ export const TwoFactorVerify = ({ factorId, onSuccess, onCancel }: TwoFactorVeri
                 Verifying...
               </>
             ) : (
-              'Verify'
+              "Verify"
             )}
           </Button>
         </div>

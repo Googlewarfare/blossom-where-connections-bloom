@@ -15,9 +15,13 @@ interface AppRatingPromptProps {
   onComplete?: () => void;
 }
 
-export const AppRatingPrompt = ({ trigger = false, onComplete }: AppRatingPromptProps) => {
+export const AppRatingPrompt = ({
+  trigger = false,
+  onComplete,
+}: AppRatingPromptProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isNative, shouldPromptRating, requestRating, hasBeenPrompted } = useAppRating();
+  const { isNative, shouldPromptRating, requestRating, hasBeenPrompted } =
+    useAppRating();
 
   useEffect(() => {
     if (trigger && shouldPromptRating() && !hasBeenPrompted) {
@@ -37,7 +41,7 @@ export const AppRatingPrompt = ({ trigger = false, onComplete }: AppRatingPrompt
   };
 
   const handleNeverAsk = () => {
-    localStorage.setItem('blossom_rating_prompted', 'true');
+    localStorage.setItem("blossom_rating_prompted", "true");
     setIsOpen(false);
     onComplete?.();
   };
@@ -50,9 +54,9 @@ export const AppRatingPrompt = ({ trigger = false, onComplete }: AppRatingPrompt
         <DialogHeader className="text-center">
           <div className="mx-auto mb-4 flex gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Star 
-                key={i} 
-                className="w-8 h-8 text-yellow-400 fill-yellow-400" 
+              <Star
+                key={i}
+                className="w-8 h-8 text-yellow-400 fill-yellow-400"
               />
             ))}
           </div>

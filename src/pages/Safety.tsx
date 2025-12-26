@@ -30,18 +30,21 @@ const Safety = () => {
               <Shield className="h-6 w-6 text-primary" />
               Safety Center
             </h1>
-            <p className="text-muted-foreground">Tools to help keep you safe while dating</p>
+            <p className="text-muted-foreground">
+              Tools to help keep you safe while dating
+            </p>
           </div>
         </div>
 
         <div className="space-y-6">
           <BackgroundCheckRequest />
           <DateCheckin />
-          
+
           <div className="bg-muted/50 rounded-lg p-6 text-center">
             <h3 className="font-semibold mb-2">Need Help?</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              If you ever feel unsafe, please contact local emergency services immediately.
+              If you ever feel unsafe, please contact local emergency services
+              immediately.
             </p>
             <Button variant="destructive" size="lg">
               Emergency Resources

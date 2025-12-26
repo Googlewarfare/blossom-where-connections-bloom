@@ -8,7 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Camera, Heart, LogOut, X, Star, MapPin, Shield, ImagePlus, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Camera,
+  Heart,
+  LogOut,
+  X,
+  Star,
+  MapPin,
+  Shield,
+  ImagePlus,
+  Trash2,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -81,7 +92,7 @@ const Profile = () => {
   const { pickOrTake, loading: cameraLoading } = useCamera();
   const { impact, ImpactStyle } = useHaptics();
   const isNativePlatform = Capacitor.isNativePlatform();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -108,7 +119,7 @@ const Profile = () => {
   });
   const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [allInterests, setAllInterests] = useState<Interest[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [preferences, setPreferences] = useState<Preferences>({
@@ -144,7 +155,7 @@ const Profile = () => {
         .single();
 
       if (error) throw error;
-      
+
       if (data) {
         setProfile({
           full_name: data.full_name || "",
@@ -199,7 +210,7 @@ const Profile = () => {
             is_primary: photo.is_primary || false,
             display_order: photo.display_order || 0,
           };
-        })
+        }),
       );
 
       setPhotos(photosWithSignedUrls);
@@ -231,7 +242,7 @@ const Profile = () => {
         .eq("user_id", user!.id);
 
       if (error) throw error;
-      setSelectedInterests(data?.map(item => item.interest_id) || []);
+      setSelectedInterests(data?.map((item) => item.interest_id) || []);
     } catch (error) {
       console.error("Error loading user interests:", error);
     }
@@ -246,7 +257,7 @@ const Profile = () => {
         .single();
 
       if (error) throw error;
-      
+
       if (data) {
         setPreferences({
           min_age: data.min_age || 18,
@@ -311,7 +322,9 @@ const Profile = () => {
           .eq("interest_id", interestId);
 
         if (error) throw error;
-        setSelectedInterests(selectedInterests.filter(id => id !== interestId));
+        setSelectedInterests(
+          selectedInterests.filter((id) => id !== interestId),
+        );
       } else {
         const { error } = await supabase
           .from("user_interests")
@@ -359,7 +372,9 @@ const Profile = () => {
     }
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
     await uploadPhotoFile(file);
@@ -389,7 +404,7 @@ const Profile = () => {
     setUploading(true);
     try {
       // Generate unique filename
-      const fileExt = file.name.split(".").pop() || 'jpg';
+      const fileExt = file.name.split(".").pop() || "jpg";
       const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
 
       // Upload to storage bucket
@@ -400,14 +415,12 @@ const Profile = () => {
       if (uploadError) throw uploadError;
 
       // Insert photo record into database
-      const { error: dbError } = await supabase
-        .from("profile_photos")
-        .insert({
-          user_id: user!.id,
-          photo_url: fileName,
-          is_primary: photos.length === 0, // First photo is primary
-          display_order: photos.length,
-        });
+      const { error: dbError } = await supabase.from("profile_photos").insert({
+        user_id: user!.id,
+        photo_url: fileName,
+        is_primary: photos.length === 0, // First photo is primary
+        display_order: photos.length,
+      });
 
       if (dbError) throw dbError;
 
@@ -437,22 +450,24 @@ const Profile = () => {
     try {
       await impact(ImpactStyle.Medium);
       const photo = await pickOrTake();
-      
+
       if (!photo || !photo.webPath) return;
 
       setUploading(true);
-      
+
       // Fetch the photo as a blob
       const response = await fetch(photo.webPath);
       const blob = await response.blob();
-      
+
       // Create a File from the blob
-      const fileName = `photo_${Date.now()}.${photo.format || 'jpeg'}`;
-      const file = new File([blob], fileName, { type: `image/${photo.format || 'jpeg'}` });
-      
+      const fileName = `photo_${Date.now()}.${photo.format || "jpeg"}`;
+      const file = new File([blob], fileName, {
+        type: `image/${photo.format || "jpeg"}`,
+      });
+
       await uploadPhotoFile(file);
     } catch (error: any) {
-      if (error.message !== 'User cancelled photos app') {
+      if (error.message !== "User cancelled photos app") {
         toast({
           title: "Camera Error",
           description: error.message || "Failed to capture photo",
@@ -555,594 +570,744 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="py-12 px-4">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Heart className="w-8 h-8 text-primary fill-current" />
-            <div>
-              <h1 className="text-3xl font-bold">Your Profile</h1>
-              <p className="text-muted-foreground">Manage your Blossom profile</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate("/safety")} className="rounded-full">
-              <Shield className="w-4 h-4 mr-2" />
-              Safety
-            </Button>
-            <Button variant="outline" onClick={handleSignOut} className="rounded-full">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-
-        {/* Profile Completion Banner */}
-        <div className="mb-6">
-          <ProfileCompletionBanner />
-        </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="interests">Interests</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile">
-            <Card className="p-8 space-y-6">
-              {/* Photo Upload Section */}
+        <div className="container mx-auto max-w-4xl">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Heart className="w-8 h-8 text-primary fill-current" />
               <div>
-                <h3 className="text-lg font-semibold mb-4">Profile Photos</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group">
-                      <img
-                        src={photo.signed_url}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        {!photo.is_primary && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleSetPrimaryPhoto(photo.id)}
-                            title="Set as primary"
-                          >
-                            <Star className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeletePhoto(photo.id, photo.photo_url)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {photo.is_primary && (
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-current" />
-                          Primary
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {photos.length < 6 && (
-                    <div
-                      onClick={handleAddPhoto}
-                      className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer flex items-center justify-center transition-colors"
-                    >
-                      {uploading || cameraLoading ? (
-                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      ) : (
-                        <div className="text-center">
-                          {isNativePlatform ? (
-                            <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                          ) : (
-                            <ImagePlus className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {isNativePlatform ? "Take Photo" : "Add Photo"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Upload up to 6 photos. First photo will be your primary photo. Max 5MB per photo.
+                <h1 className="text-3xl font-bold">Your Profile</h1>
+                <p className="text-muted-foreground">
+                  Manage your Blossom profile
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/safety")}
+                className="rounded-full"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Safety
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSignOut}
+                className="rounded-full"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={profile.full_name}
-                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                    maxLength={100}
-                  />
-                </div>
+          {/* Profile Completion Banner */}
+          <div className="mb-6">
+            <ProfileCompletionBanner />
+          </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={profile.bio}
-                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                    placeholder="Tell us about yourself..."
-                    rows={4}
-                    maxLength={500}
+          {/* Tabs */}
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="interests">Interests</TabsTrigger>
+              <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile">
+              <Card className="p-8 space-y-6">
+                {/* Photo Upload Section */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Profile Photos</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {photos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group"
+                      >
+                        <img
+                          src={photo.signed_url}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          {!photo.is_primary && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleSetPrimaryPhoto(photo.id)}
+                              title="Set as primary"
+                            >
+                              <Star className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              handleDeletePhoto(photo.id, photo.photo_url)
+                            }
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {photo.is_primary && (
+                          <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-current" />
+                            Primary
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {photos.length < 6 && (
+                      <div
+                        onClick={handleAddPhoto}
+                        className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer flex items-center justify-center transition-colors"
+                      >
+                        {uploading || cameraLoading ? (
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        ) : (
+                          <div className="text-center">
+                            {isNativePlatform ? (
+                              <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                            ) : (
+                              <ImagePlus className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {isNativePlatform ? "Take Photo" : "Add Photo"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {profile.bio.length}/500 characters
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Upload up to 6 photos. First photo will be your primary
+                    photo. Max 5MB per photo.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="age">Age</Label>
+                    <Label htmlFor="fullName">Full Name</Label>
                     <Input
-                      id="age"
-                      type="number"
-                      value={profile.age || ""}
-                      onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || null })}
-                      min={18}
-                      max={99}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">Gender</Label>
-                    <Input
-                      id="gender"
-                      value={profile.gender}
-                      onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
-                      maxLength={50}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    placeholder="City, State"
-                    maxLength={100}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      setLoadingLocation(true);
-                      try {
-                        const coords = await getCurrentLocation();
-                        setProfile({
-                          ...profile,
-                          latitude: coords.latitude,
-                          longitude: coords.longitude,
-                        });
-                        toast({
-                          title: "Location Captured",
-                          description: "Your location coordinates have been set.",
-                        });
-                      } catch (error) {
-                        toast({
-                          title: "Location Error",
-                          description: "Unable to get your location.",
-                          variant: "destructive",
-                        });
-                      } finally {
-                        setLoadingLocation(false);
+                      id="fullName"
+                      value={profile.full_name}
+                      onChange={(e) =>
+                        setProfile({ ...profile, full_name: e.target.value })
                       }
-                    }}
-                    disabled={loadingLocation}
-                    className="w-full"
-                  >
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {loadingLocation ? "Getting location..." : profile.latitude ? "Update My Location" : "Use My Location"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    {profile.latitude && profile.longitude
-                      ? `Coordinates set (${profile.latitude.toFixed(4)}, ${profile.longitude.toFixed(4)})`
-                      : "Click to use your device's location for distance calculation"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="occupation">Occupation</Label>
-                  <Input
-                    id="occupation"
-                    value={profile.occupation}
-                    onChange={(e) => setProfile({ ...profile, occupation: e.target.value })}
-                    maxLength={100}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-semibold text-lg">Additional Details</h4>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="education">Education</Label>
-                    <Input
-                      id="education"
-                      value={profile.education}
-                      onChange={(e) => setProfile({ ...profile, education: e.target.value })}
-                      placeholder="e.g., Bachelors"
+                      maxLength={100}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="height">Height</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="heightFeet" className="text-xs text-muted-foreground">Feet</Label>
-                        <Input
-                          id="heightFeet"
-                          type="number"
-                          value={profile.height_cm ? Math.floor((profile.height_cm / 2.54) / 12) : ""}
-                          onChange={(e) => {
-                            const feet = parseInt(e.target.value) || 0;
-                            const inches = profile.height_cm ? Math.round((profile.height_cm / 2.54) % 12) : 0;
-                            setProfile({ ...profile, height_cm: Math.round((feet * 12 + inches) * 2.54) });
-                          }}
-                          placeholder="5"
-                          min="3"
-                          max="8"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="heightInches" className="text-xs text-muted-foreground">Inches</Label>
-                        <Input
-                          id="heightInches"
-                          type="number"
-                          value={profile.height_cm ? Math.round((profile.height_cm / 2.54) % 12) : ""}
-                          onChange={(e) => {
-                            const feet = profile.height_cm ? Math.floor((profile.height_cm / 2.54) / 12) : 0;
-                            const inches = parseInt(e.target.value) || 0;
-                            setProfile({ ...profile, height_cm: Math.round((feet * 12 + inches) * 2.54) });
-                          }}
-                          placeholder="10"
-                          min="0"
-                          max="11"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="lifestyle">Lifestyle</Label>
-                    <Input
-                      id="lifestyle"
-                      value={profile.lifestyle}
-                      onChange={(e) => setProfile({ ...profile, lifestyle: e.target.value })}
-                      placeholder="e.g., Active"
+                    <Label htmlFor="bio">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      value={profile.bio}
+                      onChange={(e) =>
+                        setProfile({ ...profile, bio: e.target.value })
+                      }
+                      placeholder="Tell us about yourself..."
+                      rows={4}
+                      maxLength={500}
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="relationship_goal">Looking For</Label>
-                    <Input
-                      id="relationship_goal"
-                      value={profile.relationship_goal}
-                      onChange={(e) => setProfile({ ...profile, relationship_goal: e.target.value })}
-                      placeholder="e.g., Relationship"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="drinking">Drinking</Label>
-                    <Input
-                      id="drinking"
-                      value={profile.drinking}
-                      onChange={(e) => setProfile({ ...profile, drinking: e.target.value })}
-                      placeholder="e.g., Socially"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="smoking">Smoking</Label>
-                    <Input
-                      id="smoking"
-                      value={profile.smoking}
-                      onChange={(e) => setProfile({ ...profile, smoking: e.target.value })}
-                      placeholder="e.g., Never"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="exercise">Exercise</Label>
-                    <Input
-                      id="exercise"
-                      value={profile.exercise}
-                      onChange={(e) => setProfile({ ...profile, exercise: e.target.value })}
-                      placeholder="e.g., Daily"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="religion">Religion</Label>
-                    <Input
-                      id="religion"
-                      value={profile.religion}
-                      onChange={(e) => setProfile({ ...profile, religion: e.target.value })}
-                      placeholder="e.g., Christian"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {profile.verified ? (
-                <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-500/20 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">
-                      ✓ Verified Profile
-                    </Badge>
-                    <p className="text-sm text-muted-foreground">
-                      Your profile is verified
+                    <p className="text-xs text-muted-foreground">
+                      {profile.bio.length}/500 characters
                     </p>
                   </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-500/20 rounded-lg">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-sm mb-1">Get Verified</p>
-                      <p className="text-xs text-muted-foreground">
-                        {profile.verification_status === 'pending' 
-                          ? 'Your verification is being reviewed'
-                          : 'Stand out with a verified badge'}
-                      </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="age">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        value={profile.age || ""}
+                        onChange={(e) =>
+                          setProfile({
+                            ...profile,
+                            age: parseInt(e.target.value) || null,
+                          })
+                        }
+                        min={18}
+                        max={99}
+                      />
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Input
+                        id="gender"
+                        value={profile.gender}
+                        onChange={(e) =>
+                          setProfile({ ...profile, gender: e.target.value })
+                        }
+                        maxLength={50}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={profile.location}
+                      onChange={(e) =>
+                        setProfile({ ...profile, location: e.target.value })
+                      }
+                      placeholder="City, State"
+                      maxLength={100}
+                    />
                     <Button
+                      type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate('/verification')}
-                      disabled={profile.verification_status === 'pending'}
+                      onClick={async () => {
+                        setLoadingLocation(true);
+                        try {
+                          const coords = await getCurrentLocation();
+                          setProfile({
+                            ...profile,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude,
+                          });
+                          toast({
+                            title: "Location Captured",
+                            description:
+                              "Your location coordinates have been set.",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Location Error",
+                            description: "Unable to get your location.",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setLoadingLocation(false);
+                        }
+                      }}
+                      disabled={loadingLocation}
+                      className="w-full"
                     >
-                      {profile.verification_status === 'pending' ? 'Pending' : 'Get Verified'}
+                      <MapPin className="w-4 h-4 mr-2" />
+                      {loadingLocation
+                        ? "Getting location..."
+                        : profile.latitude
+                          ? "Update My Location"
+                          : "Use My Location"}
                     </Button>
+                    <p className="text-xs text-muted-foreground">
+                      {profile.latitude && profile.longitude
+                        ? `Coordinates set (${profile.latitude.toFixed(4)}, ${profile.longitude.toFixed(4)})`
+                        : "Click to use your device's location for distance calculation"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="occupation">Occupation</Label>
+                    <Input
+                      id="occupation"
+                      value={profile.occupation}
+                      onChange={(e) =>
+                        setProfile({ ...profile, occupation: e.target.value })
+                      }
+                      maxLength={100}
+                    />
                   </div>
                 </div>
-              )}
 
-              <Button
-                onClick={saveProfile}
-                className="w-full rounded-full"
-                size="lg"
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save Profile"}
-              </Button>
-            </Card>
-          </TabsContent>
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="font-semibold text-lg">Additional Details</h4>
 
-          {/* Interests Tab */}
-          <TabsContent value="interests">
-            <Card className="p-8 space-y-6">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Select Your Interests</h3>
-                <p className="text-muted-foreground">Choose activities and topics you enjoy</p>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="education">Education</Label>
+                      <Input
+                        id="education"
+                        value={profile.education}
+                        onChange={(e) =>
+                          setProfile({ ...profile, education: e.target.value })
+                        }
+                        placeholder="e.g., Bachelors"
+                      />
+                    </div>
 
-              <div className="space-y-6">
-                {Object.entries(
-                  allInterests.reduce((acc, interest) => {
-                    if (!acc[interest.category]) acc[interest.category] = [];
-                    acc[interest.category].push(interest);
-                    return acc;
-                  }, {} as Record<string, Interest[]>)
-                ).map(([category, interests]) => (
-                  <div key={category}>
-                    <h4 className="font-semibold mb-3 text-primary">{category}</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label
+                            htmlFor="heightFeet"
+                            className="text-xs text-muted-foreground"
+                          >
+                            Feet
+                          </Label>
+                          <Input
+                            id="heightFeet"
+                            type="number"
+                            value={
+                              profile.height_cm
+                                ? Math.floor(profile.height_cm / 2.54 / 12)
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const feet = parseInt(e.target.value) || 0;
+                              const inches = profile.height_cm
+                                ? Math.round((profile.height_cm / 2.54) % 12)
+                                : 0;
+                              setProfile({
+                                ...profile,
+                                height_cm: Math.round(
+                                  (feet * 12 + inches) * 2.54,
+                                ),
+                              });
+                            }}
+                            placeholder="5"
+                            min="3"
+                            max="8"
+                          />
+                        </div>
+                        <div>
+                          <Label
+                            htmlFor="heightInches"
+                            className="text-xs text-muted-foreground"
+                          >
+                            Inches
+                          </Label>
+                          <Input
+                            id="heightInches"
+                            type="number"
+                            value={
+                              profile.height_cm
+                                ? Math.round((profile.height_cm / 2.54) % 12)
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const feet = profile.height_cm
+                                ? Math.floor(profile.height_cm / 2.54 / 12)
+                                : 0;
+                              const inches = parseInt(e.target.value) || 0;
+                              setProfile({
+                                ...profile,
+                                height_cm: Math.round(
+                                  (feet * 12 + inches) * 2.54,
+                                ),
+                              });
+                            }}
+                            placeholder="10"
+                            min="0"
+                            max="11"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lifestyle">Lifestyle</Label>
+                      <Input
+                        id="lifestyle"
+                        value={profile.lifestyle}
+                        onChange={(e) =>
+                          setProfile({ ...profile, lifestyle: e.target.value })
+                        }
+                        placeholder="e.g., Active"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="relationship_goal">Looking For</Label>
+                      <Input
+                        id="relationship_goal"
+                        value={profile.relationship_goal}
+                        onChange={(e) =>
+                          setProfile({
+                            ...profile,
+                            relationship_goal: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., Relationship"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="drinking">Drinking</Label>
+                      <Input
+                        id="drinking"
+                        value={profile.drinking}
+                        onChange={(e) =>
+                          setProfile({ ...profile, drinking: e.target.value })
+                        }
+                        placeholder="e.g., Socially"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="smoking">Smoking</Label>
+                      <Input
+                        id="smoking"
+                        value={profile.smoking}
+                        onChange={(e) =>
+                          setProfile({ ...profile, smoking: e.target.value })
+                        }
+                        placeholder="e.g., Never"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="exercise">Exercise</Label>
+                      <Input
+                        id="exercise"
+                        value={profile.exercise}
+                        onChange={(e) =>
+                          setProfile({ ...profile, exercise: e.target.value })
+                        }
+                        placeholder="e.g., Daily"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="religion">Religion</Label>
+                      <Input
+                        id="religion"
+                        value={profile.religion}
+                        onChange={(e) =>
+                          setProfile({ ...profile, religion: e.target.value })
+                        }
+                        placeholder="e.g., Christian"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {profile.verified ? (
+                  <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-500/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-500/20 text-green-700 dark:text-green-400"
+                      >
+                        ✓ Verified Profile
+                      </Badge>
+                      <p className="text-sm text-muted-foreground">
+                        Your profile is verified
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-500/20 rounded-lg">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-sm mb-1">Get Verified</p>
+                        <p className="text-xs text-muted-foreground">
+                          {profile.verification_status === "pending"
+                            ? "Your verification is being reviewed"
+                            : "Stand out with a verified badge"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate("/verification")}
+                        disabled={profile.verification_status === "pending"}
+                      >
+                        {profile.verification_status === "pending"
+                          ? "Pending"
+                          : "Get Verified"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={saveProfile}
+                  className="w-full rounded-full"
+                  size="lg"
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save Profile"}
+                </Button>
+              </Card>
+            </TabsContent>
+
+            {/* Interests Tab */}
+            <TabsContent value="interests">
+              <Card className="p-8 space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold mb-2">
+                    Select Your Interests
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Choose activities and topics you enjoy
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  {Object.entries(
+                    allInterests.reduce(
+                      (acc, interest) => {
+                        if (!acc[interest.category])
+                          acc[interest.category] = [];
+                        acc[interest.category].push(interest);
+                        return acc;
+                      },
+                      {} as Record<string, Interest[]>,
+                    ),
+                  ).map(([category, interests]) => (
+                    <div key={category}>
+                      <h4 className="font-semibold mb-3 text-primary">
+                        {category}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {interests.map((interest) => (
+                          <Badge
+                            key={interest.id}
+                            variant={
+                              selectedInterests.includes(interest.id)
+                                ? "default"
+                                : "outline"
+                            }
+                            className="cursor-pointer px-4 py-2 transition-smooth hover:scale-105"
+                            onClick={() => toggleInterest(interest.id)}
+                          >
+                            {interest.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Preferences Tab */}
+            <TabsContent value="preferences">
+              <Card className="p-8 space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Match Preferences</h3>
+                  <p className="text-muted-foreground">
+                    Set your dating preferences
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <Label>
+                      Age Range: {preferences.min_age} - {preferences.max_age}
+                    </Label>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <Slider
+                          value={[preferences.min_age]}
+                          onValueChange={([value]) =>
+                            setPreferences({ ...preferences, min_age: value })
+                          }
+                          min={18}
+                          max={preferences.max_age - 1}
+                          step={1}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Slider
+                          value={[preferences.max_age]}
+                          onValueChange={([value]) =>
+                            setPreferences({ ...preferences, max_age: value })
+                          }
+                          min={preferences.min_age + 1}
+                          max={99}
+                          step={1}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>
+                      Maximum Distance: {preferences.show_profiles_within_miles}{" "}
+                      miles
+                    </Label>
+                    <Slider
+                      value={[preferences.show_profiles_within_miles]}
+                      onValueChange={([value]) =>
+                        setPreferences({
+                          ...preferences,
+                          show_profiles_within_miles: value,
+                        })
+                      }
+                      min={1}
+                      max={500}
+                      step={5}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Only show profiles within this distance from your location
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Interested In</Label>
                     <div className="flex flex-wrap gap-2">
-                      {interests.map((interest) => (
+                      {["Men", "Women", "Everyone"].map((option) => (
                         <Badge
-                          key={interest.id}
-                          variant={selectedInterests.includes(interest.id) ? "default" : "outline"}
+                          key={option}
+                          variant={
+                            preferences.interested_in.includes(option)
+                              ? "default"
+                              : "outline"
+                          }
                           className="cursor-pointer px-4 py-2 transition-smooth hover:scale-105"
-                          onClick={() => toggleInterest(interest.id)}
+                          onClick={() => {
+                            if (preferences.interested_in.includes(option)) {
+                              setPreferences({
+                                ...preferences,
+                                interested_in: preferences.interested_in.filter(
+                                  (i) => i !== option,
+                                ),
+                              });
+                            } else {
+                              setPreferences({
+                                ...preferences,
+                                interested_in: [
+                                  ...preferences.interested_in,
+                                  option,
+                                ],
+                              });
+                            }
+                          }}
                         >
-                          {interest.name}
+                          {option}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
-          </TabsContent>
+                </div>
 
-          {/* Preferences Tab */}
-          <TabsContent value="preferences">
-            <Card className="p-8 space-y-6">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Match Preferences</h3>
-                <p className="text-muted-foreground">Set your dating preferences</p>
-              </div>
+                <Button
+                  onClick={savePreferences}
+                  className="w-full rounded-full"
+                  size="lg"
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save Preferences"}
+                </Button>
+              </Card>
+            </TabsContent>
 
+            {/* Security Tab */}
+            <TabsContent value="security">
               <div className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Age Range: {preferences.min_age} - {preferences.max_age}</Label>
-                  <div className="flex gap-4 items-center">
-                    <div className="flex-1">
-                      <Slider
-                        value={[preferences.min_age]}
-                        onValueChange={([value]) => setPreferences({ ...preferences, min_age: value })}
-                        min={18}
-                        max={preferences.max_age - 1}
-                        step={1}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Slider
-                        value={[preferences.max_age]}
-                        onValueChange={([value]) => setPreferences({ ...preferences, max_age: value })}
-                        min={preferences.min_age + 1}
-                        max={99}
-                        step={1}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <TwoFactorSetup />
 
-                <div className="space-y-4">
-                  <Label>Maximum Distance: {preferences.show_profiles_within_miles} miles</Label>
-                  <Slider
-                    value={[preferences.show_profiles_within_miles]}
-                    onValueChange={([value]) => setPreferences({ ...preferences, show_profiles_within_miles: value })}
-                    min={1}
-                    max={500}
-                    step={5}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Only show profiles within this distance from your location
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Interested In</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {["Men", "Women", "Everyone"].map((option) => (
-                      <Badge
-                        key={option}
-                        variant={preferences.interested_in.includes(option) ? "default" : "outline"}
-                        className="cursor-pointer px-4 py-2 transition-smooth hover:scale-105"
-                        onClick={() => {
-                          if (preferences.interested_in.includes(option)) {
-                            setPreferences({
-                              ...preferences,
-                              interested_in: preferences.interested_in.filter(i => i !== option),
-                            });
-                          } else {
-                            setPreferences({
-                              ...preferences,
-                              interested_in: [...preferences.interested_in, option],
-                            });
-                          }
-                        }}
-                      >
-                        {option}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={savePreferences}
-                className="w-full rounded-full"
-                size="lg"
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save Preferences"}
-              </Button>
-            </Card>
-          </TabsContent>
-
-          {/* Security Tab */}
-          <TabsContent value="security">
-            <div className="space-y-6">
-              <TwoFactorSetup />
-              
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Security Overview</h3>
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <p>• Your account is protected with password authentication</p>
-                  <p>• Enable 2FA above for additional security</p>
-                  <p>• Session timeout: 30 minutes of inactivity</p>
-                  <p>• Failed login attempts are tracked and accounts are temporarily locked after 5 attempts</p>
-                </div>
-              </Card>
-
-              {/* Delete Account Section */}
-              <Card className="p-6 border-destructive/50">
-                <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-full bg-destructive/10">
-                    <Trash2 className="w-5 h-5 text-destructive" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-destructive mb-1">Delete Account</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Permanently delete your account and all associated data. This action cannot be undone.
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Security Overview
+                  </h3>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p>
+                      • Your account is protected with password authentication
                     </p>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete My Account
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription className="space-y-2">
-                            <p>This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including:</p>
-                            <ul className="list-disc list-inside text-sm space-y-1 mt-2">
-                              <li>Your profile and photos</li>
-                              <li>All your matches and conversations</li>
-                              <li>Your preferences and settings</li>
-                              <li>Any active subscriptions</li>
-                            </ul>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={async () => {
-                              try {
-                                // Delete user data from profiles (cascades to related tables)
-                                await supabase.from("profiles").delete().eq("id", user!.id);
-                                
-                                // Sign out the user
-                                await supabase.auth.signOut();
-                                
-                                toast({
-                                  title: "Account Deleted",
-                                  description: "Your account has been permanently deleted.",
-                                });
-                                
-                                navigate("/");
-                              } catch (error: any) {
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to delete account. Please contact support.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                          >
-                            Yes, delete my account
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <p>• Enable 2FA above for additional security</p>
+                    <p>• Session timeout: 30 minutes of inactivity</p>
+                    <p>
+                      • Failed login attempts are tracked and accounts are
+                      temporarily locked after 5 attempts
+                    </p>
                   </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+                </Card>
+
+                {/* Delete Account Section */}
+                <Card className="p-6 border-destructive/50">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2 rounded-full bg-destructive/10">
+                      <Trash2 className="w-5 h-5 text-destructive" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-destructive mb-1">
+                        Delete Account
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Permanently delete your account and all associated data.
+                        This action cannot be undone.
+                      </p>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete My Account
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                This action cannot be undone. This will
+                                permanently delete your account and remove all
+                                your data from our servers, including:
+                              </p>
+                              <ul className="list-disc list-inside text-sm space-y-1 mt-2">
+                                <li>Your profile and photos</li>
+                                <li>All your matches and conversations</li>
+                                <li>Your preferences and settings</li>
+                                <li>Any active subscriptions</li>
+                              </ul>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={async () => {
+                                try {
+                                  // Delete user data from profiles (cascades to related tables)
+                                  await supabase
+                                    .from("profiles")
+                                    .delete()
+                                    .eq("id", user!.id);
+
+                                  // Sign out the user
+                                  await supabase.auth.signOut();
+
+                                  toast({
+                                    title: "Account Deleted",
+                                    description:
+                                      "Your account has been permanently deleted.",
+                                  });
+
+                                  navigate("/");
+                                } catch (error: any) {
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to delete account. Please contact support.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              Yes, delete my account
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

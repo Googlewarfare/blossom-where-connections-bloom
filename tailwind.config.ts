@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,8 +19,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Playfair Display', 'Georgia', 'serif'],
-        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ["Playfair Display", "Georgia", "serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "-apple-system", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -78,11 +83,11 @@ export default {
         "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        'soft': 'var(--shadow-soft)',
-        'card': 'var(--shadow-card)',
-        'card-hover': 'var(--shadow-card-hover)',
-        'glow': 'var(--shadow-glow)',
-        'elevated': 'var(--shadow-elevated)',
+        soft: "var(--shadow-soft)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        glow: "var(--shadow-glow)",
+        elevated: "var(--shadow-elevated)",
       },
       keyframes: {
         "accordion-down": {
@@ -90,7 +95,10 @@ export default {
           to: { height: "var(--radix-accordion-content-height)", opacity: "1" },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)", opacity: "1" },
+          from: {
+            height: "var(--radix-accordion-content-height)",
+            opacity: "1",
+          },
           to: { height: "0", opacity: "0" },
         },
         "fade-in": {
@@ -133,7 +141,7 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
-        "float": {
+        float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
@@ -141,11 +149,11 @@ export default {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
-        "wiggle": {
+        wiggle: {
           "0%, 100%": { transform: "rotate(-3deg)" },
           "50%": { transform: "rotate(3deg)" },
         },
-        "heartbeat": {
+        heartbeat: {
           "0%, 100%": { transform: "scale(1)" },
           "14%": { transform: "scale(1.15)" },
           "28%": { transform: "scale(1)" },
@@ -166,17 +174,17 @@ export default {
         "slide-down": "slide-down 0.4s ease-out",
         "bounce-soft": "bounce-soft 2s ease-in-out infinite",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
-        "float": "float 3s ease-in-out infinite",
+        float: "float 3s ease-in-out infinite",
         "spin-slow": "spin-slow 8s linear infinite",
-        "wiggle": "wiggle 0.5s ease-in-out",
-        "heartbeat": "heartbeat 1.5s ease-in-out infinite",
-        "enter": "fade-in 0.3s ease-out, scale-in 0.2s ease-out",
-        "exit": "fade-out 0.3s ease-out, scale-out 0.2s ease-out",
+        wiggle: "wiggle 0.5s ease-in-out",
+        heartbeat: "heartbeat 1.5s ease-in-out infinite",
+        enter: "fade-in 0.3s ease-out, scale-in 0.2s ease-out",
+        exit: "fade-out 0.3s ease-out, scale-out 0.2s ease-out",
       },
       transitionTimingFunction: {
-        'bounce-in': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-        'spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+        spring: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
       },
     },
   },

@@ -7,6 +7,7 @@ This guide explains how to generate and configure app icons for iOS and Android.
 Use the existing logo at `public/app-icon.jpg` or `src/assets/blossom-logo.jpg` as your source.
 
 **Requirements:**
+
 - Minimum 1024x1024 pixels
 - PNG format (no transparency for iOS App Store icon)
 - Square aspect ratio
@@ -26,26 +27,26 @@ Use the existing logo at `public/app-icon.jpg` or `src/assets/blossom-logo.jpg` 
 
 #### iOS Required Sizes (place in `ios/App/App/Assets.xcassets/AppIcon.appiconset/`)
 
-| Size | Scale | Filename |
-|------|-------|----------|
-| 20pt | 2x | AppIcon-20@2x.png (40x40) |
-| 20pt | 3x | AppIcon-20@3x.png (60x60) |
-| 29pt | 2x | AppIcon-29@2x.png (58x58) |
-| 29pt | 3x | AppIcon-29@3x.png (87x87) |
-| 40pt | 2x | AppIcon-40@2x.png (80x80) |
-| 40pt | 3x | AppIcon-40@3x.png (120x120) |
-| 60pt | 2x | AppIcon-60@2x.png (120x120) |
-| 60pt | 3x | AppIcon-60@3x.png (180x180) |
-| 1024pt | 1x | AppIcon-1024.png (1024x1024) |
+| Size   | Scale | Filename                     |
+| ------ | ----- | ---------------------------- |
+| 20pt   | 2x    | AppIcon-20@2x.png (40x40)    |
+| 20pt   | 3x    | AppIcon-20@3x.png (60x60)    |
+| 29pt   | 2x    | AppIcon-29@2x.png (58x58)    |
+| 29pt   | 3x    | AppIcon-29@3x.png (87x87)    |
+| 40pt   | 2x    | AppIcon-40@2x.png (80x80)    |
+| 40pt   | 3x    | AppIcon-40@3x.png (120x120)  |
+| 60pt   | 2x    | AppIcon-60@2x.png (120x120)  |
+| 60pt   | 3x    | AppIcon-60@3x.png (180x180)  |
+| 1024pt | 1x    | AppIcon-1024.png (1024x1024) |
 
 #### Android Required Sizes (place in `android/app/src/main/res/`)
 
-| Folder | Size |
-|--------|------|
-| mipmap-mdpi | 48x48 |
-| mipmap-hdpi | 72x72 |
-| mipmap-xhdpi | 96x96 |
-| mipmap-xxhdpi | 144x144 |
+| Folder         | Size    |
+| -------------- | ------- |
+| mipmap-mdpi    | 48x48   |
+| mipmap-hdpi    | 72x72   |
+| mipmap-xhdpi   | 96x96   |
+| mipmap-xxhdpi  | 144x144 |
 | mipmap-xxxhdpi | 192x192 |
 
 Name the files `ic_launcher.png` and `ic_launcher_round.png` (for round icons).

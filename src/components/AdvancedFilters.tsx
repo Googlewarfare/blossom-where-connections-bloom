@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { SlidersHorizontal, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -8,21 +8,21 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { toast } from 'sonner';
-import { cmToFeetInches } from '@/lib/location-utils';
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
+import { cmToFeetInches } from "@/lib/location-utils";
 
 interface AdvancedFiltersProps {
   onFiltersApplied: () => void;
@@ -40,17 +40,49 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
   const [selectedExercise, setSelectedExercise] = useState<string[]>([]);
   const [selectedReligion, setSelectedReligion] = useState<string[]>([]);
 
-  const educationOptions = ['High School', 'Some College', 'Bachelors', 'Masters', 'PhD', 'Trade School'];
-  const lifestyleOptions = ['Active', 'Relaxed', 'Social Butterfly', 'Homebody', 'Adventurous'];
-  const goalOptions = ['Relationship', 'Dating', 'New Friends', 'Not Sure'];
-  const drinkingOptions = ['Never', 'Socially', 'Regularly', 'Prefer not to say'];
-  const smokingOptions = ['Never', 'Socially', 'Regularly', 'Trying to quit'];
-  const exerciseOptions = ['Daily', 'Few times a week', 'Sometimes', 'Never'];
-  const religionOptions = ['Christian', 'Muslim', 'Jewish', 'Hindu', 'Buddhist', 'Spiritual', 'Agnostic', 'Atheist', 'Other'];
+  const educationOptions = [
+    "High School",
+    "Some College",
+    "Bachelors",
+    "Masters",
+    "PhD",
+    "Trade School",
+  ];
+  const lifestyleOptions = [
+    "Active",
+    "Relaxed",
+    "Social Butterfly",
+    "Homebody",
+    "Adventurous",
+  ];
+  const goalOptions = ["Relationship", "Dating", "New Friends", "Not Sure"];
+  const drinkingOptions = [
+    "Never",
+    "Socially",
+    "Regularly",
+    "Prefer not to say",
+  ];
+  const smokingOptions = ["Never", "Socially", "Regularly", "Trying to quit"];
+  const exerciseOptions = ["Daily", "Few times a week", "Sometimes", "Never"];
+  const religionOptions = [
+    "Christian",
+    "Muslim",
+    "Jewish",
+    "Hindu",
+    "Buddhist",
+    "Spiritual",
+    "Agnostic",
+    "Atheist",
+    "Other",
+  ];
 
-  const toggleSelection = (value: string, list: string[], setter: (val: string[]) => void) => {
+  const toggleSelection = (
+    value: string,
+    list: string[],
+    setter: (val: string[]) => void,
+  ) => {
     if (list.includes(value)) {
-      setter(list.filter(v => v !== value));
+      setter(list.filter((v) => v !== value));
     } else {
       setter([...list, value]);
     }
@@ -61,28 +93,35 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
 
     try {
       const { error } = await supabase
-        .from('preferences')
+        .from("preferences")
         .update({
           min_height_cm: heightRange[0],
           max_height_cm: heightRange[1],
-          education_preference: selectedEducation.length > 0 ? selectedEducation : null,
-          lifestyle_preference: selectedLifestyle.length > 0 ? selectedLifestyle : null,
-          relationship_goal_preference: selectedGoal.length > 0 ? selectedGoal : null,
-          drinking_preference: selectedDrinking.length > 0 ? selectedDrinking : null,
-          smoking_preference: selectedSmoking.length > 0 ? selectedSmoking : null,
-          exercise_preference: selectedExercise.length > 0 ? selectedExercise : null,
-          religion_preference: selectedReligion.length > 0 ? selectedReligion : null,
+          education_preference:
+            selectedEducation.length > 0 ? selectedEducation : null,
+          lifestyle_preference:
+            selectedLifestyle.length > 0 ? selectedLifestyle : null,
+          relationship_goal_preference:
+            selectedGoal.length > 0 ? selectedGoal : null,
+          drinking_preference:
+            selectedDrinking.length > 0 ? selectedDrinking : null,
+          smoking_preference:
+            selectedSmoking.length > 0 ? selectedSmoking : null,
+          exercise_preference:
+            selectedExercise.length > 0 ? selectedExercise : null,
+          religion_preference:
+            selectedReligion.length > 0 ? selectedReligion : null,
         })
-        .eq('user_id', user.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
-      toast.success('Filters applied');
+      toast.success("Filters applied");
       setOpen(false);
       onFiltersApplied();
     } catch (error) {
-      console.error('Error applying filters:', error);
-      toast.error('Failed to apply filters');
+      console.error("Error applying filters:", error);
+      toast.error("Failed to apply filters");
     }
   };
 
@@ -117,7 +156,8 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           {/* Height Range */}
           <div className="space-y-3">
             <Label>
-              Height: {(() => {
+              Height:{" "}
+              {(() => {
                 const min = cmToFeetInches(heightRange[0]);
                 const max = cmToFeetInches(heightRange[1]);
                 return `${min.feet}'${min.inches}" - ${max.feet}'${max.inches}"`;
@@ -136,12 +176,20 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Education</Label>
             <div className="flex flex-wrap gap-2">
-              {educationOptions.map(option => (
+              {educationOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedEducation.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedEducation.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedEducation, setSelectedEducation)}
+                  onClick={() =>
+                    toggleSelection(
+                      option,
+                      selectedEducation,
+                      setSelectedEducation,
+                    )
+                  }
                 >
                   {option}
                 </Badge>
@@ -153,12 +201,20 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Lifestyle</Label>
             <div className="flex flex-wrap gap-2">
-              {lifestyleOptions.map(option => (
+              {lifestyleOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedLifestyle.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedLifestyle.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedLifestyle, setSelectedLifestyle)}
+                  onClick={() =>
+                    toggleSelection(
+                      option,
+                      selectedLifestyle,
+                      setSelectedLifestyle,
+                    )
+                  }
                 >
                   {option}
                 </Badge>
@@ -170,12 +226,16 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Looking For</Label>
             <div className="flex flex-wrap gap-2">
-              {goalOptions.map(option => (
+              {goalOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedGoal.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedGoal.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedGoal, setSelectedGoal)}
+                  onClick={() =>
+                    toggleSelection(option, selectedGoal, setSelectedGoal)
+                  }
                 >
                   {option}
                 </Badge>
@@ -187,12 +247,20 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Drinking</Label>
             <div className="flex flex-wrap gap-2">
-              {drinkingOptions.map(option => (
+              {drinkingOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedDrinking.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedDrinking.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedDrinking, setSelectedDrinking)}
+                  onClick={() =>
+                    toggleSelection(
+                      option,
+                      selectedDrinking,
+                      setSelectedDrinking,
+                    )
+                  }
                 >
                   {option}
                 </Badge>
@@ -204,12 +272,16 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Smoking</Label>
             <div className="flex flex-wrap gap-2">
-              {smokingOptions.map(option => (
+              {smokingOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedSmoking.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedSmoking.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedSmoking, setSelectedSmoking)}
+                  onClick={() =>
+                    toggleSelection(option, selectedSmoking, setSelectedSmoking)
+                  }
                 >
                   {option}
                 </Badge>
@@ -221,12 +293,20 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Exercise</Label>
             <div className="flex flex-wrap gap-2">
-              {exerciseOptions.map(option => (
+              {exerciseOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedExercise.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedExercise.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedExercise, setSelectedExercise)}
+                  onClick={() =>
+                    toggleSelection(
+                      option,
+                      selectedExercise,
+                      setSelectedExercise,
+                    )
+                  }
                 >
                   {option}
                 </Badge>
@@ -238,12 +318,20 @@ export const AdvancedFilters = ({ onFiltersApplied }: AdvancedFiltersProps) => {
           <div className="space-y-3">
             <Label>Religion</Label>
             <div className="flex flex-wrap gap-2">
-              {religionOptions.map(option => (
+              {religionOptions.map((option) => (
                 <Badge
                   key={option}
-                  variant={selectedReligion.includes(option) ? 'default' : 'outline'}
+                  variant={
+                    selectedReligion.includes(option) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
-                  onClick={() => toggleSelection(option, selectedReligion, setSelectedReligion)}
+                  onClick={() =>
+                    toggleSelection(
+                      option,
+                      selectedReligion,
+                      setSelectedReligion,
+                    )
+                  }
                 >
                   {option}
                 </Badge>

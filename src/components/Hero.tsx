@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, ArrowRight, Camera, Lock, ShieldAlert } from "lucide-react";
+import {
+  Heart,
+  Sparkles,
+  ArrowRight,
+  Camera,
+  Lock,
+  ShieldAlert,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/blossom-logo.jpg";
 
@@ -100,11 +107,7 @@ const Hero = () => {
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button
-                  variant="glass"
-                  size="xl"
-                  className="w-full sm:w-auto"
-                >
+                <Button variant="glass" size="xl" className="w-full sm:w-auto">
                   <Heart className="w-5 h-5 mr-2" />
                   Sign Up Free
                 </Button>
@@ -121,8 +124,12 @@ const Hero = () => {
                 >
                   <badge.icon className="w-4 h-4 text-primary" />
                   <div className="flex flex-col">
-                    <span className="text-xs font-semibold leading-tight">{badge.label}</span>
-                    <span className="text-[10px] text-muted-foreground leading-tight">{badge.description}</span>
+                    <span className="text-xs font-semibold leading-tight">
+                      {badge.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground leading-tight">
+                      {badge.description}
+                    </span>
                   </div>
                 </div>
               ))}

@@ -20,7 +20,7 @@ export function SkipLink({
         "bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "transition-all duration-200",
-        className
+        className,
       )}
     >
       {children}

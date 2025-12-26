@@ -6,7 +6,13 @@ import { useNativePurchases, IAP_PRODUCTS } from "@/hooks/use-native-purchases";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import {
@@ -64,7 +70,7 @@ export default function Premium() {
   const [isLoading, setIsLoading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  
+
   // Native purchases hook for iOS/Android
   const {
     isNative,
@@ -80,7 +86,9 @@ export default function Premium() {
 
   useEffect(() => {
     if (searchParams.get("subscription_success") === "true") {
-      toast.success("Welcome to Blossom Premium! Your subscription is now active.");
+      toast.success(
+        "Welcome to Blossom Premium! Your subscription is now active.",
+      );
       checkSubscription();
       window.history.replaceState({}, "", "/premium");
     }
@@ -96,12 +104,15 @@ export default function Premium() {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-subscription-checkout", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+      const { data, error } = await supabase.functions.invoke(
+        "create-subscription-checkout",
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: { priceId: PREMIUM_PRICE_ID },
         },
-        body: { priceId: PREMIUM_PRICE_ID },
-      });
+      );
 
       if (error) throw error;
       if (data?.url) {
@@ -163,11 +174,14 @@ export default function Premium() {
 
     setIsManaging(true);
     try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+      const { data, error } = await supabase.functions.invoke(
+        "customer-portal",
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
         },
-      });
+      );
 
       if (error) throw error;
       if (data?.url) {
@@ -183,7 +197,7 @@ export default function Premium() {
 
   // Get native product price
   const getNativePrice = (productId: string) => {
-    const product = products.find(p => p.id === productId);
+    const product = products.find((p) => p.id === productId);
     return product?.price || "Loading...";
   };
 
@@ -200,7 +214,9 @@ export default function Premium() {
               <Crown className="h-6 w-6 text-yellow-500" />
               Blossom Premium
             </h1>
-            <p className="text-muted-foreground">Unlock the full dating experience</p>
+            <p className="text-muted-foreground">
+              Unlock the full dating experience
+            </p>
           </div>
         </div>
 
@@ -214,10 +230,13 @@ export default function Premium() {
                     <Crown className="h-6 w-6 text-yellow-500" />
                   </div>
                   <div>
-                    <p className="font-semibold text-lg">You're a Premium Member!</p>
+                    <p className="font-semibold text-lg">
+                      You're a Premium Member!
+                    </p>
                     {premiumEndDate && (
                       <p className="text-sm text-muted-foreground">
-                        Renews on {new Date(premiumEndDate).toLocaleDateString()}
+                        Renews on{" "}
+                        {new Date(premiumEndDate).toLocaleDateString()}
                       </p>
                     )}
                     {hasNativePremium && !premiumEndDate && (
@@ -227,7 +246,11 @@ export default function Premium() {
                     )}
                   </div>
                 </div>
-                <Button variant="outline" onClick={handleManageSubscription} disabled={isManaging}>
+                <Button
+                  variant="outline"
+                  onClick={handleManageSubscription}
+                  disabled={isManaging}
+                >
                   {isManaging ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -255,7 +278,9 @@ export default function Premium() {
                 <div className="mb-6">
                   {isNative ? (
                     <span className="text-4xl font-bold">
-                      {nativeLoading ? "..." : getNativePrice(IAP_PRODUCTS.PREMIUM_MONTHLY)}
+                      {nativeLoading
+                        ? "..."
+                        : getNativePrice(IAP_PRODUCTS.PREMIUM_MONTHLY)}
                     </span>
                   ) : (
                     <>
@@ -267,9 +292,10 @@ export default function Premium() {
                 <Button
                   size="lg"
                   className="w-full"
-                  onClick={() => isNative 
-                    ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_MONTHLY) 
-                    : handleSubscribe()
+                  onClick={() =>
+                    isNative
+                      ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_MONTHLY)
+                      : handleSubscribe()
                   }
                   disabled={isLoading || nativeLoading}
                 >
@@ -302,7 +328,9 @@ export default function Premium() {
                 <div className="mb-6">
                   {isNative ? (
                     <span className="text-4xl font-bold">
-                      {nativeLoading ? "..." : getNativePrice(IAP_PRODUCTS.PREMIUM_YEARLY)}
+                      {nativeLoading
+                        ? "..."
+                        : getNativePrice(IAP_PRODUCTS.PREMIUM_YEARLY)}
                     </span>
                   ) : (
                     <>
@@ -315,9 +343,10 @@ export default function Premium() {
                   size="lg"
                   variant="secondary"
                   className="w-full bg-green-500 hover:bg-green-600 text-white"
-                  onClick={() => isNative 
-                    ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_YEARLY) 
-                    : handleSubscribe()
+                  onClick={() =>
+                    isNative
+                      ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_YEARLY)
+                      : handleSubscribe()
                   }
                   disabled={isLoading || nativeLoading}
                 >
@@ -370,7 +399,10 @@ export default function Premium() {
           <h2 className="text-xl font-semibold mb-4">Premium Features</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {PREMIUM_FEATURES_LIST.map((feature, index) => (
-              <Card key={index} className={isPremiumActive ? "border-green-500/30" : ""}>
+              <Card
+                key={index}
+                className={isPremiumActive ? "border-green-500/30" : ""}
+              >
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                     <feature.icon className="h-5 w-5 text-primary" />
@@ -379,12 +411,17 @@ export default function Premium() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{feature.title}</h3>
                       {isPremiumActive && (
-                        <Badge variant="outline" className="text-green-500 border-green-500/50 text-xs">
+                        <Badge
+                          variant="outline"
+                          className="text-green-500 border-green-500/50 text-xs"
+                        >
                           Active
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -395,32 +432,42 @@ export default function Premium() {
         {/* FAQ */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Frequently Asked Questions</CardTitle>
+            <CardTitle className="text-lg">
+              Frequently Asked Questions
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <h4 className="font-medium">Can I cancel anytime?</h4>
               <p className="text-sm text-muted-foreground">
-                Yes! You can cancel your subscription at any time. You'll keep your premium benefits until the end of your billing period.
+                Yes! You can cancel your subscription at any time. You'll keep
+                your premium benefits until the end of your billing period.
               </p>
             </div>
             <div>
               <h4 className="font-medium">How do profile boosts work?</h4>
               <p className="text-sm text-muted-foreground">
-                Profile boosts put your profile at the top of potential matches in your area for 30 minutes, getting you up to 10x more views.
+                Profile boosts put your profile at the top of potential matches
+                in your area for 30 minutes, getting you up to 10x more views.
               </p>
             </div>
             <div>
-              <h4 className="font-medium">What happens to my likes if I downgrade?</h4>
+              <h4 className="font-medium">
+                What happens to my likes if I downgrade?
+              </h4>
               <p className="text-sm text-muted-foreground">
-                Your matches and conversations stay intact. You'll just lose access to premium features like seeing who liked you.
+                Your matches and conversations stay intact. You'll just lose
+                access to premium features like seeing who liked you.
               </p>
             </div>
             {isNative && (
               <div>
-                <h4 className="font-medium">How do I manage my subscription?</h4>
+                <h4 className="font-medium">
+                  How do I manage my subscription?
+                </h4>
                 <p className="text-sm text-muted-foreground">
-                  Go to Settings → Apple ID → Subscriptions on your device to manage or cancel your subscription.
+                  Go to Settings → Apple ID → Subscriptions on your device to
+                  manage or cancel your subscription.
                 </p>
               </div>
             )}

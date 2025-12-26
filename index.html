@@ -4,12 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blossom - Blossom into Love</title>
-    <meta name="description" content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships." />
+    <meta
+      name="description"
+      content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships."
+    />
     <meta name="author" content="Blossom" />
     <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Capacitor defensive shim: prevents early native->web calls from crashing before app JS loads -->
     <script>
@@ -17,7 +23,11 @@
         try {
           if (!window.Capacitor) window.Capacitor = {};
           if (typeof window.Capacitor.triggerEvent !== "function") {
-            window.Capacitor.triggerEvent = function (eventName, _target, data) {
+            window.Capacitor.triggerEvent = function (
+              eventName,
+              _target,
+              data,
+            ) {
               var evt = new CustomEvent(eventName, { detail: data });
               window.dispatchEvent(evt);
               document.dispatchEvent(evt);
@@ -30,7 +40,10 @@
     </script>
 
     <meta property="og:title" content="Blossom - Blossom into Love" />
-    <meta property="og:description" content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships." />
+    <meta
+      property="og:description"
+      content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.jpg" />
 

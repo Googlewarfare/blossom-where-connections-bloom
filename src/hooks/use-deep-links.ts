@@ -15,13 +15,19 @@ export const useDeepLinks = () => {
       const params = url.searchParams;
 
       // Handle password reset
-      if (path.includes("/auth/reset") || params.has("type") && params.get("type") === "recovery") {
+      if (
+        path.includes("/auth/reset") ||
+        (params.has("type") && params.get("type") === "recovery")
+      ) {
         navigate("/auth?mode=reset");
         return;
       }
 
       // Handle email verification
-      if (path.includes("/auth/verify") || params.has("type") && params.get("type") === "signup") {
+      if (
+        path.includes("/auth/verify") ||
+        (params.has("type") && params.get("type") === "signup")
+      ) {
         navigate("/auth?verified=true");
         return;
       }

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Check if an account is locked due to too many failed login attempts
@@ -7,20 +7,20 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const checkAccountLockout = async (email: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('check_account_lockout', {
+    const { data, error } = await supabase.rpc("check_account_lockout", {
       p_email: email,
       p_max_attempts: 5,
-      p_lockout_minutes: 15
+      p_lockout_minutes: 15,
     });
-    
+
     if (error) {
-      console.error('Error checking account lockout:', error);
+      console.error("Error checking account lockout:", error);
       return false; // Fail open to not block legitimate users
     }
-    
+
     return data === true;
   } catch (error) {
-    console.error('Error checking account lockout:', error);
+    console.error("Error checking account lockout:", error);
     return false;
   }
 };
@@ -34,16 +34,16 @@ export const checkAccountLockout = async (email: string): Promise<boolean> => {
 export const recordLoginAttempt = async (
   email: string,
   success: boolean,
-  ipAddress?: string
+  ipAddress?: string,
 ): Promise<void> => {
   try {
-    await supabase.rpc('record_login_attempt', {
+    await supabase.rpc("record_login_attempt", {
       p_email: email,
       p_success: success,
-      p_ip_address: ipAddress || null
+      p_ip_address: ipAddress || null,
     });
   } catch (error) {
-    console.error('Error recording login attempt:', error);
+    console.error("Error recording login attempt:", error);
   }
 };
 
@@ -59,24 +59,24 @@ export const checkRateLimit = async (
   identifier: string,
   endpoint: string,
   maxRequests: number = 100,
-  windowSeconds: number = 60
+  windowSeconds: number = 60,
 ): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('check_rate_limit', {
+    const { data, error } = await supabase.rpc("check_rate_limit", {
       p_identifier: identifier,
       p_endpoint: endpoint,
       p_max_requests: maxRequests,
-      p_window_seconds: windowSeconds
+      p_window_seconds: windowSeconds,
     });
-    
+
     if (error) {
-      console.error('Error checking rate limit:', error);
+      console.error("Error checking rate limit:", error);
       return true; // Fail open
     }
-    
+
     return data === true;
   } catch (error) {
-    console.error('Error checking rate limit:', error);
+    console.error("Error checking rate limit:", error);
     return true;
   }
 };
@@ -94,13 +94,15 @@ export const logAuditEvent = async (
   tableName?: string,
   recordId?: string,
   oldData?: object,
-  newData?: object
+  newData?: object,
 ): Promise<void> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase.rpc('log_audit_event', {
+    await supabase.rpc("log_audit_event", {
       p_user_id: user.id,
       p_action: action,
       p_table_name: tableName || null,
@@ -108,10 +110,10 @@ export const logAuditEvent = async (
       p_old_data: oldData ? JSON.stringify(oldData) : null,
       p_new_data: newData ? JSON.stringify(newData) : null,
       p_ip_address: null,
-      p_user_agent: navigator.userAgent || null
+      p_user_agent: navigator.userAgent || null,
     });
   } catch (error) {
-    console.error('Error logging audit event:', error);
+    console.error("Error logging audit event:", error);
   }
 };
 
@@ -124,7 +126,7 @@ export const SESSION_WARNING = 5 * 60 * 1000; // 5 minutes before timeout
  */
 export const useSessionTimeout = (
   onWarning: () => void,
-  onTimeout: () => void
+  onTimeout: () => void,
 ) => {
   let warningTimer: NodeJS.Timeout | null = null;
   let timeoutTimer: NodeJS.Timeout | null = null;
@@ -132,36 +134,43 @@ export const useSessionTimeout = (
 
   const resetTimers = () => {
     lastActivity = Date.now();
-    
+
     if (warningTimer) clearTimeout(warningTimer);
     if (timeoutTimer) clearTimeout(timeoutTimer);
-    
+
     warningTimer = setTimeout(() => {
       onWarning();
     }, SESSION_TIMEOUT - SESSION_WARNING);
-    
+
     timeoutTimer = setTimeout(() => {
       onTimeout();
     }, SESSION_TIMEOUT);
   };
 
   const startTracking = () => {
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-    
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ];
+
     const handleActivity = () => {
-      if (Date.now() - lastActivity > 1000) { // Debounce
+      if (Date.now() - lastActivity > 1000) {
+        // Debounce
         resetTimers();
       }
     };
-    
-    events.forEach(event => {
+
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
-    
+
     resetTimers();
-    
+
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleActivity);
       });
       if (warningTimer) clearTimeout(warningTimer);

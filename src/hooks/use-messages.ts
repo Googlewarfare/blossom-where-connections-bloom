@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export interface MessageReaction {
   id: string;
   message_id: string;
   user_id: string;
-  reaction: 'heart' | 'like' | 'laugh';
+  reaction: "heart" | "like" | "laugh";
   created_at: string;
 }
 
@@ -67,8 +67,10 @@ export const useMessages = (conversationId?: string) => {
 
     try {
       const { data: matches, error: matchError } = await supabase
-        .from('matches')
-        .select('id, user1_id, user2_id, conversations(id, created_at, updated_at)')
+        .from("matches")
+        .select(
+          "id, user1_id, user2_id, conversations(id, created_at, updated_at)",
+        )
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
       if (matchError) throw matchError;
@@ -79,44 +81,45 @@ export const useMessages = (conversationId?: string) => {
         const conversationData = match.conversations;
         if (!conversationData) continue;
 
-        const conversation = Array.isArray(conversationData) 
-          ? conversationData[0] 
+        const conversation = Array.isArray(conversationData)
+          ? conversationData[0]
           : conversationData;
-        
+
         if (!conversation) continue;
 
-        const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+        const otherUserId =
+          match.user1_id === user.id ? match.user2_id : match.user1_id;
 
         // Fetch other user's profile
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .eq('id', otherUserId)
+          .from("profiles")
+          .select("id, full_name")
+          .eq("id", otherUserId)
           .single();
 
         // Fetch profile photo
         const { data: photos } = await supabase
-          .from('profile_photos')
-          .select('photo_url')
-          .eq('user_id', otherUserId)
-          .eq('is_primary', true)
+          .from("profile_photos")
+          .select("photo_url")
+          .eq("user_id", otherUserId)
+          .eq("is_primary", true)
           .limit(1);
 
         // Fetch last message
         const { data: lastMsg } = await supabase
-          .from('messages')
-          .select('content, created_at, sender_id')
-          .eq('conversation_id', conversation.id)
-          .order('created_at', { ascending: false })
+          .from("messages")
+          .select("content, created_at, sender_id")
+          .eq("conversation_id", conversation.id)
+          .order("created_at", { ascending: false })
           .limit(1);
 
         // Count unread messages
         const { count: unreadCount } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('conversation_id', conversation.id)
-          .eq('read', false)
-          .neq('sender_id', user.id);
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("conversation_id", conversation.id)
+          .eq("read", false)
+          .neq("sender_id", user.id);
 
         conversationsData.push({
           id: conversation.id,
@@ -125,8 +128,8 @@ export const useMessages = (conversationId?: string) => {
           updated_at: conversation.updated_at,
           other_user: {
             id: otherUserId,
-            full_name: profile?.full_name || 'Unknown',
-            photo_url: photos && photos.length > 0 ? photos[0].photo_url : '',
+            full_name: profile?.full_name || "Unknown",
+            photo_url: photos && photos.length > 0 ? photos[0].photo_url : "",
           },
           last_message: lastMsg && lastMsg.length > 0 ? lastMsg[0] : undefined,
           unread_count: unreadCount || 0,
@@ -142,8 +145,8 @@ export const useMessages = (conversationId?: string) => {
 
       setConversations(conversationsData);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
-      toast.error('Failed to load conversations');
+      console.error("Error fetching conversations:", error);
+      toast.error("Failed to load conversations");
     } finally {
       setLoading(false);
     }
@@ -155,84 +158,83 @@ export const useMessages = (conversationId?: string) => {
 
     try {
       const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setMessages(data || []);
 
       // Fetch reactions and media for all messages
       if (data && data.length > 0) {
-        const messageIds = data.map(m => m.id);
-        
+        const messageIds = data.map((m) => m.id);
+
         const { data: reactionsData } = await supabase
-          .from('message_reactions')
-          .select('*')
-          .in('message_id', messageIds);
-        
+          .from("message_reactions")
+          .select("*")
+          .in("message_id", messageIds);
+
         setReactions((reactionsData || []) as MessageReaction[]);
 
         const { data: mediaData } = await supabase
-          .from('message_media')
-          .select('*')
-          .in('message_id', messageIds);
-        
+          .from("message_media")
+          .select("*")
+          .in("message_id", messageIds);
+
         setMediaFiles((mediaData || []) as MessageMedia[]);
       }
 
       // Mark messages as read
       if (user) {
         await supabase
-          .from('messages')
+          .from("messages")
           .update({ read: true })
-          .eq('conversation_id', conversationId)
-          .neq('sender_id', user.id)
-          .eq('read', false);
+          .eq("conversation_id", conversationId)
+          .neq("sender_id", user.id)
+          .eq("read", false);
       }
     } catch (error) {
-      console.error('Error fetching messages:', error);
-      toast.error('Failed to load messages');
+      console.error("Error fetching messages:", error);
+      toast.error("Failed to load messages");
     }
   };
 
   // Add reaction to a message
-  const addReaction = async (messageId: string, reaction: 'heart' | 'like' | 'laugh') => {
+  const addReaction = async (
+    messageId: string,
+    reaction: "heart" | "like" | "laugh",
+  ) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('message_reactions')
-        .insert({
-          message_id: messageId,
-          user_id: user.id,
-          reaction,
-        });
+      const { error } = await supabase.from("message_reactions").insert({
+        message_id: messageId,
+        user_id: user.id,
+        reaction,
+      });
 
       if (error) {
         // If unique constraint violation, update existing reaction
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           await supabase
-            .from('message_reactions')
+            .from("message_reactions")
             .delete()
-            .eq('message_id', messageId)
-            .eq('user_id', user.id);
-          
-          await supabase
-            .from('message_reactions')
-            .insert({
-              message_id: messageId,
-              user_id: user.id,
-              reaction,
-            });
+            .eq("message_id", messageId)
+            .eq("user_id", user.id);
+
+          await supabase.from("message_reactions").insert({
+            message_id: messageId,
+            user_id: user.id,
+            reaction,
+          });
         } else {
           throw error;
         }
       }
     } catch (error) {
-      console.error('Error adding reaction:', error);
-      toast.error('Failed to add reaction');
+      console.error("Error adding reaction:", error);
+      toast.error("Failed to add reaction");
     }
   };
 
@@ -242,15 +244,15 @@ export const useMessages = (conversationId?: string) => {
 
     try {
       const { error } = await supabase
-        .from('message_reactions')
+        .from("message_reactions")
         .delete()
-        .eq('message_id', messageId)
-        .eq('user_id', user.id);
+        .eq("message_id", messageId)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error removing reaction:', error);
-      toast.error('Failed to remove reaction');
+      console.error("Error removing reaction:", error);
+      toast.error("Failed to remove reaction");
     }
   };
 
@@ -261,34 +263,32 @@ export const useMessages = (conversationId?: string) => {
     try {
       // Get current message content for history
       const { data: currentMessage } = await supabase
-        .from('messages')
-        .select('content')
-        .eq('id', messageId)
+        .from("messages")
+        .select("content")
+        .eq("id", messageId)
         .single();
 
       if (currentMessage) {
         // Save to edit history
-        await supabase
-          .from('message_edit_history')
-          .insert({
-            message_id: messageId,
-            content: currentMessage.content,
-          });
+        await supabase.from("message_edit_history").insert({
+          message_id: messageId,
+          content: currentMessage.content,
+        });
       }
 
       // Update message
       const { error } = await supabase
-        .from('messages')
+        .from("messages")
         .update({
           content: newContent.trim(),
           edited_at: new Date().toISOString(),
         })
-        .eq('id', messageId);
+        .eq("id", messageId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error editing message:', error);
-      toast.error('Failed to edit message');
+      console.error("Error editing message:", error);
+      toast.error("Failed to edit message");
     }
   };
 
@@ -298,32 +298,32 @@ export const useMessages = (conversationId?: string) => {
 
     try {
       const { error } = await supabase
-        .from('messages')
+        .from("messages")
         .update({ deleted: true })
-        .eq('id', messageId);
+        .eq("id", messageId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error deleting message:', error);
-      toast.error('Failed to delete message');
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message");
     }
   };
 
   // Upload media file and return the storage path (not public URL)
   const uploadMedia = async (
     file: File,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<string | null> => {
     if (!user || !conversationId) return null;
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${conversationId}/${user.id}/${Date.now()}.${fileExt}`;
-      
+
       const { data, error } = await supabase.storage
-        .from('chat-media')
+        .from("chat-media")
         .upload(fileName, file, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: false,
         });
 
@@ -333,23 +333,25 @@ export const useMessages = (conversationId?: string) => {
       // Signed URLs will be generated when displaying media
       return data.path;
     } catch (error) {
-      console.error('Error uploading media:', error);
-      toast.error('Failed to upload media');
+      console.error("Error uploading media:", error);
+      toast.error("Failed to upload media");
       return null;
     }
   };
 
   // Get signed URL for secure media access (1 hour expiration)
-  const getSignedMediaUrl = async (filePath: string): Promise<string | null> => {
+  const getSignedMediaUrl = async (
+    filePath: string,
+  ): Promise<string | null> => {
     try {
       const { data, error } = await supabase.storage
-        .from('chat-media')
+        .from("chat-media")
         .createSignedUrl(filePath, 3600); // 1 hour expiration
 
       if (error) throw error;
       return data.signedUrl;
     } catch (error) {
-      console.error('Error getting signed URL:', error);
+      console.error("Error getting signed URL:", error);
       return null;
     }
   };
@@ -362,9 +364,9 @@ export const useMessages = (conversationId?: string) => {
     try {
       // Insert message
       const { data: messageData, error: messageError } = await supabase
-        .from('messages')
+        .from("messages")
         .insert({
-          content: content.trim() || '',
+          content: content.trim() || "",
           sender_id: user.id,
           conversation_id: conversationId,
         })
@@ -377,9 +379,9 @@ export const useMessages = (conversationId?: string) => {
       if (mediaFiles && mediaFiles.length > 0 && messageData) {
         for (const file of mediaFiles) {
           const fileUrl = await uploadMedia(file);
-          
+
           if (fileUrl) {
-            await supabase.from('message_media').insert({
+            await supabase.from("message_media").insert({
               message_id: messageData.id,
               file_url: fileUrl,
               file_name: file.name,
@@ -392,13 +394,12 @@ export const useMessages = (conversationId?: string) => {
 
       // Update conversation timestamp
       await supabase
-        .from('conversations')
+        .from("conversations")
         .update({ updated_at: new Date().toISOString() })
-        .eq('id', conversationId);
-
+        .eq("id", conversationId);
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
     }
   };
 
@@ -411,60 +412,58 @@ export const useMessages = (conversationId?: string) => {
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
           setMessages((prev) => [...prev, payload.new as Message]);
-        }
+        },
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
           setMessages((prev) =>
             prev.map((msg) =>
-              msg.id === payload.new.id ? (payload.new as Message) : msg
-            )
+              msg.id === payload.new.id ? (payload.new as Message) : msg,
+            ),
           );
-        }
+        },
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'message_reactions',
+          event: "*",
+          schema: "public",
+          table: "message_reactions",
         },
         (payload) => {
-          if (payload.eventType === 'INSERT') {
+          if (payload.eventType === "INSERT") {
             setReactions((prev) => [...prev, payload.new as MessageReaction]);
-          } else if (payload.eventType === 'DELETE') {
-            setReactions((prev) =>
-              prev.filter((r) => r.id !== payload.old.id)
-            );
+          } else if (payload.eventType === "DELETE") {
+            setReactions((prev) => prev.filter((r) => r.id !== payload.old.id));
           }
-        }
+        },
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'message_media',
+          event: "INSERT",
+          schema: "public",
+          table: "message_media",
         },
         (payload) => {
           setMediaFiles((prev) => [...prev, payload.new as MessageMedia]);
-        }
+        },
       )
       .subscribe();
 
@@ -478,17 +477,17 @@ export const useMessages = (conversationId?: string) => {
     if (!user) return;
 
     const channel = supabase
-      .channel('conversations-updates')
+      .channel("conversations-updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
+          event: "*",
+          schema: "public",
+          table: "conversations",
         },
         () => {
           fetchConversations();
-        }
+        },
       )
       .subscribe();
 

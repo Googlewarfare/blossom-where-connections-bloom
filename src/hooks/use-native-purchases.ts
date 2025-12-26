@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
+import { useState, useEffect, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
 
 // Product identifiers - must match App Store Connect
 export const IAP_PRODUCTS = {
-  PREMIUM_MONTHLY: 'blossom_premium_monthly',
-  PREMIUM_YEARLY: 'blossom_premium_yearly',
-  SUPER_LIKES_PACK: 'blossom_super_likes_5',
+  PREMIUM_MONTHLY: "blossom_premium_monthly",
+  PREMIUM_YEARLY: "blossom_premium_yearly",
+  SUPER_LIKES_PACK: "blossom_super_likes_5",
 } as const;
 
 interface Product {
@@ -55,7 +55,7 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
         // Check if CdvPurchase is available (from cordova-plugin-purchase)
         const CdvPurchase = (window as any).CdvPurchase;
         if (!CdvPurchase) {
-          console.log('CdvPurchase not available - running in web mode');
+          console.log("CdvPurchase not available - running in web mode");
           return;
         }
 
@@ -81,18 +81,19 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
         ]);
 
         // Handle approved purchases
-        store.when()
+        store
+          .when()
           .approved((transaction: any) => {
-            console.log('Purchase approved:', transaction.products);
+            console.log("Purchase approved:", transaction.products);
             transaction.verify();
           })
           .verified((receipt: any) => {
-            console.log('Purchase verified:', receipt);
+            console.log("Purchase verified:", receipt);
             receipt.finish();
             checkPremiumStatus();
           })
           .finished((transaction: any) => {
-            console.log('Purchase finished:', transaction);
+            console.log("Purchase finished:", transaction);
           });
 
         // Initialize the store
@@ -102,8 +103,8 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
         // Load products
         await loadProducts();
       } catch (err) {
-        console.error('Error initializing store:', err);
-        setError('Failed to initialize store');
+        console.error("Error initializing store:", err);
+        setError("Failed to initialize store");
       }
     };
 
@@ -133,59 +134,64 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
             id: product.id,
             title: product.title,
             description: product.description,
-            price: product.pricing?.price || 'N/A',
-            priceAmount: product.pricing?.priceMicros ? product.pricing.priceMicros / 1000000 : 0,
-            currency: product.pricing?.currency || 'USD',
+            price: product.pricing?.price || "N/A",
+            priceAmount: product.pricing?.priceMicros
+              ? product.pricing.priceMicros / 1000000
+              : 0,
+            currency: product.pricing?.currency || "USD",
           });
         }
       });
 
       setProducts(loadedProducts);
     } catch (err) {
-      console.error('Error loading products:', err);
-      setError('Failed to load products');
+      console.error("Error loading products:", err);
+      setError("Failed to load products");
     } finally {
       setLoading(false);
     }
   }, [isNative]);
 
-  const purchaseProduct = useCallback(async (productId: string): Promise<boolean> => {
-    if (!isNative) {
-      console.log('Not on native platform, cannot make purchase');
-      return false;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const CdvPurchase = (window as any).CdvPurchase;
-      if (!CdvPurchase) {
-        throw new Error('Store not available');
+  const purchaseProduct = useCallback(
+    async (productId: string): Promise<boolean> => {
+      if (!isNative) {
+        console.log("Not on native platform, cannot make purchase");
+        return false;
       }
 
-      const { store } = CdvPurchase;
-      const product = store.get(productId);
+      setLoading(true);
+      setError(null);
 
-      if (!product) {
-        throw new Error('Product not found');
+      try {
+        const CdvPurchase = (window as any).CdvPurchase;
+        if (!CdvPurchase) {
+          throw new Error("Store not available");
+        }
+
+        const { store } = CdvPurchase;
+        const product = store.get(productId);
+
+        if (!product) {
+          throw new Error("Product not found");
+        }
+
+        const offer = product.getOffer();
+        if (!offer) {
+          throw new Error("No offer available for product");
+        }
+
+        await offer.order();
+        return true;
+      } catch (err: any) {
+        console.error("Error purchasing product:", err);
+        setError(err.message || "Failed to complete purchase");
+        return false;
+      } finally {
+        setLoading(false);
       }
-
-      const offer = product.getOffer();
-      if (!offer) {
-        throw new Error('No offer available for product');
-      }
-
-      await offer.order();
-      return true;
-    } catch (err: any) {
-      console.error('Error purchasing product:', err);
-      setError(err.message || 'Failed to complete purchase');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [isNative]);
+    },
+    [isNative],
+  );
 
   const restorePurchases = useCallback(async () => {
     if (!isNative) return;
@@ -196,15 +202,15 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
     try {
       const CdvPurchase = (window as any).CdvPurchase;
       if (!CdvPurchase) {
-        throw new Error('Store not available');
+        throw new Error("Store not available");
       }
 
       const { store } = CdvPurchase;
       await store.restorePurchases();
       await checkPremiumStatus();
     } catch (err: any) {
-      console.error('Error restoring purchases:', err);
-      setError(err.message || 'Failed to restore purchases');
+      console.error("Error restoring purchases:", err);
+      setError(err.message || "Failed to restore purchases");
     } finally {
       setLoading(false);
     }
@@ -218,7 +224,7 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
       if (!CdvPurchase) return;
 
       const { store } = CdvPurchase;
-      
+
       // Check if user has active premium subscription
       const premiumMonthly = store.get(IAP_PRODUCTS.PREMIUM_MONTHLY);
       const premiumYearly = store.get(IAP_PRODUCTS.PREMIUM_YEARLY);
@@ -228,7 +234,7 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
 
       setHasActivePremium(hasMonthly || hasYearly);
     } catch (err) {
-      console.error('Error checking premium status:', err);
+      console.error("Error checking premium status:", err);
     }
   }, [isNative]);
 

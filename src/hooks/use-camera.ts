@@ -1,6 +1,11 @@
-import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
-import { Capacitor } from '@capacitor/core';
-import { useState } from 'react';
+import {
+  Camera,
+  CameraResultType,
+  CameraSource,
+  Photo,
+} from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
+import { useState } from "react";
 
 export const useCamera = () => {
   const [photo, setPhoto] = useState<Photo | null>(null);
@@ -12,18 +17,19 @@ export const useCamera = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
         resultType: CameraResultType.Uri,
         source: CameraSource.Camera,
       });
-      
+
       setPhoto(image);
       return image;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to take photo';
+      const message =
+        err instanceof Error ? err.message : "Failed to take photo";
       setError(message);
       return null;
     } finally {
@@ -35,18 +41,19 @@ export const useCamera = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
         resultType: CameraResultType.Uri,
         source: CameraSource.Photos,
       });
-      
+
       setPhoto(image);
       return image;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to pick photo';
+      const message =
+        err instanceof Error ? err.message : "Failed to pick photo";
       setError(message);
       return null;
     } finally {
@@ -58,18 +65,19 @@ export const useCamera = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
         resultType: CameraResultType.Uri,
         source: CameraSource.Prompt,
       });
-      
+
       setPhoto(image);
       return image;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to get photo';
+      const message =
+        err instanceof Error ? err.message : "Failed to get photo";
       setError(message);
       return null;
     } finally {

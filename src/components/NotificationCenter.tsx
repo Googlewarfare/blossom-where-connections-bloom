@@ -1,4 +1,12 @@
-import { Bell, Heart, MessageCircle, Eye, Sparkles, Check, Trash2 } from "lucide-react";
+import {
+  Bell,
+  Heart,
+  MessageCircle,
+  Eye,
+  Sparkles,
+  Check,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -95,7 +103,9 @@ export const NotificationCenter = () => {
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Bell className="mb-3 h-10 w-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <p className="text-sm text-muted-foreground">
+                No notifications yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 We'll notify you when something happens
               </p>
@@ -107,7 +117,7 @@ export const NotificationCenter = () => {
                   key={notification.id}
                   className={cn(
                     "group flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/50 cursor-pointer",
-                    !notification.read && "bg-primary/5"
+                    !notification.read && "bg-primary/5",
                   )}
                   onClick={() => handleNotificationClick(notification)}
                 >

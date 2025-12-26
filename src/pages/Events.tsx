@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import Navbar from '@/components/Navbar';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 
 interface Event {
   id: string;
@@ -22,7 +22,10 @@ interface Event {
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,40 +39,44 @@ const Events = () => {
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           });
         },
-        (error) => console.error('Error getting location:', error)
+        (error) => console.error("Error getting location:", error),
       );
     }
   };
 
   const fetchEvents = async () => {
     const { data: userData } = await supabase.auth.getUser();
-    
+
     const { data: eventsData } = await supabase
-      .from('events')
-      .select(`
+      .from("events")
+      .select(
+        `
         *,
         event_attendees(count)
-      `)
-      .gte('event_date', new Date().toISOString())
-      .order('event_date', { ascending: true });
+      `,
+      )
+      .gte("event_date", new Date().toISOString())
+      .order("event_date", { ascending: true });
 
     if (eventsData && userData.user) {
       // Check which events user is attending
       const { data: attendingData } = await supabase
-        .from('event_attendees')
-        .select('event_id')
-        .eq('user_id', userData.user.id);
+        .from("event_attendees")
+        .select("event_id")
+        .eq("user_id", userData.user.id);
 
-      const attendingIds = new Set(attendingData?.map(a => a.event_id));
+      const attendingIds = new Set(attendingData?.map((a) => a.event_id));
 
-      setEvents(eventsData.map(event => ({
-        ...event,
-        attendee_count: event.event_attendees?.[0]?.count || 0,
-        user_attending: attendingIds.has(event.id)
-      })) as any);
+      setEvents(
+        eventsData.map((event) => ({
+          ...event,
+          attendee_count: event.event_attendees?.[0]?.count || 0,
+          user_attending: attendingIds.has(event.id),
+        })) as any,
+      );
     }
   };
 
@@ -79,21 +86,19 @@ const Events = () => {
 
     if (isAttending) {
       await supabase
-        .from('event_attendees')
+        .from("event_attendees")
         .delete()
-        .eq('event_id', eventId)
-        .eq('user_id', userData.user.id);
-      
+        .eq("event_id", eventId)
+        .eq("user_id", userData.user.id);
+
       toast({ title: "You're no longer attending this event" });
     } else {
-      await supabase
-        .from('event_attendees')
-        .insert({
-          event_id: eventId,
-          user_id: userData.user.id,
-          status: 'interested'
-        });
-      
+      await supabase.from("event_attendees").insert({
+        event_id: eventId,
+        user_id: userData.user.id,
+        status: "interested",
+      });
+
       toast({ title: "You're now attending this event!" });
     }
 
@@ -113,7 +118,10 @@ const Events = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={event.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
               {event.image_url && (
                 <div className="aspect-video overflow-hidden">
                   <img
@@ -137,11 +145,18 @@ const Events = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-primary" />
-                    <span>{new Date(event.event_date).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(event.event_date).toLocaleDateString()}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span>{new Date(event.event_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>
+                      {new Date(event.event_date).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary" />
@@ -159,7 +174,9 @@ const Events = () => {
                 <Button
                   className="w-full"
                   variant={event.user_attending ? "outline" : "default"}
-                  onClick={() => toggleAttendance(event.id, event.user_attending || false)}
+                  onClick={() =>
+                    toggleAttendance(event.id, event.user_attending || false)
+                  }
                 >
                   {event.user_attending ? "Leave Event" : "Join Event"}
                 </Button>

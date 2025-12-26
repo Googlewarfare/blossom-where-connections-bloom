@@ -70,7 +70,7 @@ export function EmptyState({
       className={cn(
         "flex flex-col items-center justify-center text-center animate-fade-in",
         sizes.container,
-        className
+        className,
       )}
     >
       {/* Animated icon container */}
@@ -81,7 +81,7 @@ export function EmptyState({
         <div
           className={cn(
             "relative rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center",
-            sizes.iconWrapper
+            sizes.iconWrapper,
           )}
         >
           <Icon
@@ -101,16 +101,13 @@ export function EmptyState({
       <h3
         className={cn(
           "font-display font-bold text-foreground mb-2",
-          sizes.title
+          sizes.title,
         )}
       >
         {title}
       </h3>
       <p
-        className={cn(
-          "text-muted-foreground max-w-sm mb-6",
-          sizes.description
-        )}
+        className={cn("text-muted-foreground max-w-sm mb-6", sizes.description)}
       >
         {description}
       </p>
@@ -233,7 +230,11 @@ export function EmptyLikes() {
   );
 }
 
-export function EmptyProfiles({ onAdjustFilters }: { onAdjustFilters?: () => void }) {
+export function EmptyProfiles({
+  onAdjustFilters,
+}: {
+  onAdjustFilters?: () => void;
+}) {
   return (
     <EmptyState
       icon={Users}

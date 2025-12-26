@@ -1,19 +1,31 @@
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Shield, Lock, Eye, Database, Bell, Users, Mail, Trash2 } from "lucide-react";
+import {
+  Shield,
+  Lock,
+  Eye,
+  Database,
+  Bell,
+  Users,
+  Mail,
+  Trash2,
+} from "lucide-react";
 
 const PrivacyPolicy = () => {
   return (
     <>
       <Helmet>
         <title>Privacy Policy - Blossom Dating</title>
-        <meta name="description" content="Learn how Blossom Dating protects your privacy and handles your personal data. Our commitment to keeping your information safe." />
+        <meta
+          name="description"
+          content="Learn how Blossom Dating protects your privacy and handles your personal data. Our commitment to keeping your information safe."
+        />
       </Helmet>
-      
+
       <div className="min-h-screen bg-background">
         <Navbar />
-        
+
         <main className="container mx-auto max-w-4xl px-4 py-12">
           <div className="mb-12 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
@@ -32,10 +44,11 @@ const PrivacyPolicy = () => {
                 Introduction
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Welcome to Blossom Dating ("we," "our," or "us"). We are committed to protecting your privacy 
-                and ensuring you have a positive experience on our platform. This Privacy Policy explains how 
-                we collect, use, disclose, and safeguard your information when you use our mobile application 
-                and website.
+                Welcome to Blossom Dating ("we," "our," or "us"). We are
+                committed to protecting your privacy and ensuring you have a
+                positive experience on our platform. This Privacy Policy
+                explains how we collect, use, disclose, and safeguard your
+                information when you use our mobile application and website.
               </p>
             </section>
 
@@ -46,7 +59,9 @@ const PrivacyPolicy = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground">
                 <div>
-                  <h3 className="font-medium text-foreground mb-2">Personal Information</h3>
+                  <h3 className="font-medium text-foreground mb-2">
+                    Personal Information
+                  </h3>
                   <ul className="list-disc list-inside space-y-1">
                     <li>Name, email address, and phone number</li>
                     <li>Date of birth and gender</li>
@@ -56,7 +71,9 @@ const PrivacyPolicy = () => {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-medium text-foreground mb-2">Usage Information</h3>
+                  <h3 className="font-medium text-foreground mb-2">
+                    Usage Information
+                  </h3>
                   <ul className="list-disc list-inside space-y-1">
                     <li>How you interact with other users</li>
                     <li>Messages and communications within the app</li>
@@ -90,15 +107,30 @@ const PrivacyPolicy = () => {
                 Information Sharing
               </h2>
               <div className="space-y-4 text-muted-foreground">
-                <p>We may share your information in the following circumstances:</p>
+                <p>
+                  We may share your information in the following circumstances:
+                </p>
                 <ul className="list-disc list-inside space-y-2">
-                  <li><strong>With other users:</strong> Your profile information is visible to other users as part of the service</li>
-                  <li><strong>Service providers:</strong> Third parties who help us operate and improve our services</li>
-                  <li><strong>Legal requirements:</strong> When required by law or to protect our rights</li>
-                  <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+                  <li>
+                    <strong>With other users:</strong> Your profile information
+                    is visible to other users as part of the service
+                  </li>
+                  <li>
+                    <strong>Service providers:</strong> Third parties who help
+                    us operate and improve our services
+                  </li>
+                  <li>
+                    <strong>Legal requirements:</strong> When required by law or
+                    to protect our rights
+                  </li>
+                  <li>
+                    <strong>Business transfers:</strong> In connection with a
+                    merger, acquisition, or sale of assets
+                  </li>
                 </ul>
                 <p className="font-medium text-foreground">
-                  We do not sell your personal information to third parties for marketing purposes.
+                  We do not sell your personal information to third parties for
+                  marketing purposes.
                 </p>
               </div>
             </section>
@@ -109,9 +141,11 @@ const PrivacyPolicy = () => {
                 Push Notifications & Communications
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                With your consent, we may send you push notifications about matches, messages, and app updates. 
-                You can manage your notification preferences in your device settings or within the app. 
-                We may also send you email communications about your account, security updates, and service changes.
+                With your consent, we may send you push notifications about
+                matches, messages, and app updates. You can manage your
+                notification preferences in your device settings or within the
+                app. We may also send you email communications about your
+                account, security updates, and service changes.
               </p>
             </section>
 
@@ -121,11 +155,15 @@ const PrivacyPolicy = () => {
                 Data Security
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                We implement industry-standard security measures to protect your personal information, including:
+                We implement industry-standard security measures to protect your
+                personal information, including:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
                 <li>Encryption of data in transit and at rest</li>
-                <li>Secure authentication mechanisms including two-factor authentication</li>
+                <li>
+                  Secure authentication mechanisms including two-factor
+                  authentication
+                </li>
                 <li>Regular security audits and vulnerability assessments</li>
                 <li>Access controls and employee training</li>
                 <li>Breach detection and incident response procedures</li>
@@ -138,18 +176,42 @@ const PrivacyPolicy = () => {
                 Your Rights & Choices
               </h2>
               <div className="space-y-4 text-muted-foreground">
-                <p>You have the following rights regarding your personal information:</p>
+                <p>
+                  You have the following rights regarding your personal
+                  information:
+                </p>
                 <ul className="list-disc list-inside space-y-2">
-                  <li><strong>Access:</strong> Request a copy of your personal data</li>
-                  <li><strong>Correction:</strong> Update or correct inaccurate information</li>
-                  <li><strong>Deletion:</strong> Request deletion of your account and data</li>
-                  <li><strong>Portability:</strong> Receive your data in a portable format</li>
-                  <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
-                  <li><strong>Withdraw consent:</strong> Revoke previously given consent</li>
+                  <li>
+                    <strong>Access:</strong> Request a copy of your personal
+                    data
+                  </li>
+                  <li>
+                    <strong>Correction:</strong> Update or correct inaccurate
+                    information
+                  </li>
+                  <li>
+                    <strong>Deletion:</strong> Request deletion of your account
+                    and data
+                  </li>
+                  <li>
+                    <strong>Portability:</strong> Receive your data in a
+                    portable format
+                  </li>
+                  <li>
+                    <strong>Opt-out:</strong> Unsubscribe from marketing
+                    communications
+                  </li>
+                  <li>
+                    <strong>Withdraw consent:</strong> Revoke previously given
+                    consent
+                  </li>
                 </ul>
                 <p>
                   To exercise these rights, please contact us at{" "}
-                  <a href="mailto:privacy@blossomapp.com" className="text-primary hover:underline">
+                  <a
+                    href="mailto:privacy@blossomapp.com"
+                    className="text-primary hover:underline"
+                  >
                     privacy@blossomapp.com
                   </a>
                 </p>
@@ -162,25 +224,32 @@ const PrivacyPolicy = () => {
                 Contact Us
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about this Privacy Policy or our data practices, please contact us at:
+                If you have any questions about this Privacy Policy or our data
+                practices, please contact us at:
               </p>
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium">Blossom Dating</p>
-                <p className="text-muted-foreground">Email: privacy@blossomapp.com</p>
+                <p className="text-muted-foreground">
+                  Email: privacy@blossomapp.com
+                </p>
               </div>
             </section>
 
             <section className="bg-card rounded-xl p-6 border border-border">
-              <h2 className="text-2xl font-semibold mb-4">Changes to This Policy</h2>
+              <h2 className="text-2xl font-semibold mb-4">
+                Changes to This Policy
+              </h2>
               <p className="text-muted-foreground leading-relaxed">
-                We may update this Privacy Policy from time to time. We will notify you of any material changes 
-                by posting the new Privacy Policy on this page and updating the "Last updated" date. We encourage 
-                you to review this Privacy Policy periodically for any changes.
+                We may update this Privacy Policy from time to time. We will
+                notify you of any material changes by posting the new Privacy
+                Policy on this page and updating the "Last updated" date. We
+                encourage you to review this Privacy Policy periodically for any
+                changes.
               </p>
             </section>
           </div>
         </main>
-        
+
         <Footer />
       </div>
     </>

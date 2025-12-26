@@ -36,7 +36,9 @@ interface PushNotificationPromptProps {
   onComplete?: () => void;
 }
 
-export const PushNotificationPrompt = ({ onComplete }: PushNotificationPromptProps) => {
+export const PushNotificationPrompt = ({
+  onComplete,
+}: PushNotificationPromptProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register, isNative, isRegistered } = usePushNotifications();
@@ -45,19 +47,19 @@ export const PushNotificationPrompt = ({ onComplete }: PushNotificationPromptPro
   useEffect(() => {
     // Only show on native platforms
     if (!isNative) return;
-    
+
     // Don't show if already registered
     if (isRegistered) return;
-    
+
     // Check if user already dismissed the prompt
     const dismissed = localStorage.getItem(PROMPT_DISMISSED_KEY);
     if (dismissed) return;
-    
+
     // Show after a short delay
     const timer = setTimeout(() => {
       setIsOpen(true);
     }, 1500);
-    
+
     return () => clearTimeout(timer);
   }, [isNative, isRegistered]);
 
