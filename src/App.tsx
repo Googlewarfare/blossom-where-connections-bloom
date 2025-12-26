@@ -12,6 +12,7 @@ import { OfflineFallback } from "./components/OfflineFallback";
 import { useDeepLinks } from "./hooks/use-deep-links";
 import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -21,28 +22,30 @@ const DeepLinkHandler = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <VideoCallProvider>
-        <TooltipProvider>
-          <SkipLink />
-          <Toaster />
-          <Sonner />
-          <OfflineFallback />
-          <PushNotificationPrompt />
-          <AppRatingPrompt />
-          <BrowserRouter>
-            <DeepLinkHandler />
-            <SessionTimeoutProvider>
-              <main id="main-content">
-                <AnimatedRoutes />
-              </main>
-            </SessionTimeoutProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </VideoCallProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <VideoCallProvider>
+          <TooltipProvider>
+            <SkipLink />
+            <Toaster />
+            <Sonner />
+            <OfflineFallback />
+            <PushNotificationPrompt />
+            <AppRatingPrompt />
+            <BrowserRouter>
+              <DeepLinkHandler />
+              <SessionTimeoutProvider>
+                <main id="main-content">
+                  <AnimatedRoutes />
+                </main>
+              </SessionTimeoutProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </VideoCallProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
