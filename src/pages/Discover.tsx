@@ -10,6 +10,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useHaptics } from "@/hooks/use-haptics";
 import { calculateDistance } from "@/lib/location-utils";
 import Navbar from "@/components/Navbar";
 import MatchesMap from "@/components/MatchesMap";
@@ -43,6 +44,7 @@ const Discover = () => {
   const {
     toast
   } = useToast();
+  const haptics = useHaptics();
   const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -243,6 +245,14 @@ const Discover = () => {
   const handleSwipe = async (action: "like" | "pass") => {
     const currentProfile = profiles[currentIndex];
     if (!currentProfile) return;
+    
+    // Haptic feedback for swipe action
+    if (action === "like") {
+      haptics.likeAction();
+    } else {
+      haptics.lightTap();
+    }
+    
     try {
       // Insert swipe action
       const {
@@ -270,6 +280,8 @@ const Discover = () => {
           data: matchData
         } = await supabase.from("matches").select("*").eq("user1_id", userId1).eq("user2_id", userId2).maybeSingle();
         if (matchData) {
+          // Strong haptic for match!
+          haptics.matchFound();
           setMatchedProfile(currentProfile);
           setShowMatchModal(true);
         } else {
@@ -295,6 +307,9 @@ const Discover = () => {
   const handleSuperLike = async () => {
     const currentProfile = profiles[currentIndex];
     if (!currentProfile || !user) return;
+    
+    // Heavy haptic for super like
+    haptics.heavyTap();
 
     // If user has unlimited subscription, send super like immediately
     if (hasUnlimitedSuperLikes) {
@@ -323,6 +338,7 @@ const Discover = () => {
           data: matchData
         } = await supabase.from("matches").select("*").eq("user1_id", userId1).eq("user2_id", userId2).maybeSingle();
         if (matchData) {
+          haptics.matchFound();
           setMatchedProfile(currentProfile);
           setShowMatchModal(true);
         } else {
@@ -411,6 +427,11 @@ const Discover = () => {
     }
   };
   const handleDragEnd = (_: any, info: any) => {
+    // Haptic feedback during drag threshold
+    if (Math.abs(info.offset.x) > 100) {
+      haptics.cardSwipe();
+    }
+    
     if (info.offset.x > 100) {
       handleSwipe("like");
     } else if (info.offset.x < -100) {
