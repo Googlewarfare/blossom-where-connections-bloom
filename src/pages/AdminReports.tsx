@@ -348,17 +348,25 @@ export default function AdminReports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              Trust & Safety Reports
-            </h1>
-            <p className="text-muted-foreground">Review and manage user reports</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Shield className="h-6 w-6 text-primary" />
+                Trust & Safety Reports
+              </h1>
+              <p className="text-muted-foreground">Review and manage user reports</p>
+            </div>
           </div>
+          {isAdmin && (
+            <Button variant="outline" onClick={() => navigate("/admin/audit-logs")}>
+              <Clock className="h-4 w-4 mr-2" />
+              Audit Logs
+            </Button>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
