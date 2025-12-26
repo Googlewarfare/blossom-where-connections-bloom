@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { VideoCallButton } from '@/components/VideoCallButton';
 import { useVideoCallContext } from '@/components/VideoCallProvider';
+import { EncryptionIndicator, MessageEncryptionBanner } from '@/components/EncryptionIndicator';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -376,9 +377,13 @@ const Chat = () => {
                       {currentConversation.other_user.full_name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-semibold flex-1">
-                    {currentConversation.other_user.full_name}
-                  </h2>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold">
+                      {currentConversation.other_user.full_name}
+                    </h2>
+                    <EncryptionIndicator variant="inline" />
+                  </div>
+                  <EncryptionIndicator variant="badge" className="hidden sm:flex" />
                   <VideoCallButton
                     onStartCall={() => startCall(
                       currentConversation.other_user.id,
@@ -387,6 +392,9 @@ const Chat = () => {
                     disabled={callState.status !== 'idle'}
                   />
                 </div>
+                
+                {/* Encryption Banner */}
+                <MessageEncryptionBanner />
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
