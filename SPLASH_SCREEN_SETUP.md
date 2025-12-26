@@ -1,65 +1,118 @@
 # Splash Screen Setup Guide
 
-This guide explains how to configure splash screens for iOS and Android.
+This guide explains how to configure native splash screens for iOS and Android.
 
 ## Current Configuration
 
-The `capacitor.config.ts` already includes splash screen settings:
+The `capacitor.config.ts` includes splash screen settings:
 
 ```typescript
 plugins: {
   SplashScreen: {
-    launchShowDuration: 2000,
-    launchAutoHide: true,
+    launchShowDuration: 2500,
+    launchAutoHide: false,
+    launchFadeOutDuration: 500,
     backgroundColor: "#FBD5D5",  // Blossom pink
     showSpinner: false,
-    androidScaleType: "CENTER_CROP",
     splashFullScreen: true,
     splashImmersive: true,
   },
 }
 ```
 
-## Source Image
+## iOS Setup (Launch Storyboard)
 
-Use `src/assets/splash-screen.png` or create a new one.
+iOS uses a Launch Storyboard for the native splash screen. This ensures instant display before the web view loads.
 
-**Requirements:**
+### Step 1: Open Xcode Project
 
-- 2732x2732 pixels (largest iPad size)
-- PNG format
-- Center the logo/content in a safe zone (inner 1200x1200)
+```bash
+npx cap open ios
+```
 
-## iOS Setup
+### Step 2: Add Splash Image to Assets
 
-### Using Xcode (Recommended)
+1. In Xcode, navigate to `App → App → Assets.xcassets`
+2. Right-click → "New Image Set" → Name it `SplashLogo`
+3. Add your logo image (use `src/assets/blossom-logo.jpg` as source):
+   - 1x: 200x200 pixels
+   - 2x: 400x400 pixels  
+   - 3x: 600x600 pixels
 
-1. Open `ios/App/App.xcworkspace` in Xcode
-2. Select the project → App → General → App Icons and Launch Images
-3. Set "Launch Screen File" to `LaunchScreen`
-4. Edit `ios/App/App/Base.lproj/LaunchScreen.storyboard`:
-   - Add your splash image to Assets
-   - Configure the storyboard to display it
+### Step 3: Configure LaunchScreen.storyboard
 
-### Using Static Images
+1. Open `App → App → Base.lproj → LaunchScreen.storyboard`
+2. Select the main View
+3. In the Attributes Inspector, set Background to Custom Color: `#FBD5D5`
+4. Add an Image View:
+   - Drag "Image View" from Object Library onto the view
+   - Set Image to `SplashLogo`
+   - Set Content Mode to "Aspect Fit"
+5. Add constraints to center the image:
+   - Select the Image View
+   - Click "Add New Constraints" (⊞ icon at bottom)
+   - Set Width: 200, Height: 200
+   - Click "Align" → Check "Horizontally in Container" and "Vertically in Container"
+   - Click "Add Constraints"
 
-Create these sizes in `ios/App/App/Assets.xcassets/Splash.imageset/`:
+### Step 4: Set Launch Screen File
 
-| Device | Size                                                       |
-| ------ | ---------------------------------------------------------- |
-| iPhone | 1242x2688 (XS Max), 1125x2436 (X/XS), 1242x2208 (6+/7+/8+) |
-| iPad   | 2048x2732 (12.9"), 1668x2388 (11"), 1536x2048 (9.7")       |
+1. Select the project (App) in the navigator
+2. Select the "App" target → General tab
+3. Under "App Icons and Launch Screen":
+   - Ensure "Launch Screen Storyboard" is set to `LaunchScreen`
+
+### Step 5: Alternative - Solid Color Only
+
+For a minimal splash with just the brand color:
+
+1. Open `LaunchScreen.storyboard`
+2. Delete any existing views
+3. Add a new View that fills the entire safe area
+4. Set its background color to `#FBD5D5`
+5. Done - clean, fast, and on-brand
 
 ## Android Setup
 
-### Splash Image
+### Step 1: Add Splash Drawable
 
-Place your splash image in:
+Create `android/app/src/main/res/drawable/splash.xml`:
 
-- `android/app/src/main/res/drawable/splash.png`
-- Or use `drawable-*` folders for different densities
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_background"/>
+    <item
+        android:width="200dp"
+        android:height="200dp"
+        android:gravity="center"
+        android:drawable="@drawable/splash_logo"/>
+</layer-list>
+```
 
-### Colors (for background)
+### Step 2: Add Colors
+
+Add to `android/app/src/main/res/values/colors.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_background">#FBD5D5</color>
+</resources>
+```
+
+### Step 3: Add Logo
+
+Place your logo at `android/app/src/main/res/drawable/splash_logo.png`
+
+For different densities:
+- `drawable-mdpi`: 150x150
+- `drawable-hdpi`: 225x225
+- `drawable-xhdpi`: 300x300
+- `drawable-xxhdpi`: 450x450
+- `drawable-xxxhdpi`: 600x600
+
+### Step 4: Update Styles
 
 Edit `android/app/src/main/res/values/styles.xml`:
 
@@ -67,47 +120,48 @@ Edit `android/app/src/main/res/values/styles.xml`:
 <resources>
     <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
         <item name="android:background">@drawable/splash</item>
+        <item name="android:windowBackground">@drawable/splash</item>
     </style>
 </resources>
 ```
 
-### Dark Mode Support
+### Step 5: Dark Mode Support (Optional)
 
-Create `android/app/src/main/res/values-night/styles.xml`:
+Create `android/app/src/main/res/values-night/colors.xml`:
 
 ```xml
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-        <item name="android:background">@drawable/splash_dark</item>
-    </style>
+    <color name="splash_background">#1A1A1A</color>
 </resources>
 ```
-
-And add `drawable/splash_dark.png` for dark mode.
 
 ## Code Integration
 
-The splash is automatically hidden when the app loads. This is handled in `src/main.tsx`:
+The splash is hidden programmatically after the app loads. This is handled in `src/main.tsx`:
 
 ```typescript
 import { SplashScreen } from "@capacitor/splash-screen";
 import { Capacitor } from "@capacitor/core";
 
 if (Capacitor.isNativePlatform()) {
-  SplashScreen.hide().catch(() => {});
+  setTimeout(() => {
+    SplashScreen.hide().catch(() => {});
+  }, 100);
 }
 ```
 
-## Advanced: Animated Splash
+## Source Images
 
-For animated splash screens on iOS:
+| File | Purpose | Recommended Size |
+|------|---------|------------------|
+| `src/assets/splash-screen.png` | Full splash (for generation tools) | 2732x2732 |
+| `src/assets/blossom-logo.jpg` | Logo only (for storyboard) | 600x600+ |
+| `public/app-icon.jpg` | App icon source | 1024x1024 |
 
-1. Create a Lottie animation or video
-2. Use the `@capacitor-community/splash-screen` plugin (community plugin)
+## After Making Changes
 
-## After Adding Splash Screens
-
-Sync changes:
+Sync your changes:
 
 ```bash
 npx cap sync ios
@@ -116,6 +170,17 @@ npx cap sync android
 
 ## Troubleshooting
 
-- **White flash before splash**: Ensure `backgroundColor` in capacitor.config.ts matches your splash background
-- **Splash not showing**: Check that `launchShowDuration` > 0
-- **Splash stays too long**: Ensure `SplashScreen.hide()` is called after app loads
+| Issue | Solution |
+|-------|----------|
+| White flash before splash | Ensure `backgroundColor` matches storyboard |
+| Splash not showing | Check `launchShowDuration` > 0 |
+| Splash stays too long | Verify `SplashScreen.hide()` is called |
+| Logo looks pixelated | Use higher resolution images (3x) |
+| Constraints warning in Xcode | Reset constraints on the image view |
+
+## iOS-Specific Notes
+
+- iOS requires Launch Storyboard (not static images) for App Store submission
+- The storyboard is displayed by iOS before your app code runs
+- Keep the design simple - complex layouts may cause delays
+- Test on multiple device sizes to ensure proper scaling

@@ -10,6 +10,7 @@ import {
   Bell,
   Lock,
   User,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -76,9 +77,7 @@ const Settings = () => {
       // In a real app, you'd call an edge function to properly delete user data
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      toast.success(
-        "Account deletion requested. You will receive a confirmation email.",
-      );
+      toast.success("Account deletion requested. You will receive a confirmation email.");
       navigate("/");
     } catch (error) {
       toast.error("Failed to process account deletion request");
@@ -89,10 +88,7 @@ const Settings = () => {
     <>
       <Helmet>
         <title>Settings - Blossom</title>
-        <meta
-          name="description"
-          content="Manage your Blossom account settings, privacy, and preferences."
-        />
+        <meta name="description" content="Manage your Blossom account settings, privacy, and preferences." />
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -107,11 +103,8 @@ const Settings = () => {
             <div className="bg-card rounded-xl p-2">
               <SettingsItem icon={User} label="Edit Profile" to="/profile" />
               <SettingsItem icon={Bell} label="Notifications" to="/profile" />
-              <SettingsItem
-                icon={Lock}
-                label="Privacy & Security"
-                to="/profile"
-              />
+              <SettingsItem icon={MapPin} label="Privacy Settings" to="/settings/privacy" />
+              <SettingsItem icon={Lock} label="Security" to="/profile" />
             </div>
           </div>
 
@@ -121,21 +114,9 @@ const Settings = () => {
               Legal
             </h2>
             <div className="bg-card rounded-xl p-2">
-              <SettingsItem
-                icon={Shield}
-                label="Privacy Policy"
-                to="/privacy"
-              />
-              <SettingsItem
-                icon={FileText}
-                label="Terms of Service"
-                to="/terms"
-              />
-              <SettingsItem
-                icon={Shield}
-                label="Community Guidelines"
-                to="/guidelines"
-              />
+              <SettingsItem icon={Shield} label="Privacy Policy" to="/privacy" />
+              <SettingsItem icon={FileText} label="Terms of Service" to="/terms" />
+              <SettingsItem icon={Shield} label="Community Guidelines" to="/guidelines" />
             </div>
           </div>
 
@@ -145,11 +126,7 @@ const Settings = () => {
               Support
             </h2>
             <div className="bg-card rounded-xl p-2">
-              <SettingsItem
-                icon={HelpCircle}
-                label="Help & Support"
-                to="/support"
-              />
+              <SettingsItem icon={HelpCircle} label="Help & Support" to="/support" />
               <SettingsItem icon={Shield} label="Safety Center" to="/safety" />
             </div>
           </div>
@@ -181,8 +158,8 @@ const Settings = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove all your data from our servers.
+                    This action cannot be undone. This will permanently delete your
+                    account and remove all your data from our servers.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

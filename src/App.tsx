@@ -9,11 +9,21 @@ import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { SkipLink } from "./components/ui/skip-link";
 import { SessionTimeoutProvider } from "./components/SessionTimeoutProvider";
 import { OfflineFallback } from "./components/OfflineFallback";
+import { NetworkStatusBanner } from "./components/NetworkStatusBanner";
 import { useDeepLinks } from "./hooks/use-deep-links";
 import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const DeepLinkHandler = () => {
   useDeepLinks();
@@ -21,28 +31,31 @@ const DeepLinkHandler = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <VideoCallProvider>
-        <TooltipProvider>
-          <SkipLink />
-          <Toaster />
-          <Sonner />
-          <OfflineFallback />
-          <PushNotificationPrompt />
-          <AppRatingPrompt />
-          <BrowserRouter>
-            <DeepLinkHandler />
-            <SessionTimeoutProvider>
-              <main id="main-content">
-                <AnimatedRoutes />
-              </main>
-            </SessionTimeoutProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </VideoCallProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <VideoCallProvider>
+          <TooltipProvider>
+            <SkipLink />
+            <Toaster />
+            <Sonner />
+            <NetworkStatusBanner />
+            <OfflineFallback />
+            <PushNotificationPrompt />
+            <AppRatingPrompt />
+            <BrowserRouter>
+              <DeepLinkHandler />
+              <SessionTimeoutProvider>
+                <main id="main-content">
+                  <AnimatedRoutes />
+                </main>
+              </SessionTimeoutProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </VideoCallProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

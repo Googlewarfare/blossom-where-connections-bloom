@@ -25,17 +25,24 @@ const config: CapacitorConfig = {
     : {}),
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      // Duration settings
+      launchShowDuration: 2500,
       launchAutoHide: false, // We hide manually after app loads
-      launchFadeOutDuration: 300,
-      backgroundColor: "#FBD5D5",
+      launchFadeOutDuration: 500,
+      
+      // Appearance
+      backgroundColor: "#FBD5D5", // Blossom pink - matches launch storyboard
       showSpinner: false,
-      androidSpinnerStyle: "small",
-      androidScaleType: "CENTER_CROP",
       splashFullScreen: true,
       splashImmersive: true,
-      // iOS-specific
+      
+      // Android-specific
+      androidSpinnerStyle: "small",
+      androidScaleType: "CENTER_CROP",
+      
+      // iOS-specific - uses LaunchScreen.storyboard
       iosSpinnerStyle: "small",
+      useDialog: false, // Use native launch screen on iOS
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],

@@ -1,43 +1,28 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth, PREMIUM_FEATURES } from "@/lib/auth";
-import { useMessages } from "@/hooks/use-messages";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ArrowLeft,
-  Send,
-  MessageCircle,
-  Check,
-  CheckCheck,
-  X,
-  Paperclip,
-  Image as ImageIcon,
-  Sparkles,
-} from "lucide-react";
-import { format } from "date-fns";
-import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import { MessageReactions } from "@/components/MessageReactions";
-import { MessageActions } from "@/components/MessageActions";
-import { MediaPreview, UploadingMediaPreview } from "@/components/MediaPreview";
-import { IcebreakerQuestions } from "@/components/IcebreakerQuestions";
-import { VoiceRecorder } from "@/components/VoiceRecorder";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { VideoCallButton } from "@/components/VideoCallButton";
-import { useVideoCallContext } from "@/components/VideoCallProvider";
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth, PREMIUM_FEATURES } from '@/lib/auth';
+import { useMessages } from '@/hooks/use-messages';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles, Lock } from 'lucide-react';
+import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
+import { MessageReactions } from '@/components/MessageReactions';
+import { MessageActions } from '@/components/MessageActions';
+import { MediaPreview, UploadingMediaPreview } from '@/components/MediaPreview';
+import { IcebreakerQuestions } from '@/components/IcebreakerQuestions';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { VideoCallButton } from '@/components/VideoCallButton';
+import { useVideoCallContext } from '@/components/VideoCallProvider';
+import { EncryptionIndicator, MessageEncryptionBanner } from '@/components/EncryptionIndicator';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -45,19 +30,16 @@ const Chat = () => {
   const { toast } = useToast();
   const { startCall, callState } = useVideoCallContext();
   const [searchParams] = useSearchParams();
-  const conversationId = searchParams.get("id");
-  const [messageText, setMessageText] = useState("");
-  const [selectedConversation, setSelectedConversation] = useState<
-    string | null
-  >(conversationId);
+  const conversationId = searchParams.get('id');
+  const [messageText, setMessageText] = useState('');
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(
+    conversationId
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
 
-  const hasReadReceipts =
-    subscriptionStatus?.subscribed &&
-    subscriptionStatus.subscriptions?.some(
-      (sub) => sub.product_id === PREMIUM_FEATURES.READ_RECEIPTS,
-    );
+  const hasReadReceipts = subscriptionStatus?.subscribed && 
+    subscriptionStatus.subscriptions?.some(sub => sub.product_id === PREMIUM_FEATURES.READ_RECEIPTS);
 
   const {
     messages,
@@ -69,18 +51,16 @@ const Chat = () => {
     addReaction,
     removeReaction,
   } = useMessages(selectedConversation || undefined);
-
+  
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
+  const [editText, setEditText] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
-    {},
-  );
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/auth");
+      navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 
@@ -88,58 +68,56 @@ const Chat = () => {
     if (conversationId) {
       setSelectedConversation(conversationId);
     }
-
+    
     // Handle subscription success
-    const subscriptionSuccess = searchParams.get("subscription_success");
-    if (subscriptionSuccess === "true") {
+    const subscriptionSuccess = searchParams.get('subscription_success');
+    if (subscriptionSuccess === 'true') {
       toast({
         title: "Read Receipts Active! 💬",
         description: "You can now see when messages are read!",
       });
-      window.history.replaceState({}, "", "/chat");
+      window.history.replaceState({}, '', '/chat');
     }
   }, [conversationId, searchParams, toast]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    
     // Mark messages as read when viewing them
     const markMessagesAsRead = async () => {
       if (!selectedConversation || !user || messages.length === 0) return;
-
+      
       const unreadMessages = messages.filter(
-        (msg) => !msg.read && msg.sender_id !== user.id,
+        msg => !msg.read && msg.sender_id !== user.id
       );
-
+      
       if (unreadMessages.length === 0) return;
-
+      
       // Use the secure function to mark messages as read
-      const messageIds = unreadMessages.map((msg) => msg.id);
-      await supabase.rpc("mark_messages_as_read", {
-        p_message_ids: messageIds,
-      });
+      const messageIds = unreadMessages.map(msg => msg.id);
+      await supabase.rpc('mark_messages_as_read', { p_message_ids: messageIds });
     };
-
+    
     markMessagesAsRead();
   }, [messages, selectedConversation, user]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter((file) => {
-      const isImage = file.type.startsWith("image/");
-      const isVideo = file.type.startsWith("video/");
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
       const isUnder10MB = file.size <= 10 * 1024 * 1024;
       return (isImage || isVideo) && isUnder10MB;
     });
-
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
+    
+    setSelectedFiles(prev => [...prev, ...validFiles]);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
   const removeFile = (file: File) => {
-    setSelectedFiles((prev) => prev.filter((f) => f !== file));
+    setSelectedFiles(prev => prev.filter(f => f !== file));
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -147,7 +125,7 @@ const Chat = () => {
     if (!messageText.trim() && selectedFiles.length === 0) return;
 
     await sendMessage(messageText, selectedFiles);
-    setMessageText("");
+    setMessageText('');
     setSelectedFiles([]);
     setUploadProgress({});
   };
@@ -159,32 +137,32 @@ const Chat = () => {
       // Upload audio to storage
       const fileName = `${user.id}/${Date.now()}.webm`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("chat-media")
+        .from('chat-media')
         .upload(fileName, audioBlob);
 
       if (uploadError) throw uploadError;
 
       // Send message with voice attachment
       await sendMessage(`🎤 Voice message (${duration}s)`, []);
-
+      
       // Get the message that was just created
       const { data: messages } = await supabase
-        .from("messages")
-        .select("id")
-        .eq("conversation_id", selectedConversation)
-        .eq("sender_id", user.id)
-        .order("created_at", { ascending: false })
+        .from('messages')
+        .select('id')
+        .eq('conversation_id', selectedConversation)
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
         .limit(1);
 
       if (messages && messages[0]) {
         // Add media record
-        await supabase.from("message_media").insert({
+        await supabase.from('message_media').insert({
           message_id: messages[0].id,
           file_url: fileName,
-          file_type: "audio/webm",
-          file_name: "voice-message.webm",
+          file_type: 'audio/webm',
+          file_name: 'voice-message.webm',
           file_size: audioBlob.size,
-          duration_seconds: duration,
+          duration_seconds: duration
         });
       }
 
@@ -192,11 +170,11 @@ const Chat = () => {
         title: "Voice message sent!",
       });
     } catch (error) {
-      console.error("Error sending voice message:", error);
+      console.error('Error sending voice message:', error);
       toast({
         title: "Error",
         description: "Failed to send voice message",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -206,7 +184,7 @@ const Chat = () => {
 
     await editMessage(messageId, editText);
     setEditingMessageId(null);
-    setEditText("");
+    setEditText('');
   };
 
   const handleDeleteMessage = async (messageId: string) => {
@@ -220,14 +198,13 @@ const Chat = () => {
 
   const handleManageSubscription = async () => {
     try {
-      const { data, error } =
-        await supabase.functions.invoke("customer-portal");
+      const { data, error } = await supabase.functions.invoke('customer-portal');
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        window.open(data.url, '_blank');
       }
     } catch (error) {
-      console.error("Error opening customer portal:", error);
+      console.error('Error opening customer portal:', error);
       toast({
         title: "Error",
         description: "Failed to open subscription management",
@@ -238,15 +215,13 @@ const Chat = () => {
 
   const handleSubscribeReadReceipts = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "create-read-receipts-checkout",
-      );
+      const { data, error } = await supabase.functions.invoke('create-read-receipts-checkout');
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        window.open(data.url, '_blank');
       }
     } catch (error) {
-      console.error("Error creating subscription checkout:", error);
+      console.error('Error creating subscription checkout:', error);
       toast({
         title: "Error",
         description: "Failed to start subscription",
@@ -255,9 +230,7 @@ const Chat = () => {
     }
   };
 
-  const currentConversation = conversations.find(
-    (c) => c.id === selectedConversation,
-  );
+  const currentConversation = conversations.find((c) => c.id === selectedConversation);
 
   if (authLoading || loading) {
     return (
@@ -277,11 +250,7 @@ const Chat = () => {
       <Navbar />
       <div className="container mx-auto max-w-6xl p-4">
         <div className="mb-6 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/matches")}
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl font-bold">Messages</h1>
@@ -309,7 +278,7 @@ const Chat = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/activity")}
+              onClick={() => navigate('/activity')}
             >
               <Sparkles className="h-4 w-4 mr-2" />
               Activity
@@ -330,7 +299,7 @@ const Chat = () => {
                 <p>No conversations yet</p>
                 <Button
                   variant="link"
-                  onClick={() => navigate("/discover")}
+                  onClick={() => navigate('/discover')}
                   className="mt-2"
                 >
                   Start matching
@@ -348,16 +317,14 @@ const Chat = () => {
                     <Card
                       className={`p-4 cursor-pointer transition-colors ${
                         selectedConversation === conversation.id
-                          ? "bg-primary/10 border-primary"
-                          : "hover:bg-muted/50"
+                          ? 'bg-primary/10 border-primary'
+                          : 'hover:bg-muted/50'
                       }`}
                       onClick={() => setSelectedConversation(conversation.id)}
                     >
                       <div className="flex items-start gap-3">
                         <Avatar>
-                          <AvatarImage
-                            src={conversation.other_user.photo_url}
-                          />
+                          <AvatarImage src={conversation.other_user.photo_url} />
                           <AvatarFallback>
                             {conversation.other_user.full_name[0]}
                           </AvatarFallback>
@@ -376,18 +343,15 @@ const Chat = () => {
                           {conversation.last_message && (
                             <>
                               <p className="text-sm text-muted-foreground truncate">
-                                {conversation.last_message.sender_id ===
-                                user?.id
-                                  ? "You: "
-                                  : ""}
+                                {conversation.last_message.sender_id === user?.id
+                                  ? 'You: '
+                                  : ''}
                                 {conversation.last_message.content}
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
                                 {format(
-                                  new Date(
-                                    conversation.last_message.created_at,
-                                  ),
-                                  "MMM d, h:mm a",
+                                  new Date(conversation.last_message.created_at),
+                                  'MMM d, h:mm a'
                                 )}
                               </p>
                             </>
@@ -408,44 +372,45 @@ const Chat = () => {
                 {/* Chat Header */}
                 <div className="p-4 border-b flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage
-                      src={currentConversation.other_user.photo_url}
-                    />
+                    <AvatarImage src={currentConversation.other_user.photo_url} />
                     <AvatarFallback>
                       {currentConversation.other_user.full_name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-semibold flex-1">
-                    {currentConversation.other_user.full_name}
-                  </h2>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold">
+                      {currentConversation.other_user.full_name}
+                    </h2>
+                    <EncryptionIndicator variant="inline" />
+                  </div>
+                  <EncryptionIndicator variant="badge" className="hidden sm:flex" />
                   <VideoCallButton
-                    onStartCall={() =>
-                      startCall(
-                        currentConversation.other_user.id,
-                        currentConversation.match_id,
-                      )
-                    }
-                    disabled={callState.status !== "idle"}
+                    onStartCall={() => startCall(
+                      currentConversation.other_user.id,
+                      currentConversation.match_id
+                    )}
+                    disabled={callState.status !== 'idle'}
                   />
                 </div>
+                
+                {/* Encryption Banner */}
+                <MessageEncryptionBanner />
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.map((message) => {
+                {messages.map((message) => {
                     const isOwn = message.sender_id === user?.id;
                     const isEditing = editingMessageId === message.id;
-
+                    
                     if (message.deleted) {
                       return (
                         <motion.div
                           key={message.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                          className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div
-                            className={`max-w-[70%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}
-                          >
+                          <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                             <div className="rounded-2xl px-4 py-2 bg-muted/50">
                               <p className="text-muted-foreground italic text-sm">
                                 This message was deleted
@@ -455,27 +420,25 @@ const Chat = () => {
                         </motion.div>
                       );
                     }
-
+                    
                     return (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isOwn ? "justify-end" : "justify-start"} group`}
+                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                       >
-                        <div
-                          className={`max-w-[70%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}
-                        >
+                        <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                           {isEditing ? (
                             <div className="w-full space-y-2">
                               <Input
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 onKeyDown={(e) => {
-                                  if (e.key === "Enter" && !e.shiftKey) {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
                                     handleEditMessage(message.id);
-                                  } else if (e.key === "Escape") {
+                                  } else if (e.key === 'Escape') {
                                     setEditingMessageId(null);
                                   }
                                 }}
@@ -504,76 +467,59 @@ const Chat = () => {
                                 <div
                                   className={`rounded-2xl px-4 py-2 ${
                                     isOwn
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-muted"
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'bg-muted'
                                   }`}
                                 >
                                   <p className="whitespace-pre-wrap break-words">
                                     {message.content}
                                   </p>
-                                  <div
+                                   <div
                                     className={`flex items-center gap-2 text-xs mt-1 ${
-                                      isOwn
-                                        ? "text-primary-foreground/70"
-                                        : "text-muted-foreground"
+                                      isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
                                     }`}
-                                  >
-                                    <span>
-                                      {format(
-                                        new Date(message.created_at),
-                                        "h:mm a",
-                                      )}
-                                    </span>
-                                    {message.edited_at && (
-                                      <span className="italic">(edited)</span>
-                                    )}
-                                    {isOwn && hasReadReceipts && (
-                                      <span className="ml-1 flex items-center gap-1">
-                                        {message.read ? (
-                                          <>
-                                            <CheckCheck className="h-3 w-3 text-blue-400" />
-                                            {message.read_at && (
-                                              <span className="text-[10px]">
-                                                Read{" "}
-                                                {format(
-                                                  new Date(message.read_at),
-                                                  "h:mm a",
-                                                )}
-                                              </span>
-                                            )}
-                                          </>
-                                        ) : (
-                                          <Check className="h-3 w-3" />
-                                        )}
-                                      </span>
-                                    )}
-                                    {isOwn && !hasReadReceipts && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-4 px-1 py-0 text-[10px] hover:bg-transparent"
-                                        onClick={() =>
-                                          setShowSubscriptionDialog(true)
-                                        }
-                                      >
-                                        <CheckCheck className="h-3 w-3 mr-0.5" />
-                                        Enable
-                                      </Button>
-                                    )}
-                                  </div>
+                                   >
+                                     <span>{format(new Date(message.created_at), 'h:mm a')}</span>
+                                     {message.edited_at && (
+                                       <span className="italic">(edited)</span>
+                                     )}
+                                     {isOwn && hasReadReceipts && (
+                                       <span className="ml-1 flex items-center gap-1">
+                                         {message.read ? (
+                                           <>
+                                             <CheckCheck className="h-3 w-3 text-blue-400" />
+                                             {message.read_at && (
+                                               <span className="text-[10px]">
+                                                 Read {format(new Date(message.read_at), 'h:mm a')}
+                                               </span>
+                                             )}
+                                           </>
+                                         ) : (
+                                           <Check className="h-3 w-3" />
+                                         )}
+                                       </span>
+                                     )}
+                                     {isOwn && !hasReadReceipts && (
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         className="h-4 px-1 py-0 text-[10px] hover:bg-transparent"
+                                         onClick={() => setShowSubscriptionDialog(true)}
+                                       >
+                                         <CheckCheck className="h-3 w-3 mr-0.5" />
+                                         Enable
+                                       </Button>
+                                     )}
+                                   </div>
                                 </div>
                                 {isOwn && (
                                   <MessageActions
-                                    onEdit={() =>
-                                      startEditing(message.id, message.content)
-                                    }
-                                    onDelete={() =>
-                                      handleDeleteMessage(message.id)
-                                    }
+                                    onEdit={() => startEditing(message.id, message.content)}
+                                    onDelete={() => handleDeleteMessage(message.id)}
                                   />
                                 )}
                               </div>
-
+                              
                               {/* Message Reactions */}
                               {user && (
                                 <MessageReactions
@@ -584,7 +530,7 @@ const Chat = () => {
                                   onRemoveReaction={removeReaction}
                                 />
                               )}
-
+                              
                               {/* Media attachments */}
                               {message.media && message.media.length > 0 && (
                                 <MediaPreview media={message.media} />
@@ -624,10 +570,8 @@ const Chat = () => {
                     >
                       <Paperclip className="h-5 w-5" />
                     </Button>
-                    <IcebreakerQuestions
-                      onSend={(question) => setMessageText(question)}
-                    />
-                    <VoiceRecorder
+                    <IcebreakerQuestions onSend={(question) => setMessageText(question)} />
+                    <VoiceRecorder 
                       onRecordingComplete={handleVoiceRecording}
                       disabled={!selectedConversation}
                     />
@@ -637,12 +581,10 @@ const Chat = () => {
                       placeholder="Type a message..."
                       className="flex-1"
                     />
-                    <Button
-                      type="submit"
-                      size="icon"
-                      disabled={
-                        !messageText.trim() && selectedFiles.length === 0
-                      }
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      disabled={!messageText.trim() && selectedFiles.length === 0}
                     >
                       <Send className="h-5 w-5" />
                     </Button>
@@ -661,10 +603,7 @@ const Chat = () => {
         </div>
 
         {/* Read Receipts Subscription Dialog */}
-        <Dialog
-          open={showSubscriptionDialog}
-          onOpenChange={setShowSubscriptionDialog}
-        >
+        <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-center text-2xl">
@@ -685,9 +624,7 @@ const Chat = () => {
                   <ul className="space-y-3 mb-6">
                     <li className="flex items-start gap-2">
                       <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                      <span className="text-sm">
-                        See when messages are read
-                      </span>
+                      <span className="text-sm">See when messages are read</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCheck className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />

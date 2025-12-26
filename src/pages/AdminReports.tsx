@@ -4,13 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -56,14 +50,7 @@ import {
 import { logAuditEvent } from "@/hooks/use-security";
 
 type ReportStatus = "pending" | "reviewing" | "resolved" | "dismissed";
-type ReportCategory =
-  | "fake_profile"
-  | "inappropriate_photos"
-  | "harassment"
-  | "spam"
-  | "scam"
-  | "underage"
-  | "other";
+type ReportCategory = "fake_profile" | "inappropriate_photos" | "harassment" | "spam" | "scam" | "underage" | "other";
 
 interface Report {
   id: string;
@@ -90,30 +77,11 @@ const CATEGORY_LABELS: Record<ReportCategory, string> = {
   other: "Other",
 };
 
-const STATUS_CONFIG: Record<
-  ReportStatus,
-  { label: string; color: string; icon: React.ReactNode }
-> = {
-  pending: {
-    label: "Pending",
-    color: "bg-yellow-500/10 text-yellow-500",
-    icon: <Clock className="h-3 w-3" />,
-  },
-  reviewing: {
-    label: "Reviewing",
-    color: "bg-blue-500/10 text-blue-500",
-    icon: <Eye className="h-3 w-3" />,
-  },
-  resolved: {
-    label: "Resolved",
-    color: "bg-green-500/10 text-green-500",
-    icon: <CheckCircle className="h-3 w-3" />,
-  },
-  dismissed: {
-    label: "Dismissed",
-    color: "bg-muted text-muted-foreground",
-    icon: <XCircle className="h-3 w-3" />,
-  },
+const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  pending: { label: "Pending", color: "bg-yellow-500/10 text-yellow-500", icon: <Clock className="h-3 w-3" /> },
+  reviewing: { label: "Reviewing", color: "bg-blue-500/10 text-blue-500", icon: <Eye className="h-3 w-3" /> },
+  resolved: { label: "Resolved", color: "bg-green-500/10 text-green-500", icon: <CheckCircle className="h-3 w-3" /> },
+  dismissed: { label: "Dismissed", color: "bg-muted text-muted-foreground", icon: <XCircle className="h-3 w-3" /> },
 };
 
 export default function AdminReports() {
@@ -130,11 +98,7 @@ export default function AdminReports() {
   const [activeTab, setActiveTab] = useState("pending");
   const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
-  const [userToBlock, setUserToBlock] = useState<{
-    id: string;
-    name: string;
-    reportId: string;
-  } | null>(null);
+  const [userToBlock, setUserToBlock] = useState<{ id: string; name: string; reportId: string } | null>(null);
   const [isBlocking, setIsBlocking] = useState(false);
 
   useEffect(() => {
@@ -154,10 +118,8 @@ export default function AdminReports() {
         .select("role")
         .eq("user_id", user.id);
 
-      const hasAdminRole = roles?.some((r) => r.role === "admin");
-      const isAdminOrMod = roles?.some(
-        (r) => r.role === "admin" || r.role === "moderator",
-      );
+      const hasAdminRole = roles?.some(r => r.role === "admin");
+      const isAdminOrMod = roles?.some(r => r.role === "admin" || r.role === "moderator");
       setHasAccess(!!isAdminOrMod);
       setIsAdmin(!!hasAdminRole);
 
@@ -173,10 +135,12 @@ export default function AdminReports() {
 
   const fetchBlockedUsers = async () => {
     try {
-      const { data } = await supabase.from("blocked_users").select("user_id");
-
+      const { data } = await supabase
+        .from("blocked_users")
+        .select("user_id");
+      
       if (data) {
-        setBlockedUserIds(new Set(data.map((b) => b.user_id)));
+        setBlockedUserIds(new Set(data.map(b => b.user_id)));
       }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
@@ -193,14 +157,8 @@ export default function AdminReports() {
       if (error) throw error;
 
       // Fetch profile info for reporters and reported users
-      const reporterIds = [
-        ...new Set(
-          reportsData?.map((r) => r.reporter_id).filter(Boolean) || [],
-        ),
-      ];
-      const reportedIds = [
-        ...new Set(reportsData?.map((r) => r.reported_user_id) || []),
-      ];
+      const reporterIds = [...new Set(reportsData?.map(r => r.reporter_id).filter(Boolean) || [])];
+      const reportedIds = [...new Set(reportsData?.map(r => r.reported_user_id) || [])];
       const allUserIds = [...new Set([...reporterIds, ...reportedIds])];
 
       const { data: profiles } = await supabase
@@ -214,22 +172,17 @@ export default function AdminReports() {
         .in("user_id", reportedIds)
         .eq("is_primary", true);
 
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-      const photoMap = new Map(
-        photos?.map((p) => [p.user_id, p.photo_url]) || [],
-      );
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const photoMap = new Map(photos?.map(p => [p.user_id, p.photo_url]) || []);
 
-      const enrichedReports =
-        reportsData?.map((report) => ({
-          ...report,
-          reporter: report.reporter_id
-            ? profileMap.get(report.reporter_id)
-            : undefined,
-          reported_user: {
-            full_name: profileMap.get(report.reported_user_id)?.full_name,
-            photo_url: photoMap.get(report.reported_user_id),
-          },
-        })) || [];
+      const enrichedReports = reportsData?.map(report => ({
+        ...report,
+        reporter: report.reporter_id ? profileMap.get(report.reporter_id) : undefined,
+        reported_user: {
+          full_name: profileMap.get(report.reported_user_id)?.full_name,
+          photo_url: photoMap.get(report.reported_user_id),
+        },
+      })) || [];
 
       setReports(enrichedReports);
     } catch (error) {
@@ -247,7 +200,7 @@ export default function AdminReports() {
         status: selectedReport.status,
         admin_notes: selectedReport.admin_notes,
       };
-
+      
       const { error } = await supabase
         .from("reports")
         .update({
@@ -262,11 +215,11 @@ export default function AdminReports() {
 
       // Log audit event
       await logAuditEvent(
-        "REPORT_STATUS_UPDATED",
-        "reports",
+        'REPORT_STATUS_UPDATED',
+        'reports',
         selectedReport.id,
         oldData,
-        { status: newStatus, admin_notes: adminNotes.trim() || null },
+        { status: newStatus, admin_notes: adminNotes.trim() || null }
       );
 
       toast.success("Report updated successfully");
@@ -286,11 +239,7 @@ export default function AdminReports() {
     setNewStatus(report.status);
   };
 
-  const handleBlockUser = (
-    userId: string,
-    userName: string,
-    reportId: string,
-  ) => {
+  const handleBlockUser = (userId: string, userName: string, reportId: string) => {
     setUserToBlock({ id: userId, name: userName, reportId });
     setBlockDialogOpen(true);
   };
@@ -300,29 +249,27 @@ export default function AdminReports() {
 
     setIsBlocking(true);
     try {
-      const { error } = await supabase.from("blocked_users").insert({
-        user_id: userToBlock.id,
-        blocked_by: user.id,
-        report_id: userToBlock.reportId,
-        reason: `Blocked from report review`,
-      });
+      const { error } = await supabase
+        .from("blocked_users")
+        .insert({
+          user_id: userToBlock.id,
+          blocked_by: user.id,
+          report_id: userToBlock.reportId,
+          reason: `Blocked from report review`,
+        });
 
       if (error) throw error;
 
       // Log audit event for blocking user
       await logAuditEvent(
-        "USER_BLOCKED",
-        "blocked_users",
+        'USER_BLOCKED',
+        'blocked_users',
         userToBlock.id,
         null,
-        {
-          user_id: userToBlock.id,
-          report_id: userToBlock.reportId,
-          reason: "Blocked from report review",
-        },
+        { user_id: userToBlock.id, report_id: userToBlock.reportId, reason: 'Blocked from report review' }
       );
 
-      setBlockedUserIds((prev) => new Set([...prev, userToBlock.id]));
+      setBlockedUserIds(prev => new Set([...prev, userToBlock.id]));
       toast.success(`${userToBlock.name || "User"} has been blocked`);
       setBlockDialogOpen(false);
       setUserToBlock(null);
@@ -349,14 +296,14 @@ export default function AdminReports() {
 
       // Log audit event for unblocking user
       await logAuditEvent(
-        "USER_UNBLOCKED",
-        "blocked_users",
+        'USER_UNBLOCKED',
+        'blocked_users',
         userId,
         { user_id: userId },
-        null,
+        null
       );
 
-      setBlockedUserIds((prev) => {
+      setBlockedUserIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(userId);
         return newSet;
@@ -368,7 +315,7 @@ export default function AdminReports() {
     }
   };
 
-  const filteredReports = reports.filter((r) => {
+  const filteredReports = reports.filter(r => {
     if (activeTab === "all") return true;
     return r.status === activeTab;
   });
@@ -401,19 +348,25 @@ export default function AdminReports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              Trust & Safety Reports
-            </h1>
-            <p className="text-muted-foreground">
-              Review and manage user reports
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Shield className="h-6 w-6 text-primary" />
+                Trust & Safety Reports
+              </h1>
+              <p className="text-muted-foreground">Review and manage user reports</p>
+            </div>
           </div>
+          {isAdmin && (
+            <Button variant="outline" onClick={() => navigate("/admin/audit-logs")}>
+              <Clock className="h-4 w-4 mr-2" />
+              Audit Logs
+            </Button>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -422,7 +375,7 @@ export default function AdminReports() {
               <Clock className="h-4 w-4" />
               Pending
               <Badge variant="secondary" className="ml-1">
-                {reports.filter((r) => r.status === "pending").length}
+                {reports.filter(r => r.status === "pending").length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="reviewing">
@@ -450,10 +403,7 @@ export default function AdminReports() {
               </Card>
             ) : (
               filteredReports.map((report) => (
-                <Card
-                  key={report.id}
-                  className="hover:shadow-md transition-shadow"
-                >
+                <Card key={report.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-4">
@@ -466,52 +416,37 @@ export default function AdminReports() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">
-                              {report.reported_user?.full_name ||
-                                "Unknown User"}
+                              {report.reported_user?.full_name || "Unknown User"}
                             </span>
                             <Badge variant="outline" className="text-xs">
                               {CATEGORY_LABELS[report.category]}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Reported by:{" "}
-                            {report.reporter?.full_name || "Anonymous"}
+                            Reported by: {report.reporter?.full_name || "Anonymous"}
                           </p>
                           {report.description && (
-                            <p className="text-sm mt-2 line-clamp-2">
-                              {report.description}
-                            </p>
+                            <p className="text-sm mt-2 line-clamp-2">{report.description}</p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {new Date(report.created_at).toLocaleDateString(
-                              "en-US",
-                              {
-                                dateStyle: "medium",
-                              },
-                            )}
+                            {new Date(report.created_at).toLocaleDateString("en-US", {
+                              dateStyle: "medium",
+                            })}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {blockedUserIds.has(report.reported_user_id) && (
-                          <Badge
-                            variant="destructive"
-                            className="flex items-center gap-1"
-                          >
+                          <Badge variant="destructive" className="flex items-center gap-1">
                             <Ban className="h-3 w-3" />
                             Blocked
                           </Badge>
                         )}
                         <Badge className={STATUS_CONFIG[report.status].color}>
                           {STATUS_CONFIG[report.status].icon}
-                          <span className="ml-1">
-                            {STATUS_CONFIG[report.status].label}
-                          </span>
+                          <span className="ml-1">{STATUS_CONFIG[report.status].label}</span>
                         </Badge>
-                        <Button
-                          size="sm"
-                          onClick={() => openReportDialog(report)}
-                        >
+                        <Button size="sm" onClick={() => openReportDialog(report)}>
                           Review
                         </Button>
                       </div>
@@ -524,10 +459,7 @@ export default function AdminReports() {
         </Tabs>
 
         {/* Review Dialog */}
-        <Dialog
-          open={!!selectedReport}
-          onOpenChange={() => setSelectedReport(null)}
-        >
+        <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Review Report</DialogTitle>
@@ -541,16 +473,13 @@ export default function AdminReports() {
                 <div className="p-4 bg-muted rounded-lg space-y-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={selectedReport.reported_user?.photo_url}
-                      />
+                      <AvatarImage src={selectedReport.reported_user?.photo_url} />
                       <AvatarFallback>
                         <User className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-medium">
-                      {selectedReport.reported_user?.full_name ||
-                        "Unknown User"}
+                      {selectedReport.reported_user?.full_name || "Unknown User"}
                     </span>
                   </div>
                   <div className="text-sm">
@@ -564,10 +493,7 @@ export default function AdminReports() {
 
                 <div className="space-y-2">
                   <Label>Status</Label>
-                  <Select
-                    value={newStatus}
-                    onValueChange={(v) => setNewStatus(v as ReportStatus)}
-                  >
+                  <Select value={newStatus} onValueChange={(v) => setNewStatus(v as ReportStatus)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -592,41 +518,31 @@ export default function AdminReports() {
 
                 <div className="flex justify-between gap-3">
                   <div>
-                    {isAdmin &&
-                      !blockedUserIds.has(selectedReport.reported_user_id) && (
-                        <Button
-                          variant="destructive"
-                          onClick={() =>
-                            handleBlockUser(
-                              selectedReport.reported_user_id,
-                              selectedReport.reported_user?.full_name ||
-                                "Unknown User",
-                              selectedReport.id,
-                            )
-                          }
-                        >
-                          <Ban className="h-4 w-4 mr-2" />
-                          Block User
-                        </Button>
-                      )}
-                    {isAdmin &&
-                      blockedUserIds.has(selectedReport.reported_user_id) && (
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            handleUnblockUser(selectedReport.reported_user_id)
-                          }
-                        >
-                          <ShieldCheck className="h-4 w-4 mr-2" />
-                          Unblock User
-                        </Button>
-                      )}
+                    {isAdmin && !blockedUserIds.has(selectedReport.reported_user_id) && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleBlockUser(
+                          selectedReport.reported_user_id,
+                          selectedReport.reported_user?.full_name || "Unknown User",
+                          selectedReport.id
+                        )}
+                      >
+                        <Ban className="h-4 w-4 mr-2" />
+                        Block User
+                      </Button>
+                    )}
+                    {isAdmin && blockedUserIds.has(selectedReport.reported_user_id) && (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleUnblockUser(selectedReport.reported_user_id)}
+                      >
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Unblock User
+                      </Button>
+                    )}
                   </div>
                   <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedReport(null)}
-                    >
+                    <Button variant="outline" onClick={() => setSelectedReport(null)}>
                       Cancel
                     </Button>
                     <Button onClick={handleUpdateReport} disabled={isUpdating}>
@@ -652,15 +568,12 @@ export default function AdminReports() {
             <AlertDialogHeader>
               <AlertDialogTitle>Block User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to block{" "}
-                {userToBlock?.name || "this user"}? They will no longer be able
-                to use the platform.
+                Are you sure you want to block {userToBlock?.name || "this user"}? 
+                They will no longer be able to use the platform.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isBlocking}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isBlocking}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmBlockUser}
                 disabled={isBlocking}
