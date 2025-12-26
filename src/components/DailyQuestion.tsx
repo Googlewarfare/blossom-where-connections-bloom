@@ -44,9 +44,10 @@ export const DailyQuestion = () => {
         .select('*')
         .eq('date', today)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (qError) throw qError;
+      if (!questionData) return; // No question for today
       setQuestion(questionData);
 
       // Check if user already answered
