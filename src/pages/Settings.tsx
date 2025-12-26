@@ -104,7 +104,7 @@ const Settings = () => {
               <SettingsItem icon={User} label="Edit Profile" to="/profile" />
               <SettingsItem icon={Bell} label="Notifications" to="/profile" />
               <SettingsItem icon={MapPin} label="Privacy Settings" to="/settings/privacy" />
-              <SettingsItem icon={Lock} label="Security" to="/profile" />
+              <SettingsItem icon={Shield} label="Security Dashboard" to="/settings/security" />
             </div>
           </div>
 
