@@ -9,12 +9,21 @@ import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { SkipLink } from "./components/ui/skip-link";
 import { SessionTimeoutProvider } from "./components/SessionTimeoutProvider";
 import { OfflineFallback } from "./components/OfflineFallback";
+import { NetworkStatusBanner } from "./components/NetworkStatusBanner";
 import { useDeepLinks } from "./hooks/use-deep-links";
 import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const DeepLinkHandler = () => {
   useDeepLinks();
@@ -30,6 +39,7 @@ const App = () => (
             <SkipLink />
             <Toaster />
             <Sonner />
+            <NetworkStatusBanner />
             <OfflineFallback />
             <PushNotificationPrompt />
             <AppRatingPrompt />
