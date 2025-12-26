@@ -32,11 +32,14 @@ const ensureCapacitorTriggerEvent = () => {
 
 ensureCapacitorTriggerEvent();
 
-// Hide native splash as soon as our JS boots.
+// Hide native splash after a short delay to ensure app is rendered
 if (Capacitor.isNativePlatform()) {
-  SplashScreen.hide().catch(() => {
-    // no-op
-  });
+  // Small delay ensures React has mounted before hiding splash
+  setTimeout(() => {
+    SplashScreen.hide().catch(() => {
+      // no-op
+    });
+  }, 100);
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
