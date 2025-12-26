@@ -30,7 +30,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 glass">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 glass safe-area-top">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
