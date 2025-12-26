@@ -764,6 +764,54 @@ export type Database = {
           },
         ]
       }
+      privacy_settings: {
+        Row: {
+          allow_profile_indexing: boolean
+          created_at: string
+          id: string
+          location_fuzzing_radius_miles: number
+          share_activity_with_matches: boolean
+          share_interests_publicly: boolean
+          show_distance: boolean
+          show_exact_location: boolean
+          show_last_active: boolean
+          show_online_status: boolean
+          show_profile_in_discovery: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_profile_indexing?: boolean
+          created_at?: string
+          id?: string
+          location_fuzzing_radius_miles?: number
+          share_activity_with_matches?: boolean
+          share_interests_publicly?: boolean
+          show_distance?: boolean
+          show_exact_location?: boolean
+          show_last_active?: boolean
+          show_online_status?: boolean
+          show_profile_in_discovery?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_profile_indexing?: boolean
+          created_at?: string
+          id?: string
+          location_fuzzing_radius_miles?: number
+          share_activity_with_matches?: boolean
+          share_interests_publicly?: boolean
+          show_distance?: boolean
+          show_exact_location?: boolean
+          show_last_active?: boolean
+          show_online_status?: boolean
+          show_profile_in_discovery?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_likes: {
         Row: {
           created_at: string

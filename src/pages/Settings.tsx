@@ -10,6 +10,7 @@ import {
   Bell,
   Lock,
   User,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -102,7 +103,8 @@ const Settings = () => {
             <div className="bg-card rounded-xl p-2">
               <SettingsItem icon={User} label="Edit Profile" to="/profile" />
               <SettingsItem icon={Bell} label="Notifications" to="/profile" />
-              <SettingsItem icon={Lock} label="Privacy & Security" to="/profile" />
+              <SettingsItem icon={MapPin} label="Privacy Settings" to="/settings/privacy" />
+              <SettingsItem icon={Lock} label="Security" to="/profile" />
             </div>
           </div>
 
