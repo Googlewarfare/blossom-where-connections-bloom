@@ -79,6 +79,10 @@ const Discover = () => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+  
+  // Pre-compute swipe indicator opacity transforms (must be called unconditionally)
+  const passIndicatorOpacity = useTransform(x, [-150, -50, 0], [1, 0.5, 0]);
+  const likeIndicatorOpacity = useTransform(x, [0, 50, 150], [0, 0.5, 1]);
 
   // Handle super like and subscription success
   useEffect(() => {
@@ -595,12 +599,12 @@ const Discover = () => {
 
                       {/* Swipe indicators */}
                       <motion.div className="absolute top-8 left-8 text-6xl font-bold text-red-500 opacity-0 rotate-12" style={{
-                    opacity: useTransform(x, [-150, -50, 0], [1, 0.5, 0])
+                    opacity: passIndicatorOpacity
                   }}>
                         PASS
                       </motion.div>
                       <motion.div className="absolute top-8 right-8 text-6xl font-bold text-green-500 opacity-0 -rotate-12" style={{
-                    opacity: useTransform(x, [0, 50, 150], [0, 0.5, 1])
+                    opacity: likeIndicatorOpacity
                   }}>
                         LIKE
                       </motion.div>
