@@ -3,7 +3,8 @@
  * Provides consistent validation, error handling, and rate limiting
  */
 
-// Validation schemas - simplified versions for Deno
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
