@@ -47,5 +47,47 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	
+	<!-- Privacy Usage Descriptions - Required for App Store -->
+	<key>NSCameraUsageDescription</key>
+	<string>Blossom needs access to your camera to take profile photos and verify your identity.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Blossom needs access to your photo library to select profile photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Blossom needs permission to save photos to your library.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Blossom uses your location to find matches near you and show distance information.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Blossom uses your location to find matches near you and provide safety check-in features.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Blossom needs microphone access for video calls and voice messages.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to securely unlock Blossom and protect your account.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Blossom can use your contacts to find friends who are also on the app.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Blossom can add date reminders to your calendar.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Blossom uses this to provide personalized recommendations and improve your experience.</string>
+	
+	<!-- Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	
+	<!-- iTunes File Sharing (optional, set to false for dating app) -->
+	<key>UIFileSharingEnabled</key>
+	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 </dict>
 </plist>
