@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ProfileCardSkeleton } from "@/components/ui/skeleton";
 import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft, Flag } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -452,20 +452,32 @@ const Discover = () => {
     }
   };
   if (loading) {
-    return <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
+    return (
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
         <Navbar />
         <div className="gradient-hero w-full">
           <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
             <div className="flex justify-between items-center mb-8">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-10 w-32" />
+              <div className="space-y-2">
+                <div className="h-10 w-64 rounded-lg bg-muted animate-pulse" />
+                <div className="h-5 w-48 rounded-lg bg-muted/60 animate-pulse" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />
+                <div className="h-10 w-32 rounded-full bg-muted animate-pulse" />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-96 rounded-2xl" />)}
+            
+            {/* Cards skeleton grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <ProfileCardSkeleton key={i} />
+              ))}
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
   const currentProfile = profiles[currentIndex];
   return <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
