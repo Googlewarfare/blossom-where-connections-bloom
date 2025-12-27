@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import {
+  validateUuid,
+  parseRequestBody,
+  validateAuthHeader,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,10 +13,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-SUPER-LIKE-CHECKOUT] ${step}${detailsStr}`);
 };
+
+interface SuperLikeRequest {
+  recipientId: string;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,9 +36,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    // Validate authorization header
+    const authResult = validateAuthHeader(req.headers.get("Authorization"));
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         {
@@ -39,7 +49,7 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authResult.data!;
     const { data, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !data.user?.email) {
@@ -56,14 +66,60 @@ serve(async (req) => {
     const user = data.user;
     logStep("User authenticated", { userId: user.id });
 
-    const { recipientId } = await req.json();
-    if (!recipientId) {
-      logStep("ERROR: Missing recipient ID");
+    // Parse and validate request body
+    const bodyResult = await parseRequestBody<SuperLikeRequest>(req);
+    if (!bodyResult.success) {
+      logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
       return new Response(
-        JSON.stringify({ error: "Recipient ID is required" }),
+        JSON.stringify({ error: "Invalid request body" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
+        },
+      );
+    }
+
+    const { recipientId } = bodyResult.data!;
+
+    // Validate recipient ID
+    const recipientResult = validateUuid(recipientId, "recipientId");
+    if (!recipientResult.success) {
+      logStep("ERROR: Invalid recipientId", { errors: recipientResult.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid recipient ID format" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
+      );
+    }
+
+    // Prevent self super-like
+    if (user.id === recipientId) {
+      logStep("ERROR: User trying to super-like themselves");
+      return new Response(
+        JSON.stringify({ error: "Cannot super-like yourself" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
+      );
+    }
+
+    // Verify recipient exists
+    const { data: recipientProfile } = await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("id", recipientId)
+      .single();
+
+    if (!recipientProfile) {
+      logStep("ERROR: Recipient not found", { recipientId });
+      return new Response(
+        JSON.stringify({ error: "Recipient not found" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
         },
       );
     }
@@ -96,6 +152,7 @@ serve(async (req) => {
       customerId: customerId || "new customer",
     });
 
+    const origin = req.headers.get("origin") || "http://localhost:3000";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -106,8 +163,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/discover?super_like_success=true&recipient=${recipientId}`,
-      cancel_url: `${req.headers.get("origin")}/discover`,
+      success_url: `${origin}/discover?super_like_success=true&recipient=${encodeURIComponent(recipientId)}`,
+      cancel_url: `${origin}/discover`,
       metadata: {
         sender_id: user.id,
         recipient_id: recipientId,
@@ -124,7 +181,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to create checkout session" }),
       {

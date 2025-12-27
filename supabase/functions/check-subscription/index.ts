@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { validateAuthHeader, validateEmail } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +9,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
@@ -63,19 +64,18 @@ serve(async (req) => {
       );
     }
 
+    // Validate authorization header
     const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    const authResult = validateAuthHeader(authHeader);
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(JSON.stringify({ error: "Authentication required" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.slice("Bearer ".length).trim()
-      : authHeader.trim();
-
+    const token = authResult.data!;
     logStep("Authenticating user", { tokenLength: token.length });
 
     // JWT is already verified by the platform (verify_jwt default = true), so we can safely read claims.
@@ -83,12 +83,18 @@ serve(async (req) => {
     const userId = payload?.sub;
     const email = payload?.email;
 
-    if (!userId || !email) {
-      logStep("ERROR: Authentication failed", {
-        error: "Missing JWT claims",
-        hasSub: Boolean(userId),
-        hasEmail: Boolean(email),
+    if (!userId) {
+      logStep("ERROR: Missing user ID in JWT");
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
       });
+    }
+
+    // Validate email from JWT
+    const emailResult = validateEmail(email);
+    if (!emailResult.success) {
+      logStep("ERROR: Invalid email in JWT", { errors: emailResult.errors });
       return new Response(JSON.stringify({ error: "Authentication required" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
@@ -99,7 +105,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({
-      email,
+      email: emailResult.data!,
       limit: 1,
     });
 
@@ -121,7 +127,7 @@ serve(async (req) => {
     });
     const hasActiveSub = subscriptions.data.length > 0;
 
-    const activeProducts = subscriptions.data.map((sub: any) => ({
+    const activeProducts = subscriptions.data.map((sub: Stripe.Subscription) => ({
       product_id: sub.items.data[0].price.product as string,
       subscription_end: new Date(sub.current_period_end * 1000).toISOString(),
       subscription_id: sub.id,
@@ -147,7 +153,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to check subscription status" }),
       {

@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import {
+  validateUuid,
+  parseRequestBody,
+  validateAuthHeader,
+  sanitizeString,
+} from "../_shared/validation.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -10,7 +16,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SEND-WELCOME-EMAIL] ${step}${detailsStr}`);
 };
@@ -32,10 +38,10 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
-    // Verify JWT and get authenticated user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    // Validate authorization header
+    const authResult = validateAuthHeader(req.headers.get("Authorization"));
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         {
@@ -45,7 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authResult.data!;
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.getUser(token);
 
@@ -63,18 +69,35 @@ const handler = async (req: Request): Promise<Response> => {
     const callerUserId = authData.user.id;
     logStep("User authenticated", { userId: callerUserId });
 
-    const { userId }: WelcomeEmailRequest = await req.json();
+    // Parse and validate request body
+    const bodyResult = await parseRequestBody<WelcomeEmailRequest>(req);
+    if (!bodyResult.success) {
+      logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid request body" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
 
-    if (!userId) {
-      logStep("ERROR: Missing user ID");
-      return new Response(JSON.stringify({ error: "User ID is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+    const { userId } = bodyResult.data!;
+
+    // Validate userId
+    const userIdResult = validateUuid(userId, "userId");
+    if (!userIdResult.success) {
+      logStep("ERROR: Invalid userId", { errors: userIdResult.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid user ID format" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
     // Authorization check: User can only send welcome email to themselves
-    // This prevents abuse where someone could spam emails to other users
     if (callerUserId !== userId) {
       // Check if caller is an admin
       const { data: hasAdminRole } = await supabaseAdmin.rpc("has_role", {
@@ -138,7 +161,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const firstName = profile?.full_name?.split(" ")[0] || "there";
+    // Sanitize user name to prevent XSS in email
+    const rawFirstName = profile?.full_name?.split(" ")[0] || "there";
+    const firstName = sanitizeString(rawFirstName);
     const profileUrl = `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || ""}/profile`;
 
     logStep("Sending welcome email", { recipientEmail: user.email });
@@ -332,7 +357,6 @@ const handler = async (req: Request): Promise<Response> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to send welcome email" }),
       {
