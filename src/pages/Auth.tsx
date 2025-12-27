@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +64,8 @@ const Auth = () => {
   const [showMfaVerify, setShowMfaVerify] = useState(false);
   const [biometricLoading, setBiometricLoading] = useState(false);
   const navigate = useNavigate();
+  const routeLocation = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const {
     isAvailable: biometricAvailable,
@@ -74,6 +77,14 @@ const Auth = () => {
     isNative,
     loading: biometricStateLoading,
   } = useBiometricAuth();
+
+  // Redirect authenticated users to discover or their intended destination
+  useEffect(() => {
+    if (!authLoading && user) {
+      const from = (routeLocation.state as { from?: { pathname: string } })?.from?.pathname || "/discover";
+      navigate(from, { replace: true });
+    }
+  }, [user, authLoading, navigate, routeLocation.state]);
 
   // Check password against breach database on blur (signup only)
   const handlePasswordBlur = async () => {
