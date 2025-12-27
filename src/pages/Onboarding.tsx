@@ -24,7 +24,12 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Heart } from "lucide-react";
+import { Upload, Heart, AlertCircle } from "lucide-react";
+import { onboardingSchema, imageUploadSchema, sanitizeString } from "@/lib/validation";
+import { z } from "zod";
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -32,6 +37,7 @@ const Onboarding = () => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form state
   const [age, setAge] = useState("");
@@ -51,6 +57,21 @@ const Onboarding = () => {
     }
   }, [user, navigate]);
 
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      return "Only JPEG, PNG, and WebP images are allowed";
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return "File must be less than 10MB";
+    }
+    // Check file name for security
+    const safeNamePattern = /^[a-zA-Z0-9_\-\.\s]+$/;
+    if (!safeNamePattern.test(file.name)) {
+      return "File name contains invalid characters";
+    }
+    return null;
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + photoFiles.length > 6) {
@@ -60,6 +81,19 @@ const Onboarding = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Validate each file
+    for (const file of files) {
+      const error = validateFile(file);
+      if (error) {
+        toast({
+          title: "Invalid file",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setPhotoFiles([...photoFiles, ...files]);
@@ -79,46 +113,132 @@ const Onboarding = () => {
     setPhotoPreviews(photoPreviews.filter((_, i) => i !== index));
   };
 
+  const validateCurrentStep = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (step === 1) {
+      const ageNum = parseInt(age);
+      if (!age || isNaN(ageNum)) {
+        newErrors.age = "Age is required";
+      } else if (ageNum < 18) {
+        newErrors.age = "You must be at least 18 years old";
+      } else if (ageNum > 120) {
+        newErrors.age = "Please enter a valid age";
+      }
+
+      if (!gender) {
+        newErrors.gender = "Gender is required";
+      }
+
+      if (occupation && occupation.length > 100) {
+        newErrors.occupation = "Occupation must be less than 100 characters";
+      }
+    }
+
+    if (step === 2) {
+      if (photoFiles.length === 0) {
+        newErrors.photos = "Please add at least one photo";
+      }
+    }
+
+    if (step === 3) {
+      if (!bio || bio.trim().length < 10) {
+        newErrors.bio = "Bio must be at least 10 characters";
+      } else if (bio.length > 1000) {
+        newErrors.bio = "Bio must be less than 1000 characters";
+      }
+    }
+
+    if (step === 4) {
+      if (interestedIn.length === 0) {
+        newErrors.interestedIn = "Please select at least one preference";
+      }
+
+      const minAgeNum = parseInt(minAge);
+      const maxAgeNum = parseInt(maxAge);
+      if (minAgeNum < 18 || minAgeNum > 100) {
+        newErrors.minAge = "Minimum age must be between 18 and 100";
+      }
+      if (maxAgeNum < 18 || maxAgeNum > 100) {
+        newErrors.maxAge = "Maximum age must be between 18 and 100";
+      }
+      if (minAgeNum > maxAgeNum) {
+        newErrors.minAge = "Minimum age cannot be greater than maximum age";
+      }
+
+      const distanceNum = parseInt(maxDistance);
+      if (distanceNum < 1 || distanceNum > 500) {
+        newErrors.maxDistance = "Distance must be between 1 and 500 miles";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
+
+    // Final validation using zod schema
+    const validationResult = onboardingSchema.safeParse({
+      age: parseInt(age),
+      gender,
+      occupation: sanitizeString(occupation),
+      bio: sanitizeString(bio),
+      interestedIn: interestedIn as ("male" | "female" | "non-binary" | "everyone")[],
+      minAge: parseInt(minAge),
+      maxAge: parseInt(maxAge),
+      maxDistance: parseInt(maxDistance),
+    });
+
+    if (!validationResult.success) {
+      toast({
+        title: "Validation Error",
+        description: validationResult.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
 
     try {
-      // Update profile
+      // Update profile with sanitized data
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
-          age: parseInt(age),
-          gender,
-          occupation,
-          bio,
+          age: validationResult.data.age,
+          gender: validationResult.data.gender,
+          occupation: validationResult.data.occupation || null,
+          bio: validationResult.data.bio,
         })
         .eq("id", user.id);
 
       if (profileError) throw profileError;
 
-      // Upload photos
+      // Upload photos with secure file naming
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+        // Generate secure random filename
+        const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const safeExt = ["jpg", "jpeg", "png", "webp"].includes(fileExt) ? fileExt : "jpg";
+        const fileName = `${user.id}/${crypto.randomUUID()}.${safeExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("profile-photos")
-          .upload(fileName, file);
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
 
         if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("profile-photos").getPublicUrl(fileName);
-
+        // Store relative path, not full URL
         const { error: photoError } = await supabase
           .from("profile_photos")
           .insert({
             user_id: user.id,
-            photo_url: publicUrl,
+            photo_url: fileName,
             is_primary: i === 0,
             display_order: i,
           });
@@ -126,16 +246,16 @@ const Onboarding = () => {
         if (photoError) throw photoError;
       }
 
-      // Save preferences (upsert since row may exist from signup trigger)
+      // Save preferences with validated data
       const { error: preferencesError } = await supabase
         .from("preferences")
         .upsert(
           {
             user_id: user.id,
-            interested_in: interestedIn,
-            min_age: parseInt(minAge),
-            max_age: parseInt(maxAge),
-            max_distance: parseInt(maxDistance),
+            interested_in: validationResult.data.interestedIn,
+            min_age: validationResult.data.minAge,
+            max_age: validationResult.data.maxAge,
+            max_distance: validationResult.data.maxDistance,
           },
           { onConflict: "user_id" },
         );
@@ -161,42 +281,25 @@ const Onboarding = () => {
   };
 
   const nextStep = () => {
-    if (step === 1 && (!age || !gender)) {
-      toast({
-        title: "Required fields",
-        description: "Please complete all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (step === 2 && photoFiles.length === 0) {
-      toast({
-        title: "Add a photo",
-        description: "Please add at least one photo",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (step === 3 && !bio) {
-      toast({
-        title: "Add a bio",
-        description: "Tell others about yourself",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (step === 4 && interestedIn.length === 0) {
-      toast({
-        title: "Set preferences",
-        description: "Who would you like to meet?",
-        variant: "destructive",
-      });
+    if (!validateCurrentStep()) {
       return;
     }
     setStep(step + 1);
   };
 
   const progress = (step / 4) * 100;
+
+  const renderError = (field: string) => {
+    if (errors[field]) {
+      return (
+        <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+          <AlertCircle className="h-3 w-3" />
+          {errors[field]}
+        </p>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
@@ -230,16 +333,27 @@ const Onboarding = () => {
                     id="age"
                     type="number"
                     min="18"
-                    max="100"
+                    max="120"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
+                    onChange={(e) => {
+                      setAge(e.target.value);
+                      setErrors((prev) => ({ ...prev, age: "" }));
+                    }}
                     placeholder="25"
+                    aria-invalid={!!errors.age}
                   />
+                  {renderError("age")}
                 </div>
                 <div>
                   <Label htmlFor="gender">Gender *</Label>
-                  <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger>
+                  <Select
+                    value={gender}
+                    onValueChange={(value) => {
+                      setGender(value);
+                      setErrors((prev) => ({ ...prev, gender: "" }));
+                    }}
+                  >
+                    <SelectTrigger aria-invalid={!!errors.gender}>
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent>
@@ -249,15 +363,24 @@ const Onboarding = () => {
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {renderError("gender")}
                 </div>
                 <div>
                   <Label htmlFor="occupation">Occupation</Label>
                   <Input
                     id="occupation"
                     value={occupation}
-                    onChange={(e) => setOccupation(e.target.value)}
+                    onChange={(e) => {
+                      setOccupation(e.target.value.slice(0, 100));
+                      setErrors((prev) => ({ ...prev, occupation: "" }));
+                    }}
                     placeholder="Software Engineer"
+                    maxLength={100}
                   />
+                  {renderError("occupation")}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {occupation.length}/100 characters
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -272,6 +395,9 @@ const Onboarding = () => {
               >
                 <div>
                   <Label>Profile Photos (up to 6) *</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    JPEG, PNG, or WebP. Max 10MB each.
+                  </p>
                   <div className="grid grid-cols-3 gap-4 mt-2">
                     {photoPreviews.map((preview, index) => (
                       <div
@@ -297,7 +423,7 @@ const Onboarding = () => {
                       <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer flex items-center justify-center transition-colors">
                         <Input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
                           multiple
                           className="hidden"
                           onChange={handlePhotoChange}
@@ -306,6 +432,7 @@ const Onboarding = () => {
                       </label>
                     )}
                   </div>
+                  {renderError("photos")}
                 </div>
               </motion.div>
             )}
@@ -319,14 +446,23 @@ const Onboarding = () => {
                 className="space-y-4"
               >
                 <div>
-                  <Label htmlFor="bio">Bio *</Label>
+                  <Label htmlFor="bio">Bio * (min 10 characters)</Label>
                   <Textarea
                     id="bio"
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    onChange={(e) => {
+                      setBio(e.target.value.slice(0, 1000));
+                      setErrors((prev) => ({ ...prev, bio: "" }));
+                    }}
                     placeholder="Tell us about yourself..."
                     rows={6}
+                    maxLength={1000}
+                    aria-invalid={!!errors.bio}
                   />
+                  {renderError("bio")}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {bio.length}/1000 characters
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -360,6 +496,7 @@ const Onboarding = () => {
                                   interestedIn.filter((i) => i !== option),
                                 );
                               }
+                              setErrors((prev) => ({ ...prev, interestedIn: "" }));
                             }}
                             className="rounded"
                           />
@@ -373,6 +510,7 @@ const Onboarding = () => {
                       ),
                     )}
                   </div>
+                  {renderError("interestedIn")}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -382,7 +520,11 @@ const Onboarding = () => {
                         id="minAge"
                         type="number"
                         value={minAge}
-                        onChange={(e) => setMinAge(e.target.value)}
+                        onChange={(e) => {
+                          const val = Math.min(100, Math.max(18, parseInt(e.target.value) || 18));
+                          setMinAge(val.toString());
+                          setErrors((prev) => ({ ...prev, minAge: "" }));
+                        }}
                         min="18"
                         max="100"
                       />
@@ -391,12 +533,18 @@ const Onboarding = () => {
                         id="maxAge"
                         type="number"
                         value={maxAge}
-                        onChange={(e) => setMaxAge(e.target.value)}
+                        onChange={(e) => {
+                          const val = Math.min(100, Math.max(18, parseInt(e.target.value) || 18));
+                          setMaxAge(val.toString());
+                          setErrors((prev) => ({ ...prev, maxAge: "" }));
+                        }}
                         min="18"
                         max="100"
                         aria-label="Maximum age"
                       />
                     </div>
+                    {renderError("minAge")}
+                    {renderError("maxAge")}
                   </div>
                   <div>
                     <Label htmlFor="maxDistance">Max Distance (miles)</Label>
@@ -404,10 +552,15 @@ const Onboarding = () => {
                       id="maxDistance"
                       type="number"
                       value={maxDistance}
-                      onChange={(e) => setMaxDistance(e.target.value)}
+                      onChange={(e) => {
+                        const val = Math.min(500, Math.max(1, parseInt(e.target.value) || 1));
+                        setMaxDistance(val.toString());
+                        setErrors((prev) => ({ ...prev, maxDistance: "" }));
+                      }}
                       min="1"
                       max="500"
                     />
+                    {renderError("maxDistance")}
                   </div>
                 </div>
               </motion.div>

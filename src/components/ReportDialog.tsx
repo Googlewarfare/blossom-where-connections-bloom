@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Flag, AlertTriangle, Loader2 } from "lucide-react";
+import { Flag, AlertTriangle, Loader2, AlertCircle } from "lucide-react";
+import { reportSchema, reportCategorySchema, sanitizeString } from "@/lib/validation";
+import type { z } from "zod";
 
 interface ReportDialogProps {
   reportedUserId: string;
@@ -22,7 +24,9 @@ interface ReportDialogProps {
   trigger?: React.ReactNode;
 }
 
-const REPORT_CATEGORIES = [
+type ReportCategory = z.infer<typeof reportCategorySchema>;
+
+const REPORT_CATEGORIES: { value: ReportCategory; label: string; description: string }[] = [
   {
     value: "fake_profile",
     label: "Fake Profile",
@@ -58,7 +62,9 @@ const REPORT_CATEGORIES = [
     label: "Other",
     description: "Other safety concern not listed above",
   },
-] as const;
+];
+
+const MAX_DESCRIPTION_LENGTH = 2000;
 
 export const ReportDialog = ({
   reportedUserId,
@@ -67,9 +73,25 @@ export const ReportDialog = ({
 }: ReportDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState<string>("");
+  const [category, setCategory] = useState<ReportCategory | "">("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    // Enforce max length
+    if (value.length <= MAX_DESCRIPTION_LENGTH) {
+      setDescription(value);
+      setError(null);
+    }
+  };
+
+  const resetForm = () => {
+    setCategory("");
+    setDescription("");
+    setError(null);
+  };
 
   const handleSubmit = async () => {
     if (!user) {
@@ -78,46 +100,69 @@ export const ReportDialog = ({
     }
 
     if (!category) {
-      toast.error("Please select a reason for reporting");
+      setError("Please select a reason for reporting");
+      return;
+    }
+
+    // Validate the report data using zod schema
+    const validationResult = reportSchema.safeParse({
+      reported_user_id: reportedUserId,
+      category,
+      description: description.trim() || null,
+    });
+
+    if (!validationResult.success) {
+      setError(validationResult.error.errors[0].message);
+      return;
+    }
+
+    // Additional security check: prevent self-reporting
+    if (reportedUserId === user.id) {
+      toast.error("You cannot report yourself");
       return;
     }
 
     setIsSubmitting(true);
+    setError(null);
 
     try {
-      const { error } = await supabase.from("reports").insert({
+      // Sanitize description before sending
+      const sanitizedDescription = description.trim() 
+        ? sanitizeString(description.trim()) 
+        : null;
+
+      const { error: insertError } = await supabase.from("reports").insert({
         reporter_id: user.id,
-        reported_user_id: reportedUserId,
-        category: category as
-          | "fake_profile"
-          | "inappropriate_photos"
-          | "harassment"
-          | "spam"
-          | "scam"
-          | "underage"
-          | "other",
-        description: description.trim() || null,
+        reported_user_id: validationResult.data.reported_user_id,
+        category: validationResult.data.category,
+        description: sanitizedDescription,
       });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast.success("Report submitted", {
         description:
           "Thank you for helping keep our community safe. We'll review this report shortly.",
       });
       setOpen(false);
-      setCategory("");
-      setDescription("");
-    } catch (error) {
-      console.error("Error submitting report:", error);
+      resetForm();
+    } catch (err) {
+      console.error("Error submitting report:", err);
       toast.error("Failed to submit report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      resetForm();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button
@@ -134,7 +179,7 @@ export const ReportDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Report {reportedUserName ? reportedUserName : "User"}
+            Report {reportedUserName ? sanitizeString(reportedUserName) : "User"}
           </DialogTitle>
           <DialogDescription>
             Help us keep the community safe. Your report will be reviewed by our
@@ -144,17 +189,23 @@ export const ReportDialog = ({
 
         <div className="space-y-4 py-4">
           <div className="space-y-3">
-            <Label className="text-sm font-medium">What's the issue?</Label>
+            <Label className="text-sm font-medium">What's the issue? *</Label>
             <RadioGroup
               value={category}
-              onValueChange={setCategory}
+              onValueChange={(value) => {
+                setCategory(value as ReportCategory);
+                setError(null);
+              }}
               className="space-y-2"
             >
               {REPORT_CATEGORIES.map((cat) => (
                 <div
                   key={cat.value}
                   className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
-                  onClick={() => setCategory(cat.value)}
+                  onClick={() => {
+                    setCategory(cat.value);
+                    setError(null);
+                  }}
                 >
                   <RadioGroupItem
                     value={cat.value}
@@ -183,16 +234,28 @@ export const ReportDialog = ({
               id="description"
               placeholder="Provide any additional context that might help us investigate..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               rows={3}
+              maxLength={MAX_DESCRIPTION_LENGTH}
+              aria-describedby="description-hint"
             />
+            <p id="description-hint" className="text-xs text-muted-foreground">
+              {description.length}/{MAX_DESCRIPTION_LENGTH} characters
+            </p>
           </div>
+
+          {error && (
+            <p className="text-sm text-destructive flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </p>
+          )}
         </div>
 
         <div className="flex gap-3 justify-end">
           <Button
             variant="outline"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
             disabled={isSubmitting}
           >
             Cancel
