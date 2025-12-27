@@ -64,8 +64,8 @@ Deno.serve(async (req) => {
       const { error: notifyError } = await supabase.from("notifications").insert({
         user_id: conv.user_to_nudge,
         type: "nudge",
-        title: "Don't leave them hanging! 💬",
-        message: `${conv.other_user_name || "Someone"} is waiting to hear from you. Send a quick message!`,
+        title: "Someone is waiting for you",
+        message: `${conv.other_user_name || "Someone"} reached out a few days ago. When you have a moment, continue the conversation or close it with kindness.`,
         related_user_id: conv.other_user_id,
         read: false,
       });

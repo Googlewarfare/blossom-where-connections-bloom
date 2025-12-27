@@ -22,6 +22,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
 import { TrustSignals } from "@/components/TrustSignals";
+import { GhostingCheckpointDialog } from "@/components/GhostingCheckpointDialog";
 
 // Lazy load heavy map component
 const MatchesMap = lazy(() => import("@/components/MatchesMap"));
@@ -490,6 +491,9 @@ const Discover = () => {
       <Navbar />
       <div className="gradient-hero w-full">
       <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
+        {/* Ghosting Checkpoint - shows before discovery */}
+        <GhostingCheckpointDialog />
+        
         {/* Profile Completion Banner */}
         <div className="mb-6">
           <ProfileCompletionBanner />
