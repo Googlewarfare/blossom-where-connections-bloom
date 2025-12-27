@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ConversationListSkeleton, ChatListSkeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -236,9 +236,52 @@ const Chat = () => {
     return (
       <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="p-4 w-full">
-          <div className="w-full max-w-6xl mx-auto box-border">
-            <Skeleton className="h-[600px] w-full" />
+        <div className="w-full max-w-6xl mx-auto p-4 box-border">
+          {/* Header skeleton */}
+          <div className="mb-6 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+            <div className="h-8 w-32 rounded-lg bg-muted animate-pulse" />
+            <div className="ml-auto flex gap-2">
+              <div className="h-9 w-36 rounded-md bg-muted animate-pulse" />
+              <div className="h-9 w-24 rounded-md bg-muted animate-pulse" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
+            {/* Conversations List Skeleton */}
+            <div className="md:col-span-1 rounded-xl border bg-card p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-5 w-5 rounded bg-muted animate-pulse" />
+                <div className="h-5 w-28 rounded bg-muted animate-pulse" />
+              </div>
+              <ConversationListSkeleton count={5} />
+            </div>
+
+            {/* Chat Window Skeleton */}
+            <div className="md:col-span-2 rounded-xl border bg-card flex flex-col">
+              {/* Chat header skeleton */}
+              <div className="p-4 border-b flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-32 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-24 rounded bg-muted/60 animate-pulse" />
+                </div>
+                <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
+              </div>
+              
+              {/* Messages skeleton */}
+              <div className="flex-1 overflow-hidden">
+                <ChatListSkeleton count={8} />
+              </div>
+              
+              {/* Input skeleton */}
+              <div className="p-4 border-t">
+                <div className="flex gap-2">
+                  <div className="h-10 flex-1 rounded-full bg-muted animate-pulse" />
+                  <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
