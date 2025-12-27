@@ -44,7 +44,11 @@ const Navbar = () => {
   }, [user]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Even if server signout fails, proceed with local cleanup
+    }
     navigate("/");
     setIsOpen(false);
   };

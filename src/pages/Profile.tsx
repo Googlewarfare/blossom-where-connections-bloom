@@ -552,7 +552,12 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Even if server signout fails, clear local session
+    }
+    // Always navigate to home
     navigate("/");
   };
 
