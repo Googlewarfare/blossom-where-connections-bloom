@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Heart } from "lucide-react";
+import { MessageCircle, Heart, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const MAX_ACTIVE_CONVERSATIONS = 3;
@@ -65,29 +65,31 @@ export function ConversationLimitBanner({ onLimitReached }: ConversationLimitBan
           }`}
         >
           {isAtLimit ? (
-            <Heart className="w-5 h-5 text-amber-600" />
+            <Sparkles className="w-5 h-5 text-amber-600" />
           ) : (
-            <MessageCircle className="w-5 h-5 text-primary" />
+            <Heart className="w-5 h-5 text-primary" />
           )}
         </div>
         <AlertDescription className="flex-1">
           {isAtLimit ? (
             <div>
               <p className="font-medium text-amber-700 dark:text-amber-400">
-                You have {activeCount} active conversations
+                Your attention is fully invested
               </p>
               <p className="text-sm text-amber-600/80 dark:text-amber-400/80">
-                To start new connections, close or archive an existing conversation first. 
-                This helps you focus on meaningful connections.
+                You have {activeCount} active conversations. To meet someone new, 
+                close an existing conversation with kindness first. This is how Blossom works best.
               </p>
             </div>
           ) : (
             <div>
               <p className="font-medium text-foreground">
-                {remaining} conversation slot{remaining !== 1 ? "s" : ""} available
+                {remaining === 1 
+                  ? "Room for one more connection" 
+                  : `Room for ${remaining} more connections`}
               </p>
               <p className="text-sm text-muted-foreground">
-                Blossom limits active conversations to help you build deeper connections.
+                Blossom works best when attention is focused. Take your time with the people you're getting to know.
               </p>
             </div>
           )}
@@ -98,7 +100,8 @@ export function ConversationLimitBanner({ onLimitReached }: ConversationLimitBan
           onClick={() => navigate("/chat")}
           className="shrink-0"
         >
-          View Chats
+          <MessageCircle className="w-4 h-4 mr-1.5" />
+          View Conversations
         </Button>
       </div>
     </Alert>
