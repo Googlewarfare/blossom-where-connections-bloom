@@ -160,6 +160,10 @@ export default {
           "42%": { transform: "scale(1.15)" },
           "70%": { transform: "scale(1)" },
         },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -180,6 +184,7 @@ export default {
         heartbeat: "heartbeat 1.5s ease-in-out infinite",
         enter: "fade-in 0.3s ease-out, scale-in 0.2s ease-out",
         exit: "fade-out 0.3s ease-out, scale-out 0.2s ease-out",
+        shimmer: "shimmer 1.5s infinite",
       },
       transitionTimingFunction: {
         "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
