@@ -5,6 +5,9 @@ import {
   validateEmail,
   validateString,
   parseRequestBody,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
 } from "../_shared/validation.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -25,11 +28,6 @@ interface PasswordResetRequest {
   resetLink: string;
 }
 
-// Rate limiting: max 3 requests per email per hour
-const RATE_LIMIT_MAX = 3;
-const RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds
-
-// Allowed domains for reset links
 const ALLOWED_DOMAINS = [
   "localhost",
   "lovable.dev",
@@ -59,7 +57,6 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse and validate request body
     const bodyResult = await parseRequestBody<PasswordResetRequest>(req);
     if (!bodyResult.success) {
       logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
@@ -74,7 +71,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { email, resetLink } = bodyResult.data!;
 
-    // Validate email
     const emailResult = validateEmail(email);
     if (!emailResult.success) {
       logStep("ERROR: Invalid email", { errors: emailResult.errors });
@@ -87,7 +83,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate reset link
     const resetLinkResult = validateString(resetLink, "resetLink", {
       required: true,
       minLength: 10,
@@ -104,7 +99,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate reset link domain to prevent phishing
     if (!isValidResetLink(resetLink)) {
       logStep("ERROR: Invalid reset link domain");
       return new Response(
@@ -116,23 +110,18 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Rate limiting by email using database
+    // Rate limiting using database (stricter for password reset)
+    const clientId = getClientIdentifier(req);
     const { data: isAllowed } = await supabase.rpc('check_rate_limit', {
-      p_identifier: emailResult.data!.toLowerCase(),
-      p_endpoint: 'password_reset',
-      p_max_requests: RATE_LIMIT_MAX,
-      p_window_seconds: RATE_LIMIT_WINDOW
+      p_identifier: `${clientId}:${emailResult.data!.toLowerCase()}`,
+      p_endpoint: RATE_LIMITS.password_reset.endpoint,
+      p_max_requests: RATE_LIMITS.password_reset.maxRequests,
+      p_window_seconds: RATE_LIMITS.password_reset.windowSeconds
     });
 
     if (!isAllowed) {
       logStep("ERROR: Rate limit exceeded", { email: emailResult.data });
-      return new Response(
-        JSON.stringify({ error: "Too many password reset requests. Please try again later." }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        },
-      );
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.password_reset.windowSeconds);
     }
 
     logStep("Sending password reset email");
@@ -150,21 +139,16 @@ const handler = async (req: Request): Promise<Response> => {
             <tr>
               <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                  <!-- Header with gradient -->
                   <tr>
                     <td style="background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%); padding: 40px; text-align: center;">
                       <h1 style="margin: 0; color: #FFFFFF; font-size: 32px; font-weight: 700;">🔒 Reset Your Password</h1>
                     </td>
                   </tr>
-                  
-                  <!-- Main content -->
                   <tr>
                     <td style="padding: 40px;">
                       <p style="margin: 0 0 24px; color: #374151; font-size: 16px; line-height: 1.6;">
                         We received a request to reset your password for your Blossom account. Click the button below to create a new password.
                       </p>
-                      
-                      <!-- CTA Button -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
                         <tr>
                           <td align="center">
@@ -174,8 +158,6 @@ const handler = async (req: Request): Promise<Response> => {
                           </td>
                         </tr>
                       </table>
-                      
-                      <!-- Info box -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #FEF3C7; border-radius: 8px; margin: 24px 0;">
                         <tr>
                           <td style="padding: 16px;">
@@ -185,7 +167,6 @@ const handler = async (req: Request): Promise<Response> => {
                           </td>
                         </tr>
                       </table>
-                      
                       <p style="margin: 24px 0 0; color: #6B7280; font-size: 14px; line-height: 1.6;">
                         If the button doesn't work, copy and paste this link into your browser:
                       </p>
@@ -194,16 +175,10 @@ const handler = async (req: Request): Promise<Response> => {
                       </p>
                     </td>
                   </tr>
-                  
-                  <!-- Footer -->
                   <tr>
                     <td style="background-color: #F9FAFB; padding: 32px; text-align: center; border-top: 1px solid #E5E7EB;">
-                      <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">
-                        💖 Find your perfect match with Blossom
-                      </p>
-                      <p style="margin: 0; color: #9CA3AF; font-size: 12px;">
-                        © 2024 Blossom. All rights reserved.
-                      </p>
+                      <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">💖 Find your perfect match with Blossom</p>
+                      <p style="margin: 0; color: #9CA3AF; font-size: 12px;">© 2024 Blossom. All rights reserved.</p>
                     </td>
                   </tr>
                 </table>

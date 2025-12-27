@@ -1,7 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { validateAuthHeader } from "../_shared/validation.ts";
+import {
+  validateAuthHeader,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +25,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
+  );
+
   try {
     logStep("Function started");
 
@@ -34,13 +46,6 @@ serve(async (req) => {
       );
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } },
-    );
-
-    // Validate authorization header
     const authResult = validateAuthHeader(req.headers.get("Authorization"));
     if (!authResult.success) {
       logStep("ERROR: Invalid authorization", { errors: authResult.errors });
@@ -70,6 +75,19 @@ serve(async (req) => {
 
     const user = userData.user;
     logStep("User authenticated", { userId: user.id });
+
+    // Rate limiting check
+    const clientId = getClientIdentifier(req, user.id);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabaseClient,
+      clientId,
+      RATE_LIMITS.customer_portal
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.customer_portal.windowSeconds);
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({

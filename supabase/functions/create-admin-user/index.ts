@@ -1,5 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateEmail } from "../_shared/validation.ts";
+import {
+  validateEmail,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +18,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,7 +28,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Use service role client to create user
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -31,9 +35,21 @@ Deno.serve(async (req) => {
       },
     });
 
+    // Rate limiting check (strict for admin creation)
+    const clientId = getClientIdentifier(req);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabase,
+      clientId,
+      RATE_LIMITS.create_admin
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.create_admin.windowSeconds);
+    }
+
     const adminEmail = "admin@blossom.app";
     
-    // Validate admin email
     const emailResult = validateEmail(adminEmail);
     if (!emailResult.success) {
       logStep("ERROR: Invalid admin email", { errors: emailResult.errors });
@@ -49,19 +65,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate a secure temporary password
     const tempPassword = crypto.randomUUID().slice(0, 16) + "Aa1!";
 
     logStep("Checking for existing admin user");
 
-    // Check if admin already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     const existingAdmin = existingUsers?.users?.find(
       (u) => u.email === adminEmail
     );
 
     if (existingAdmin) {
-      // Check if already has admin role
       const { data: existingRole } = await supabase
         .from("user_roles")
         .select("*")
@@ -83,7 +96,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Add admin role to existing user
       const { error: roleError } = await supabase.from("user_roles").insert({
         user_id: existingAdmin.id,
         role: "admin",
@@ -109,7 +121,6 @@ Deno.serve(async (req) => {
 
     logStep("Creating new admin user");
 
-    // Create new admin user
     const { data: newUser, error: createError } =
       await supabase.auth.admin.createUser({
         email: adminEmail,
@@ -122,7 +133,6 @@ Deno.serve(async (req) => {
       throw createError;
     }
 
-    // Assign admin role
     const { error: roleError } = await supabase.from("user_roles").insert({
       user_id: newUser.user.id,
       role: "admin",

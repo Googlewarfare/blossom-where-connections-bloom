@@ -5,6 +5,10 @@ import {
   validateUuid,
   parseRequestBody,
   validateAuthHeader,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
 } from "../_shared/validation.ts";
 
 const corsHeaders = {
@@ -36,7 +40,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Validate authorization header
     const authResult = validateAuthHeader(req.headers.get("Authorization"));
     if (!authResult.success) {
       logStep("ERROR: Invalid authorization", { errors: authResult.errors });
@@ -66,7 +69,19 @@ serve(async (req) => {
     const user = data.user;
     logStep("User authenticated", { userId: user.id });
 
-    // Parse and validate request body
+    // Rate limiting check
+    const clientId = getClientIdentifier(req, user.id);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabaseClient,
+      clientId,
+      RATE_LIMITS.checkout
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.checkout.windowSeconds);
+    }
+
     const bodyResult = await parseRequestBody<SuperLikeRequest>(req);
     if (!bodyResult.success) {
       logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
@@ -81,7 +96,6 @@ serve(async (req) => {
 
     const { recipientId } = bodyResult.data!;
 
-    // Validate recipient ID
     const recipientResult = validateUuid(recipientId, "recipientId");
     if (!recipientResult.success) {
       logStep("ERROR: Invalid recipientId", { errors: recipientResult.errors });
@@ -94,7 +108,6 @@ serve(async (req) => {
       );
     }
 
-    // Prevent self super-like
     if (user.id === recipientId) {
       logStep("ERROR: User trying to super-like themselves");
       return new Response(
@@ -106,7 +119,6 @@ serve(async (req) => {
       );
     }
 
-    // Verify recipient exists
     const { data: recipientProfile } = await supabaseClient
       .from("profiles")
       .select("id")

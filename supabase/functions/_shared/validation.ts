@@ -1,9 +1,11 @@
 /**
  * Server-side validation middleware for edge functions
- * Provides consistent validation and error handling
+ * Provides consistent validation, error handling, and rate limiting
  */
 
 // Validation schemas - simplified versions for Deno
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseClient = any;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -16,6 +18,114 @@ export interface ValidationResult<T> {
   success: boolean;
   data?: T;
   errors?: ValidationError[];
+}
+
+export interface RateLimitConfig {
+  endpoint: string;
+  maxRequests: number;
+  windowSeconds: number;
+}
+
+// Default rate limits per endpoint type
+export const RATE_LIMITS: Record<string, RateLimitConfig> = {
+  // Auth-related endpoints - stricter limits
+  "password_reset": { endpoint: "password_reset", maxRequests: 3, windowSeconds: 3600 },
+  "create_admin": { endpoint: "create_admin", maxRequests: 5, windowSeconds: 3600 },
+  
+  // Payment endpoints - moderate limits
+  "checkout": { endpoint: "checkout", maxRequests: 10, windowSeconds: 60 },
+  "subscription": { endpoint: "subscription", maxRequests: 20, windowSeconds: 60 },
+  "customer_portal": { endpoint: "customer_portal", maxRequests: 10, windowSeconds: 60 },
+  
+  // General API endpoints
+  "compatibility": { endpoint: "compatibility", maxRequests: 30, windowSeconds: 60 },
+  "welcome_email": { endpoint: "welcome_email", maxRequests: 5, windowSeconds: 3600 },
+  
+  // Default fallback
+  "default": { endpoint: "default", maxRequests: 60, windowSeconds: 60 },
+};
+
+/**
+ * Creates a Supabase admin client for rate limiting checks
+ */
+export function createAdminClient(): SupabaseClient {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+}
+
+/**
+ * Database-backed rate limiting using the rate_limits table
+ * Returns true if request is allowed, false if rate limited
+ */
+export async function checkDatabaseRateLimit(
+  supabase: SupabaseClient,
+  identifier: string,
+  config: RateLimitConfig
+): Promise<{ allowed: boolean; remaining?: number; resetAt?: string }> {
+  try {
+    const { data: isAllowed, error } = await supabase.rpc('check_rate_limit', {
+      p_identifier: identifier,
+      p_endpoint: config.endpoint,
+      p_max_requests: config.maxRequests,
+      p_window_seconds: config.windowSeconds
+    });
+
+    if (error) {
+      console.error(`[RATE-LIMIT] Database error: ${error.message}`);
+      // On error, allow the request but log it
+      return { allowed: true };
+    }
+
+    return { allowed: isAllowed === true };
+  } catch (error) {
+    console.error(`[RATE-LIMIT] Check failed: ${error}`);
+    // On error, allow the request but log it
+    return { allowed: true };
+  }
+}
+
+/**
+ * Get client identifier for rate limiting (IP address or user ID)
+ */
+export function getClientIdentifier(req: Request, userId?: string): string {
+  // Prefer user ID if authenticated
+  if (userId) {
+    return `user:${userId}`;
+  }
+  
+  // Fall back to IP address
+  const forwarded = req.headers.get("x-forwarded-for");
+  const realIp = req.headers.get("x-real-ip");
+  const cfIp = req.headers.get("cf-connecting-ip");
+  
+  const ip = cfIp || realIp || (forwarded ? forwarded.split(",")[0].trim() : null) || "unknown";
+  return `ip:${ip}`;
+}
+
+/**
+ * Creates a rate limit exceeded response with retry-after header
+ */
+export function createRateLimitResponse(
+  corsHeaders: Record<string, string>,
+  retryAfterSeconds = 60
+): Response {
+  return new Response(
+    JSON.stringify({ 
+      error: "Too many requests. Please try again later.",
+      retryAfter: retryAfterSeconds 
+    }),
+    {
+      status: 429,
+      headers: { 
+        ...corsHeaders, 
+        "Content-Type": "application/json",
+        "Retry-After": String(retryAfterSeconds)
+      },
+    }
+  );
 }
 
 /**
@@ -251,12 +361,11 @@ export function createSuccessResponse<T>(data: T, status = 200): Response {
 }
 
 /**
- * Rate limiting check (in-memory, for simple cases)
- * For production, use Redis or database-backed rate limiting
+ * In-memory rate limiting (fallback for simple cases)
  */
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
-export function checkRateLimit(
+export function checkInMemoryRateLimit(
   identifier: string,
   maxRequests: number,
   windowMs: number
@@ -293,7 +402,7 @@ export async function parseRequestBody<T>(req: Request): Promise<ValidationResul
 }
 
 /**
- * Validates authorization header and returns user ID
+ * Validates authorization header and returns token
  */
 export function validateAuthHeader(authHeader: string | null): ValidationResult<string> {
   if (!authHeader) {
