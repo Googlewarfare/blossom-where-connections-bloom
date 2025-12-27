@@ -24,18 +24,19 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Heart, AlertCircle } from "lucide-react";
-import { onboardingSchema, imageUploadSchema, sanitizeString } from "@/lib/validation";
-import { z } from "zod";
+import { Upload, Heart, AlertCircle, ArrowRight } from "lucide-react";
+import { onboardingSchema, sanitizeString } from "@/lib/validation";
+import { OnboardingWelcome, IntentQuestions, INTENT_PROMPTS } from "@/features/onboarding";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const TOTAL_STEPS = 6;
 
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at welcome step
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -50,6 +51,9 @@ const Onboarding = () => {
   const [minAge, setMinAge] = useState("18");
   const [maxAge, setMaxAge] = useState("50");
   const [maxDistance, setMaxDistance] = useState("50");
+  
+  // Intent prompts state
+  const [intentAnswers, setIntentAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) {
@@ -64,7 +68,6 @@ const Onboarding = () => {
     if (file.size > MAX_FILE_SIZE) {
       return "File must be less than 10MB";
     }
-    // Check file name for security
     const safeNamePattern = /^[a-zA-Z0-9_\-\.\s]+$/;
     if (!safeNamePattern.test(file.name)) {
       return "File name contains invalid characters";
@@ -83,7 +86,6 @@ const Onboarding = () => {
       return;
     }
 
-    // Validate each file
     for (const file of files) {
       const error = validateFile(file);
       if (error) {
@@ -98,7 +100,6 @@ const Onboarding = () => {
 
     setPhotoFiles([...photoFiles, ...files]);
 
-    // Create previews
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -111,6 +112,10 @@ const Onboarding = () => {
   const removePhoto = (index: number) => {
     setPhotoFiles(photoFiles.filter((_, i) => i !== index));
     setPhotoPreviews(photoPreviews.filter((_, i) => i !== index));
+  };
+
+  const handleIntentChange = (key: string, value: string) => {
+    setIntentAnswers((prev) => ({ ...prev, [key]: value }));
   };
 
   const validateCurrentStep = (): boolean => {
@@ -172,6 +177,8 @@ const Onboarding = () => {
       }
     }
 
+    // Step 5 (intent questions) is optional - no validation needed
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -179,7 +186,6 @@ const Onboarding = () => {
   const handleSubmit = async () => {
     if (!user) return;
 
-    // Final validation using zod schema
     const validationResult = onboardingSchema.safeParse({
       age: parseInt(age),
       gender,
@@ -203,7 +209,7 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
-      // Update profile with sanitized data
+      // Update profile
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -216,10 +222,9 @@ const Onboarding = () => {
 
       if (profileError) throw profileError;
 
-      // Upload photos with secure file naming
+      // Upload photos
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
-        // Generate secure random filename
         const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
         const safeExt = ["jpg", "jpeg", "png", "webp"].includes(fileExt) ? fileExt : "jpg";
         const fileName = `${user.id}/${crypto.randomUUID()}.${safeExt}`;
@@ -233,7 +238,6 @@ const Onboarding = () => {
 
         if (uploadError) throw uploadError;
 
-        // Store relative path, not full URL
         const { error: photoError } = await supabase
           .from("profile_photos")
           .insert({
@@ -246,7 +250,7 @@ const Onboarding = () => {
         if (photoError) throw photoError;
       }
 
-      // Save preferences with validated data
+      // Save preferences
       const { error: preferencesError } = await supabase
         .from("preferences")
         .upsert(
@@ -262,9 +266,30 @@ const Onboarding = () => {
 
       if (preferencesError) throw preferencesError;
 
+      // Save intent prompts (if any were answered)
+      const intentPromptEntries = Object.entries(intentAnswers).filter(([_, value]) => value.trim());
+      if (intentPromptEntries.length > 0) {
+        for (const [key, value] of intentPromptEntries) {
+          await supabase
+            .from("user_intent_prompts")
+            .upsert(
+              {
+                user_id: user.id,
+                prompt_key: key,
+                answer: value.trim(),
+                is_public: false,
+              },
+              { onConflict: "user_id,prompt_key" }
+            );
+        }
+      }
+
+      // Initialize trust signals
+      await supabase.rpc("calculate_trust_signals", { p_user_id: user.id });
+
       toast({
-        title: "Profile completed!",
-        description: "Welcome to Blossom",
+        title: "Welcome to Blossom! 🌸",
+        description: "Your profile is ready. Let's find meaningful connections.",
       });
 
       navigate("/discover");
@@ -281,13 +306,18 @@ const Onboarding = () => {
   };
 
   const nextStep = () => {
+    if (step === 0) {
+      // Welcome step - no validation needed
+      setStep(1);
+      return;
+    }
     if (!validateCurrentStep()) {
       return;
     }
     setStep(step + 1);
   };
 
-  const progress = (step / 4) * 100;
+  const progress = ((step) / TOTAL_STEPS) * 100;
 
   const renderError = (field: string) => {
     if (errors[field]) {
@@ -301,24 +331,64 @@ const Onboarding = () => {
     return null;
   };
 
+  const getStepTitle = () => {
+    switch (step) {
+      case 0:
+        return "Welcome";
+      case 1:
+        return "Basic Info";
+      case 2:
+        return "Photos";
+      case 3:
+        return "About You";
+      case 4:
+        return "Preferences";
+      case 5:
+        return "Intentions";
+      default:
+        return "Complete Profile";
+    }
+  };
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 0:
+        return "Dating, without the games";
+      case 1:
+        return "Let's start with the basics";
+      case 2:
+        return "Show your authentic self";
+      case 3:
+        return "Tell us what makes you unique";
+      case 4:
+        return "Who are you hoping to meet?";
+      case 5:
+        return "A moment of reflection (optional)";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl shadow-elevated">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <Heart className="h-8 w-8 text-primary" />
             <span className="text-sm text-muted-foreground">
-              Step {step} of 4
+              {step === 0 ? "Welcome" : `Step ${step} of ${TOTAL_STEPS - 1}`}
             </span>
           </div>
           <Progress value={progress} className="mb-4" />
-          <CardTitle>Complete Your Profile</CardTitle>
-          <CardDescription>
-            Let's set up your profile to find your perfect match
-          </CardDescription>
+          <CardTitle>{getStepTitle()}</CardTitle>
+          <CardDescription>{getStepDescription()}</CardDescription>
         </CardHeader>
         <CardContent>
           <AnimatePresence mode="wait">
+            {/* Step 0: Welcome */}
+            {step === 0 && <OnboardingWelcome key="step0" />}
+
+            {/* Step 1: Basic Info */}
             {step === 1 && (
               <motion.div
                 key="step1"
@@ -374,7 +444,7 @@ const Onboarding = () => {
                       setOccupation(e.target.value.slice(0, 100));
                       setErrors((prev) => ({ ...prev, occupation: "" }));
                     }}
-                    placeholder="Software Engineer"
+                    placeholder="What do you do?"
                     maxLength={100}
                   />
                   {renderError("occupation")}
@@ -385,6 +455,7 @@ const Onboarding = () => {
               </motion.div>
             )}
 
+            {/* Step 2: Photos */}
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -396,7 +467,7 @@ const Onboarding = () => {
                 <div>
                   <Label>Profile Photos (up to 6) *</Label>
                   <p className="text-xs text-muted-foreground mb-2">
-                    JPEG, PNG, or WebP. Max 10MB each.
+                    Show your authentic self. JPEG, PNG, or WebP. Max 10MB each.
                   </p>
                   <div className="grid grid-cols-3 gap-4 mt-2">
                     {photoPreviews.map((preview, index) => (
@@ -437,6 +508,7 @@ const Onboarding = () => {
               </motion.div>
             )}
 
+            {/* Step 3: Bio */}
             {step === 3 && (
               <motion.div
                 key="step3"
@@ -446,7 +518,10 @@ const Onboarding = () => {
                 className="space-y-4"
               >
                 <div>
-                  <Label htmlFor="bio">Bio * (min 10 characters)</Label>
+                  <Label htmlFor="bio">About You * (min 10 characters)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Share what makes you unique. Be genuine—it attracts the right people.
+                  </p>
                   <Textarea
                     id="bio"
                     value={bio}
@@ -454,7 +529,7 @@ const Onboarding = () => {
                       setBio(e.target.value.slice(0, 1000));
                       setErrors((prev) => ({ ...prev, bio: "" }));
                     }}
-                    placeholder="Tell us about yourself..."
+                    placeholder="What are you passionate about? What brings you joy?"
                     rows={6}
                     maxLength={1000}
                     aria-invalid={!!errors.bio}
@@ -467,6 +542,7 @@ const Onboarding = () => {
               </motion.div>
             )}
 
+            {/* Step 4: Preferences */}
             {step === 4 && (
               <motion.div
                 key="step4"
@@ -565,20 +641,38 @@ const Onboarding = () => {
                 </div>
               </motion.div>
             )}
+
+            {/* Step 5: Intent Questions */}
+            {step === 5 && (
+              <IntentQuestions
+                key="step5"
+                answers={intentAnswers}
+                onChange={handleIntentChange}
+              />
+            )}
           </AnimatePresence>
 
           <div className="flex justify-between mt-6">
-            {step > 1 && (
+            {step > 0 && (
               <Button variant="outline" onClick={() => setStep(step - 1)}>
                 Back
               </Button>
             )}
             <div className="flex-1" />
-            {step < 4 ? (
-              <Button onClick={nextStep}>Next</Button>
+            {step < 5 ? (
+              <Button onClick={nextStep}>
+                {step === 0 ? (
+                  <>
+                    Let's Begin
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  "Next"
+                )}
+              </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={loading}>
-                {loading ? "Completing..." : "Complete Profile"}
+                {loading ? "Creating Profile..." : "Complete Profile"}
               </Button>
             )}
           </div>

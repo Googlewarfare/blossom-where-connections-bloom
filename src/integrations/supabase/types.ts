@@ -193,6 +193,33 @@ export type Database = {
         }
         Relationships: []
       }
+      closure_templates: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          message: string
+          tone: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          tone: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          tone?: string
+        }
+        Relationships: []
+      }
       compatibility_scores: {
         Row: {
           calculated_at: string | null
@@ -222,21 +249,36 @@ export type Database = {
       }
       conversations: {
         Row: {
+          closed_at: string | null
+          closed_by: string | null
+          closure_message: string | null
+          closure_reason: string | null
           created_at: string
           id: string
           match_id: string
+          status: string | null
           updated_at: string
         }
         Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_message?: string | null
+          closure_reason?: string | null
           created_at?: string
           id?: string
           match_id: string
+          status?: string | null
           updated_at?: string
         }
         Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_message?: string | null
+          closure_reason?: string | null
           created_at?: string
           id?: string
           match_id?: string
+          status?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1236,6 +1278,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_intent_prompts: {
+        Row: {
+          answer: string | null
+          created_at: string | null
+          id: string
+          is_public: boolean | null
+          prompt_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          prompt_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          prompt_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           created_at: string | null
@@ -1313,6 +1385,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_response_patterns: {
+        Row: {
+          average_response_time_hours: number | null
+          ghosted_count: number | null
+          graceful_closures: number | null
+          id: string
+          last_calculated_at: string | null
+          total_conversations: number | null
+          user_id: string
+          visibility_score: number | null
+        }
+        Insert: {
+          average_response_time_hours?: number | null
+          ghosted_count?: number | null
+          graceful_closures?: number | null
+          id?: string
+          last_calculated_at?: string | null
+          total_conversations?: number | null
+          user_id: string
+          visibility_score?: number | null
+        }
+        Update: {
+          average_response_time_hours?: number | null
+          ghosted_count?: number | null
+          graceful_closures?: number | null
+          id?: string
+          last_calculated_at?: string | null
+          total_conversations?: number | null
+          user_id?: string
+          visibility_score?: number | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -1401,6 +1506,42 @@ export type Database = {
           id?: string
           target_user_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_trust_signals: {
+        Row: {
+          communicates_with_care: boolean | null
+          community_trusted: boolean | null
+          id: string
+          last_calculated_at: string | null
+          profile_completeness: number | null
+          shows_up_consistently: boolean | null
+          thoughtful_closer: boolean | null
+          user_id: string
+          verified_identity: boolean | null
+        }
+        Insert: {
+          communicates_with_care?: boolean | null
+          community_trusted?: boolean | null
+          id?: string
+          last_calculated_at?: string | null
+          profile_completeness?: number | null
+          shows_up_consistently?: boolean | null
+          thoughtful_closer?: boolean | null
+          user_id: string
+          verified_identity?: boolean | null
+        }
+        Update: {
+          communicates_with_care?: boolean | null
+          community_trusted?: boolean | null
+          id?: string
+          last_calculated_at?: string | null
+          profile_completeness?: number | null
+          shows_up_consistently?: boolean | null
+          thoughtful_closer?: boolean | null
+          user_id?: string
+          verified_identity?: boolean | null
         }
         Relationships: []
       }
@@ -1575,6 +1716,14 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_trust_signals: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      can_start_new_conversation: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_account_lockout: {
         Args: {
           p_email: string
@@ -1593,6 +1742,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_captcha: { Args: never; Returns: undefined }
+      get_active_conversation_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       get_anonymized_reports: {
         Args: never
         Returns: {
