@@ -20,6 +20,7 @@ import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { ReportDialog } from "@/components/ReportDialog";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import { OptimizedImage } from "@/components/OptimizedImage";
 interface Profile {
   id: string;
   full_name: string;
@@ -553,7 +554,7 @@ const Discover = () => {
               {profiles[currentIndex + 1] && <Card className="absolute inset-0 overflow-hidden border-2 opacity-50 scale-95">
                   <CardContent className="p-0">
                     <div className="relative h-[600px] overflow-hidden bg-muted">
-                      {profiles[currentIndex + 1].photo_url && <img src={profiles[currentIndex + 1].photo_url} alt="Next profile" className="w-full h-full object-cover" />}
+                      {profiles[currentIndex + 1].photo_url && <OptimizedImage src={profiles[currentIndex + 1].photo_url} alt="Next profile" className="w-full h-full object-cover" />}
                     </div>
                   </CardContent>
                 </Card>}
@@ -571,7 +572,7 @@ const Discover = () => {
                   <CardContent className="p-0">
                     {/* Profile Photo */}
                     <div className="relative h-[600px] overflow-hidden bg-muted">
-                      {currentProfile.photo_url ? <img src={currentProfile.photo_url} alt={currentProfile.full_name || "Profile"} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+                      {currentProfile.photo_url ? <OptimizedImage src={currentProfile.photo_url} alt={currentProfile.full_name || "Profile"} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
                           <Heart className="w-20 h-20 text-primary/40" />
                         </div>}
 
@@ -673,7 +674,7 @@ const Discover = () => {
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
             {matchedProfile?.photo_url && <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary">
-                <img src={matchedProfile.photo_url} alt={matchedProfile.full_name || "Match"} className="w-full h-full object-cover" />
+                <OptimizedImage src={matchedProfile.photo_url} alt={matchedProfile.full_name || "Match"} className="w-full h-full object-cover" />
               </div>}
             <div className="flex gap-4 w-full">
               <Button variant="outline" className="flex-1" onClick={() => setShowMatchModal(false)}>

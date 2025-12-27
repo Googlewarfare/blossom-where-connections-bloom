@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import logo from "@/assets/blossom-logo.jpg";
 
 const navLinks = [
@@ -55,7 +56,7 @@ const Navbar = () => {
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity" />
-            <img
+            <OptimizedImage
               src={logo}
               alt="Blossom"
               className="relative w-10 h-10 rounded-full object-cover ring-2 ring-border/50 group-hover:ring-primary/50 transition-all group-hover:scale-105"
@@ -159,7 +160,7 @@ const Navbar = () => {
               <div className="flex flex-col h-full">
                 {/* Mobile Header */}
                 <div className="flex items-center gap-3 p-6 border-b border-border bg-gradient-to-br from-muted/30 to-transparent">
-                  <img
+                  <OptimizedImage
                     src={logo}
                     alt="Blossom"
                     className="w-12 h-12 rounded-full object-cover ring-2 ring-border"

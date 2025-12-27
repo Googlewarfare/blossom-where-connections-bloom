@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface Story {
   id: string;
@@ -128,7 +129,7 @@ export const StoryFeed = () => {
           {selectedStory && (
             <div className="relative h-[600px]">
               {selectedStory.media_type.startsWith("image") ? (
-                <img
+                <OptimizedImage
                   src={selectedStory.media_url}
                   alt="Story"
                   className="w-full h-full object-contain"

@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { MapPin, Briefcase } from 'lucide-react';
 import { haptics } from '@/hooks/use-haptics';
 
@@ -32,7 +33,7 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
       onClick={handleClick}
     >
       <div className="relative aspect-[3/4] overflow-hidden">
-        <img
+        <OptimizedImage
           src={profile.photo_url || '/placeholder.svg'}
           alt={profile.full_name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

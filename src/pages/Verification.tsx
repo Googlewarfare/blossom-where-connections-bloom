@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, CheckCircle, Shield, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 const Verification = () => {
   const { user } = useAuth();
@@ -184,7 +185,7 @@ const Verification = () => {
       ) : (
         <div className="space-y-4">
           <div className="relative rounded-lg overflow-hidden border-2 border-primary">
-            <img
+            <OptimizedImage
               src={previewUrl}
               alt="Verification preview"
               className="w-full h-64 object-cover"

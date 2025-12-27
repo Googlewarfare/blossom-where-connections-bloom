@@ -6,6 +6,7 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface Event {
   id: string;
@@ -124,7 +125,7 @@ const Events = () => {
             >
               {event.image_url && (
                 <div className="aspect-video overflow-hidden">
-                  <img
+                  <OptimizedImage
                     src={event.image_url}
                     alt={event.title}
                     className="w-full h-full object-cover"

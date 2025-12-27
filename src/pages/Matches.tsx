@@ -14,6 +14,7 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
 import { useAppRating } from "@/hooks/use-app-rating";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface MatchProfile {
   id: string;
@@ -253,7 +254,7 @@ const Matches = () => {
                     {/* Profile Photo */}
                     <div className="relative h-80 overflow-hidden bg-muted">
                       {match.photo_url ? (
-                        <img
+                        <OptimizedImage
                           src={match.photo_url}
                           alt={match.full_name || "Match"}
                           className="w-full h-full object-cover"

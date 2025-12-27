@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 interface SuccessStory {
   id: string;
@@ -52,7 +53,7 @@ const SuccessStories = () => {
             >
               {story.photo_url && (
                 <div className="aspect-video overflow-hidden">
-                  <img
+                  <OptimizedImage
                     src={story.photo_url}
                     alt="Couple"
                     className="w-full h-full object-cover"
