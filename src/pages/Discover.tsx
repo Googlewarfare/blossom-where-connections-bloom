@@ -171,8 +171,8 @@ const Discover = () => {
         } = await supabase.from("user_swipes").select("target_user_id").eq("user_id", user.id);
         const swipedUserIds = swipedIds?.map(s => s.target_user_id) || [];
 
-        // Build query using fuzzed location view for privacy
-        let query = supabase.from("profiles_with_fuzzed_location").select(`
+        // Build query using discoverable_profiles view for privacy + visibility scoring
+        let query = supabase.from("discoverable_profiles").select(`
             id,
             full_name,
             age,
@@ -181,8 +181,12 @@ const Discover = () => {
             occupation,
             latitude,
             longitude,
-            verified
-          `).neq("id", user.id).not("bio", "is", null);
+            verified,
+            visibility_score
+          `)
+          .neq("id", user.id)
+          .not("bio", "is", null)
+          .order("visibility_score", { ascending: false }); // Higher visibility = shown first
 
         // Exclude already swiped profiles if any
         if (swipedUserIds.length > 0) {
