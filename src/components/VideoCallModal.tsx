@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { VisuallyHidden } from "@/components/ui/skip-link";
 
 interface VideoCallModalProps {
   isOpen: boolean;
@@ -96,7 +97,10 @@ export const VideoCallModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl h-[80vh] p-0 overflow-hidden" aria-describedby={undefined}>
+        <VisuallyHidden>
+          <DialogTitle>Video Call with {remoteUser?.full_name || "User"}</DialogTitle>
+        </VisuallyHidden>
         <div className="relative w-full h-full bg-black">
           {/* Remote Video (Full Screen) */}
           {callState.status === "active" && remoteStream ? (

@@ -156,7 +156,7 @@ const Navbar = () => {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0">
+            <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0" aria-label="Navigation menu" aria-describedby={undefined}>
               <div className="flex flex-col h-full">
                 {/* Mobile Header */}
                 <div className="flex items-center gap-3 p-6 border-b border-border bg-gradient-to-br from-muted/30 to-transparent">
