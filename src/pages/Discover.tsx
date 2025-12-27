@@ -23,6 +23,9 @@ import { OptimizedImage } from "@/components/OptimizedImage";
 import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
 import { TrustSignals } from "@/components/TrustSignals";
 import { GhostingCheckpointDialog } from "@/components/GhostingCheckpointDialog";
+import { GhostingBlocker } from "@/components/GhostingBlocker";
+import { SwipeLimitOverlay } from "@/components/SwipeLimitOverlay";
+import { useSwipeLimits } from "@/hooks/use-swipe-limits";
 
 // Lazy load heavy map component
 const MatchesMap = lazy(() => import("@/components/MatchesMap"));
@@ -83,6 +86,9 @@ const Discover = () => {
   // Pre-compute swipe indicator opacity transforms (must be called unconditionally)
   const passIndicatorOpacity = useTransform(x, [-150, -50, 0], [1, 0.5, 0]);
   const likeIndicatorOpacity = useTransform(x, [0, 50, 150], [0, 0.5, 1]);
+
+  // Swipe limits enforcement
+  const { canSwipe, activeCount, maxConversations, refresh: refreshLimits } = useSwipeLimits();
 
   // Handle super like and subscription success
   useEffect(() => {
@@ -293,6 +299,8 @@ const Discover = () => {
           haptics.matchFound();
           setMatchedProfile(currentProfile);
           setShowMatchModal(true);
+          // Refresh limits as new conversation started
+          refreshLimits();
         } else {
           toast({
             title: action === "like" ? "Liked!" : "Passed",
@@ -476,54 +484,64 @@ const Discover = () => {
     );
   }
   const currentProfile = profiles[currentIndex];
-  return <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
-      <Navbar />
-      <div className="gradient-hero w-full">
-      <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
-        {/* Ghosting Checkpoint - shows before discovery */}
-        <GhostingCheckpointDialog />
-        
-        {/* Profile Completion Banner */}
-        <div className="mb-6">
-          <ProfileCompletionBanner />
-          <ConversationLimitBanner />
-        </div>
+  return (
+    <GhostingBlocker>
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
+        <Navbar />
+        <div className="gradient-hero w-full">
+          <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border relative">
+            {/* Swipe Limit Overlay - blocks swiping when at max conversations */}
+            {!canSwipe && (
+              <SwipeLimitOverlay 
+                activeCount={activeCount} 
+                maxConversations={maxConversations} 
+              />
+            )}
+            
+            {/* Ghosting Checkpoint - shows before discovery */}
+            <GhostingCheckpointDialog />
+            
+            {/* Profile Completion Banner */}
+            <div className="mb-6">
+              <ProfileCompletionBanner />
+              <ConversationLimitBanner />
+            </div>
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">
-              Discover{" "}
-              <span className="gradient-primary bg-clip-text text-primary-foreground">
-                Your Match
-              </span>
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Swipe right to like, left to pass
-            </p>
-            {hasUnlimitedSuperLikes && <Badge className="mt-2 bg-gradient-to-r from-yellow-400 to-orange-500">
-                ⭐ Unlimited Super Likes Active
-              </Badge>}
-          </div>
-          {/* Actions */}
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => navigate(-1)} variant="outline" size="sm" className="rounded-full">
-              <ArrowLeft className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
-            {hasUnlimitedSuperLikes ? <Button onClick={handleManageSubscription} variant="outline" size="sm" className="rounded-full">
-                <Star className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Manage</span>
-              </Button> : <Button onClick={() => setShowSubscriptionDialog(true)} size="sm" className="rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600">
-                <Star className="w-4 h-4 sm:mr-2 fill-current" />
-                <span className="hidden sm:inline">Super Likes</span>
-              </Button>}
-            <AdvancedFilters onFiltersApplied={() => window.location.reload()} />
-            <Button onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")} variant="outline" size="sm" className="rounded-full">
-              {viewMode === "cards" ? <Map className="w-4 h-4" /> : <Heart className="w-4 h-4" />}
-            </Button>
-          </div>
-        </div>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-2xl sm:text-4xl font-bold mb-2">
+                  Discover{" "}
+                  <span className="gradient-primary bg-clip-text text-primary-foreground">
+                    Your Match
+                  </span>
+                </h1>
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  Swipe right to like, left to pass
+                </p>
+                {hasUnlimitedSuperLikes && <Badge className="mt-2 bg-gradient-to-r from-yellow-400 to-orange-500">
+                    ⭐ Unlimited Super Likes Active
+                  </Badge>}
+              </div>
+              {/* Actions */}
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => navigate(-1)} variant="outline" size="sm" className="rounded-full">
+                  <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Back</span>
+                </Button>
+                {hasUnlimitedSuperLikes ? <Button onClick={handleManageSubscription} variant="outline" size="sm" className="rounded-full">
+                    <Star className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Manage</span>
+                  </Button> : <Button onClick={() => setShowSubscriptionDialog(true)} size="sm" className="rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600">
+                    <Star className="w-4 h-4 sm:mr-2 fill-current" />
+                    <span className="hidden sm:inline">Super Likes</span>
+                  </Button>}
+                <AdvancedFilters onFiltersApplied={() => window.location.reload()} />
+                <Button onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")} variant="outline" size="sm" className="rounded-full">
+                  {viewMode === "cards" ? <Map className="w-4 h-4" /> : <Heart className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
 
         {/* Map or Card View */}
         {viewMode === "map" ? <div className="h-[700px] w-full rounded-lg overflow-hidden shadow-xl">
@@ -754,7 +772,9 @@ const Discover = () => {
       
       {/* Push Notification Permission Prompt */}
       <PushNotificationPrompt />
+        </div>
       </div>
-    </div>;
+    </GhostingBlocker>
+  );
 };
 export default Discover;
