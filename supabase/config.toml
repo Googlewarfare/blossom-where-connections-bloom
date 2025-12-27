@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.update-ghosting-stats]
 verify_jwt = false
+
+[functions.send-conversation-nudges]
+verify_jwt = false

@@ -6,6 +6,7 @@ import {
   Sparkles,
   Check,
   Trash2,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,8 @@ const getNotificationIcon = (type: Notification["type"]) => {
       return <Eye className="w-4 h-4 text-amber-500" />;
     case "super_like":
       return <Sparkles className="w-4 h-4 text-purple-500" />;
+    case "nudge":
+      return <Clock className="w-4 h-4 text-orange-500" />;
     default:
       return <Bell className="w-4 h-4" />;
   }
@@ -39,6 +42,7 @@ const getNotificationLink = (type: Notification["type"]) => {
     case "match":
       return "/matches";
     case "message":
+    case "nudge":
       return "/chat";
     case "profile_view":
       return "/activity";
