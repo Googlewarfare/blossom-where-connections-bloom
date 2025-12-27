@@ -456,6 +456,22 @@ const Auth = () => {
     }
   };
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset gradient-hero flex items-center justify-center px-4 py-12">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center gap-3">
+            <div className="p-3 rounded-2xl gradient-primary shadow-glow animate-pulse">
+              <Heart className="w-8 h-8 text-primary-foreground fill-current" />
+            </div>
+          </div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show MFA verification screen if needed
   if (showMfaVerify && mfaFactorId) {
     return (
