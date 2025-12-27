@@ -116,6 +116,13 @@ export type Database = {
             foreignKeyName: "blocked_users_report_id_fkey"
             columns: ["report_id"]
             isOneToOne: false
+            referencedRelation: "anonymized_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
@@ -158,6 +165,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      captcha_verifications: {
+        Row: {
+          action: string
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          token_hash: string
+          verified_at: string | null
+        }
+        Insert: {
+          action: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          token_hash: string
+          verified_at?: string | null
+        }
+        Update: {
+          action?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          token_hash?: string
+          verified_at?: string | null
+        }
+        Relationships: []
       }
       compatibility_scores: {
         Row: {
@@ -1392,6 +1426,51 @@ export type Database = {
       }
     }
     Views: {
+      anonymized_reports: {
+        Row: {
+          admin_notes: string | null
+          anonymous_reporter_hash: string | null
+          category: Database["public"]["Enums"]["report_category"] | null
+          created_at: string | null
+          description: string | null
+          evidence_urls: string[] | null
+          id: string | null
+          reported_user_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          anonymous_reporter_hash?: never
+          category?: Database["public"]["Enums"]["report_category"] | null
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string | null
+          reported_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          anonymous_reporter_hash?: never
+          category?: Database["public"]["Enums"]["report_category"] | null
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string | null
+          reported_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       daily_analytics: {
         Row: {
           date: string | null
@@ -1420,6 +1499,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_captcha: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
