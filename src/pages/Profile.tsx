@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { getCurrentLocation } from "@/lib/location-utils";
+import { getCurrentLocation, reverseGeocode } from "@/lib/location-utils";
 import Navbar from "@/components/Navbar";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { TwoFactorSetup } from "@/components/TwoFactorSetup";
@@ -783,15 +783,25 @@ const Profile = () => {
                         setLoadingLocation(true);
                         try {
                           const coords = await getCurrentLocation();
+                          
+                          // Reverse geocode to get city, state
+                          const locationName = await reverseGeocode(
+                            coords.latitude,
+                            coords.longitude
+                          );
+                          
                           setProfile({
                             ...profile,
                             latitude: coords.latitude,
                             longitude: coords.longitude,
+                            location: locationName || profile.location,
                           });
+                          
                           toast({
-                            title: "Location Captured",
-                            description:
-                              "Your location coordinates have been set.",
+                            title: "Location Updated",
+                            description: locationName 
+                              ? `Set to ${locationName}`
+                              : "Your location coordinates have been set.",
                           });
                         } catch (error) {
                           toast({
