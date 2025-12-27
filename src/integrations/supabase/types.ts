@@ -1593,11 +1593,63 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_captcha: { Args: never; Returns: undefined }
+      get_anonymized_reports: {
+        Args: never
+        Returns: {
+          admin_notes: string
+          anonymous_reporter_hash: string
+          category: Database["public"]["Enums"]["report_category"]
+          created_at: string
+          description: string
+          evidence_urls: string[]
+          id: string
+          reported_user_id: string
+          reviewed_at: string
+          reviewed_by: string
+          status: Database["public"]["Enums"]["report_status"]
+          updated_at: string
+        }[]
+      }
+      get_daily_analytics: {
+        Args: never
+        Returns: {
+          date: string
+          logged_in_users: number
+          page_views: number
+          unique_sessions: number
+        }[]
+      }
       get_fuzzed_location: {
         Args: { p_latitude: number; p_longitude: number; p_user_id: string }
         Returns: {
           fuzzed_latitude: number
           fuzzed_longitude: number
+        }[]
+      }
+      get_profiles_with_fuzzed_location: {
+        Args: never
+        Returns: {
+          age: number
+          bio: string
+          created_at: string
+          drinking: string
+          education: string
+          exercise: string
+          full_name: string
+          gender: string
+          height_cm: number
+          id: string
+          latitude: number
+          lifestyle: string
+          location: string
+          longitude: number
+          occupation: string
+          relationship_goal: string
+          religion: string
+          smoking: string
+          updated_at: string
+          verification_status: string
+          verified: boolean
         }[]
       }
       has_role: {
