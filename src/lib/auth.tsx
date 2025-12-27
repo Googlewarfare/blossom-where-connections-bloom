@@ -74,17 +74,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
       
       if (error) {
-        // Don't log auth errors as they're expected when session expires
-        if (!error.message?.includes("401") && !error.message?.includes("Authentication")) {
-          console.error("Error checking subscription:", error);
+        const status = (error as any)?.context?.status ?? (error as any)?.status;
+
+        // Treat auth failures as non-fatal (user may have signed out / session not ready).
+        if (status === 401) {
+          setSubscriptionStatus(null);
+          return;
         }
+
+        console.error("Error checking subscription:", error);
         return;
       }
-      
+
       setSubscriptionStatus(data);
-    } catch (error) {
-      // Silently handle errors - subscription check is non-critical
-      console.error("Error checking subscription:", error);
+    } catch {
+      // Subscription check should never take down the app.
+      return;
     }
   };
 

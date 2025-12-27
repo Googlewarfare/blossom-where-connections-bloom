@@ -13,6 +13,30 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+type JwtPayload = {
+  sub?: string;
+  email?: string;
+  [key: string]: unknown;
+};
+
+const decodeJwtPayload = (jwt: string): JwtPayload | null => {
+  try {
+    const parts = jwt.split(".");
+    if (parts.length < 2) return null;
+
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+
+    const json = atob(padded);
+    const payload = JSON.parse(json);
+
+    return typeof payload === "object" && payload ? (payload as JwtPayload) : null;
+  } catch {
+    return null;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -39,40 +63,43 @@ serve(async (req) => {
       );
     }
 
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
     if (!authHeader) {
       logStep("ERROR: No authorization header");
-      return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 401,
-        },
-      );
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length).trim()
+      : authHeader.trim();
 
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser(token);
-    if (userError || !userData.user?.email) {
-      logStep("ERROR: Authentication failed", { error: userError?.message });
-      return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 401,
-        },
-      );
+    logStep("Authenticating user", { tokenLength: token.length });
+
+    // JWT is already verified by the platform (verify_jwt default = true), so we can safely read claims.
+    const payload = decodeJwtPayload(token);
+    const userId = payload?.sub;
+    const email = payload?.email;
+
+    if (!userId || !email) {
+      logStep("ERROR: Authentication failed", {
+        error: "Missing JWT claims",
+        hasSub: Boolean(userId),
+        hasEmail: Boolean(email),
+      });
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
-    const user = userData.user;
-    logStep("User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({
-      email: user.email,
+      email,
       limit: 1,
     });
 
