@@ -1,6 +1,10 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, lazy, Suspense } from "react";
 import { useVideoCall } from "@/hooks/use-video-call";
-import { VideoCallModal } from "@/components/VideoCallModal";
+
+// Lazy load heavy video call modal
+const VideoCallModal = lazy(() => 
+  import("@/components/VideoCallModal").then(m => ({ default: m.VideoCallModal }))
+);
 
 interface VideoCallContextType {
   startCall: (recipientId: string, matchId: string) => Promise<void>;
@@ -45,19 +49,23 @@ export const VideoCallProvider = ({ children }: { children: ReactNode }) => {
   return (
     <VideoCallContext.Provider value={{ startCall, callState }}>
       {children}
-      <VideoCallModal
-        isOpen={isCallActive}
-        callState={callState}
-        localStream={localStream}
-        remoteStream={remoteStream}
-        isMuted={isMuted}
-        isVideoOff={isVideoOff}
-        onAnswer={answerCall}
-        onDecline={declineCall}
-        onEnd={endCall}
-        onToggleMute={toggleMute}
-        onToggleVideo={toggleVideo}
-      />
+      {isCallActive && (
+        <Suspense fallback={null}>
+          <VideoCallModal
+            isOpen={isCallActive}
+            callState={callState}
+            localStream={localStream}
+            remoteStream={remoteStream}
+            isMuted={isMuted}
+            isVideoOff={isVideoOff}
+            onAnswer={answerCall}
+            onDecline={declineCall}
+            onEnd={endCall}
+            onToggleMute={toggleMute}
+            onToggleVideo={toggleVideo}
+          />
+        </Suspense>
+      )}
     </VideoCallContext.Provider>
   );
 };

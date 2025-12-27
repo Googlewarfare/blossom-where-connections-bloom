@@ -7,19 +7,42 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#ec4899" />
+    
     <title>Blossom - Blossom into Love</title>
     <meta
       name="description"
       content="Find meaningful connections and blossom into love with Blossom, the dating app designed for authentic relationships."
     />
     <meta name="author" content="Blossom" />
+    
+    <!-- Favicon -->
     <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
+    <link rel="apple-touch-icon" href="/app-icon.jpg" />
+    
+    <!-- DNS Prefetch & Preconnect for external resources -->
+    <link rel="dns-prefetch" href="https://cldpflpfyoalxxioaqab.supabase.co" />
+    <link rel="preconnect" href="https://cldpflpfyoalxxioaqab.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://api.stripe.com" />
+    <link rel="preconnect" href="https://api.stripe.com" crossorigin />
+    <link rel="dns-prefetch" href="https://api.mapbox.com" />
+    <link rel="preconnect" href="https://api.mapbox.com" crossorigin />
+    
+    <!-- Font preconnect and preload -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
 
     <!-- Capacitor defensive shim: prevents early native->web calls from crashing before app JS loads -->
     <script>
@@ -43,6 +66,7 @@
       })();
     </script>
 
+    <!-- Open Graph -->
     <meta property="og:title" content="Blossom - Blossom into Love" />
     <meta
       property="og:description"
@@ -51,6 +75,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.jpg" />
 
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Blossom" />
     <meta name="twitter:image" content="/favicon.jpg" />

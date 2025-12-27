@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useHaptics } from "@/hooks/use-haptics";
 import { calculateDistance } from "@/lib/location-utils";
 import Navbar from "@/components/Navbar";
-import MatchesMap from "@/components/MatchesMap";
 import { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { CompatibilityScore } from "@/components/CompatibilityScore";
@@ -21,6 +20,19 @@ import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { ReportDialog } from "@/components/ReportDialog";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { OptimizedImage } from "@/components/OptimizedImage";
+
+// Lazy load heavy map component
+const MatchesMap = lazy(() => import("@/components/MatchesMap"));
+
+// Map loading fallback
+const MapSkeleton = () => (
+  <div className="h-[700px] w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+    <div className="text-center space-y-4">
+      <Map className="w-12 h-12 mx-auto text-muted-foreground animate-pulse" />
+      <p className="text-muted-foreground">Loading map...</p>
+    </div>
+  </div>
+);
 interface Profile {
   id: string;
   full_name: string;
@@ -523,14 +535,16 @@ const Discover = () => {
 
         {/* Map or Card View */}
         {viewMode === "map" ? <div className="h-[700px] w-full rounded-lg overflow-hidden shadow-xl">
-            <MatchesMap 
-              profiles={profiles.filter(p => p.latitude && p.longitude) as (Profile & {
-                latitude: number;
-                longitude: number;
-              })[]} 
-              userLocation={userLocation || undefined}
-              maxDistanceMiles={50}
-            />
+            <Suspense fallback={<MapSkeleton />}>
+              <MatchesMap 
+                profiles={profiles.filter(p => p.latitude && p.longitude) as (Profile & {
+                  latitude: number;
+                  longitude: number;
+                })[]} 
+                userLocation={userLocation || undefined}
+                maxDistanceMiles={50}
+              />
+            </Suspense>
           </div> : (/* Swipe Card Stack */
       <div className="flex justify-center items-center min-h-[600px]">
           {!currentProfile || currentIndex >= profiles.length ? <div className="text-center py-20">
