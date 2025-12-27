@@ -107,9 +107,9 @@ const Events = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Local Singles Events</h1>
           <p className="text-muted-foreground">

@@ -448,7 +448,7 @@ const Auth = () => {
   // Show MFA verification screen if needed
   if (showMfaVerify && mfaFactorId) {
     return (
-      <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset gradient-hero flex items-center justify-center px-4 py-12">
         <TwoFactorVerify
           factorId={mfaFactorId}
           onSuccess={handleMfaSuccess}
@@ -459,7 +459,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-hero flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset gradient-hero flex items-center justify-center px-4 py-12 relative">
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />

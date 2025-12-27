@@ -234,10 +234,10 @@ const Chat = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="p-4">
-          <div className="container mx-auto max-w-6xl">
+        <div className="p-4 w-full">
+          <div className="w-full max-w-6xl mx-auto box-border">
             <Skeleton className="h-[600px] w-full" />
           </div>
         </div>
@@ -246,9 +246,9 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-6xl p-4">
+      <div className="w-full max-w-6xl mx-auto p-4 box-border">
         <div className="mb-6 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} aria-label="Go back to matches">
             <ArrowLeft className="h-5 w-5" />

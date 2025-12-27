@@ -202,9 +202,9 @@ export default function Premium() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="container max-w-4xl mx-auto py-8 px-4">
+      <div className="w-full max-w-4xl mx-auto py-8 px-4 box-border">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
             <ArrowLeft className="h-5 w-5" />

@@ -182,7 +182,7 @@ const AdminVerification = () => {
   // Show loading immediately while checking access - prevents UI flash
   if (authLoading || checkingAccess) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Shield className="h-8 w-8 text-muted-foreground animate-pulse" />
           <p className="text-muted-foreground">Verifying access...</p>
@@ -197,15 +197,15 @@ const AdminVerification = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background flex items-center justify-center">
         <p className="text-muted-foreground">Loading verification requests...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+      <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>

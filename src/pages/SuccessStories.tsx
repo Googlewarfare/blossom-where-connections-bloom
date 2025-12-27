@@ -34,9 +34,9 @@ const SuccessStories = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
         <div className="text-center mb-12">
           <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Success Stories</h1>

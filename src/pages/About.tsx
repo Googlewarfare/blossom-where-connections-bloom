@@ -85,13 +85,13 @@ const stats = [
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
+        <div className="w-full max-w-4xl mx-auto text-center relative z-10 px-4">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Heart className="w-4 h-4" />
             About Blossom
@@ -109,7 +109,7 @@ const About = () => {
 
       {/* Stats Section */}
       <section className="py-12 border-y border-border bg-muted/30">
-        <div className="container mx-auto px-4">
+        <div className="w-full max-w-7xl mx-auto px-4 box-border">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
@@ -127,7 +127,7 @@ const About = () => {
 
       {/* Mission Section */}
       <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+        <div className="w-full max-w-6xl mx-auto px-4 box-border">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="flex items-center gap-2 text-primary mb-4">
@@ -181,7 +181,7 @@ const About = () => {
 
       {/* How It Works */}
       <section className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto max-w-5xl">
+        <div className="w-full max-w-5xl mx-auto px-4 box-border">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               How Blossom Works
@@ -215,7 +215,7 @@ const About = () => {
 
       {/* CTA Section */}
       <section className="py-20 px-4">
-        <div className="container mx-auto max-w-3xl text-center">
+        <div className="w-full max-w-3xl mx-auto text-center px-4">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Find Your Person?
           </h2>

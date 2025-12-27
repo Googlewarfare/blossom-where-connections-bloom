@@ -199,8 +199,8 @@ const SecurityDashboard = () => {
 
   if (showMfaSetup) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-lg mx-auto px-4 py-6 safe-area-inset">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full max-w-lg mx-auto px-4 py-6 box-border">
           <Button
             variant="ghost"
             onClick={() => {
@@ -225,8 +225,8 @@ const SecurityDashboard = () => {
         <meta name="description" content="Manage your account security, view login history, and control active sessions." />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-6 safe-area-inset">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full max-w-2xl mx-auto px-4 py-6 box-border">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">

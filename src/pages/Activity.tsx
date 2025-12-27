@@ -243,10 +243,10 @@ const Activity = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="p-4">
-          <div className="container mx-auto max-w-4xl">
+        <div className="p-4 w-full">
+          <div className="w-full max-w-4xl mx-auto box-border">
             <Skeleton className="h-8 w-48 mb-6" />
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
@@ -260,11 +260,11 @@ const Activity = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
       <Navbar />
-      <div className="gradient-hero">
-      <PullToRefresh onRefresh={handleRefresh} disabled={refreshing} className="min-h-[calc(100vh-64px)]">
-      <div className="container mx-auto max-w-4xl p-4 py-8">
+      <div className="gradient-hero w-full">
+      <PullToRefresh onRefresh={handleRefresh} disabled={refreshing} className="min-h-[calc(100dvh-64px)]">
+      <div className="w-full max-w-4xl mx-auto p-4 py-8 box-border">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate('/discover')}>

@@ -91,8 +91,8 @@ const Settings = () => {
         <meta name="description" content="Manage your Blossom account settings, privacy, and preferences." />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
-        <div className="max-w-lg mx-auto px-4 py-6 safe-area-inset">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full max-w-lg mx-auto px-4 py-6 box-border">
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
           {/* Account Section */}
