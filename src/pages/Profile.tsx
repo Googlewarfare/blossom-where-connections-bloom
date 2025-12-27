@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -628,7 +629,7 @@ const Profile = () => {
                         key={photo.id}
                         className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group"
                       >
-                        <img
+                        <OptimizedImage
                           src={photo.signed_url}
                           alt="Profile"
                           className="w-full h-full object-cover"

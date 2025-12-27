@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -277,7 +278,7 @@ const Onboarding = () => {
                         key={index}
                         className="relative aspect-square rounded-lg overflow-hidden"
                       >
-                        <img
+                        <OptimizedImage
                           src={preview}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-full object-cover"

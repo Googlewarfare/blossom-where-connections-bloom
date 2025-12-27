@@ -8,6 +8,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import logo from "@/assets/blossom-logo.jpg";
 
 const trustBadges = [
@@ -146,7 +147,7 @@ const Hero = () => {
               <div className="absolute -inset-4 bg-gradient-to-br from-primary/30 to-accent/30 rounded-[2rem] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
               {/* Animated ring */}
               <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-primary to-accent opacity-20 group-hover:opacity-40 transition-opacity animate-spin-slow" />
-              <img
+              <OptimizedImage
                 src={logo}
                 alt="Blossom - Blossom into Love"
                 className="relative w-full max-w-md rounded-3xl shadow-elevated transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-glow"

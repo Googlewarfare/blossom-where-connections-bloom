@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { fuzzLocationDeterministic } from '@/lib/location-utils';
 import { Label } from '@/components/ui/label';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -666,7 +667,7 @@ const MatchesMap = ({
 
               {selectedProfile.photo_url && (
                 <div className="mb-4 rounded-lg overflow-hidden aspect-square">
-                  <img 
+                  <OptimizedImage 
                     src={selectedProfile.photo_url} 
                     alt={selectedProfile.full_name}
                     className="w-full h-full object-cover"
