@@ -250,7 +250,7 @@ const Chat = () => {
       <Navbar />
       <div className="container mx-auto max-w-6xl p-4">
         <div className="mb-6 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} aria-label="Go back to matches">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl font-bold">Messages</h1>
@@ -567,6 +567,7 @@ const Chat = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
+                      aria-label="Attach file"
                     >
                       <Paperclip className="h-5 w-5" />
                     </Button>
@@ -580,11 +581,13 @@ const Chat = () => {
                       onChange={(e) => setMessageText(e.target.value)}
                       placeholder="Type a message..."
                       className="flex-1"
+                      aria-label="Message input"
                     />
                     <Button 
                       type="submit" 
                       size="icon" 
                       disabled={!messageText.trim() && selectedFiles.length === 0}
+                      aria-label="Send message"
                     >
                       <Send className="h-5 w-5" />
                     </Button>

@@ -647,13 +647,13 @@ const Discover = () => {
                     </Button>
                   }
                 />
-                <Button size="icon" variant="outline" className="h-16 w-16 rounded-full border-2 border-red-500/30 hover:bg-red-500 hover:text-white" onClick={() => handleSwipe("pass")}>
+                <Button size="icon" variant="outline" className="h-16 w-16 rounded-full border-2 border-red-500/30 hover:bg-red-500 hover:text-white" onClick={() => handleSwipe("pass")} aria-label="Pass on this profile">
                   <X className="w-6 h-6" />
                 </Button>
-                <Button size="icon" variant="outline" className="h-20 w-20 rounded-full border-2 border-green-500/30 hover:bg-green-500 hover:text-white" onClick={() => handleSwipe("like")}>
+                <Button size="icon" variant="outline" className="h-20 w-20 rounded-full border-2 border-green-500/30 hover:bg-green-500 hover:text-white" onClick={() => handleSwipe("like")} aria-label="Like this profile">
                   <Heart className="w-8 h-8" />
                 </Button>
-                <Button size="icon" variant="default" className="h-16 w-16 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 border-2 border-yellow-300/50 shadow-lg shadow-amber-500/30" onClick={handleSuperLike} disabled={sendingSuperLike} title={hasUnlimitedSuperLikes ? "Send Super Like (Unlimited)" : "Send Super Like ($4.99)"}>
+                <Button size="icon" variant="default" className="h-16 w-16 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 border-2 border-yellow-300/50 shadow-lg shadow-amber-500/30" onClick={handleSuperLike} disabled={sendingSuperLike} aria-label={hasUnlimitedSuperLikes ? "Send Super Like (Unlimited)" : "Send Super Like ($4.99)"}>
                   <Star className="w-6 h-6 fill-current" />
                 </Button>
               </div>

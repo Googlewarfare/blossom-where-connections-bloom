@@ -388,11 +388,13 @@ const Onboarding = () => {
                       />
                       <span>to</span>
                       <Input
+                        id="maxAge"
                         type="number"
                         value={maxAge}
                         onChange={(e) => setMaxAge(e.target.value)}
                         min="18"
                         max="100"
+                        aria-label="Maximum age"
                       />
                     </div>
                   </div>

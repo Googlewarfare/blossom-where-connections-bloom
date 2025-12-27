@@ -140,6 +140,7 @@ export const StoryFeed = () => {
                   className="w-full h-full object-contain"
                   controls
                   autoPlay
+                  aria-label="Story video"
                 />
               )}
 
