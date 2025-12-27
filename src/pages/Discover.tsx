@@ -176,32 +176,17 @@ const Discover = () => {
         } = await supabase.from("user_swipes").select("target_user_id").eq("user_id", user.id);
         const swipedUserIds = swipedIds?.map(s => s.target_user_id) || [];
 
-        // Build query using discoverable_profiles view for privacy + visibility scoring
-        let query = supabase.from("discoverable_profiles").select(`
-            id,
-            full_name,
-            age,
-            bio,
-            location,
-            occupation,
-            latitude,
-            longitude,
-            verified,
-            visibility_score
-          `)
-          .neq("id", user.id)
-          .not("bio", "is", null)
-          .order("visibility_score", { ascending: false }); // Higher visibility = shown first
+        // Use secure RPC function for discoverable profiles (with location fuzzing + visibility scoring)
+        const { data: rpcProfiles, error: rpcError } = await supabase
+          .rpc('get_discoverable_profiles');
+        
+        if (rpcError) throw rpcError;
 
-        // Exclude already swiped profiles if any
-        if (swipedUserIds.length > 0) {
-          query = query.not("id", "in", `(${swipedUserIds.join(",")})`);
-        }
-        const {
-          data: profilesData,
-          error: profilesError
-        } = await query.limit(50);
-        if (profilesError) throw profilesError;
+        // Filter out already swiped profiles, those without bio, and sort by visibility score
+        const profilesData = (rpcProfiles || [])
+          .filter(p => p.bio && !swipedUserIds.includes(p.id))
+          .sort((a, b) => (b.visibility_score || 1) - (a.visibility_score || 1))
+          .slice(0, 50);
 
         // Fetch photos and interests, calculate distance, and filter
         const profilesWithDetails = await Promise.all((profilesData || []).map(async profile => {

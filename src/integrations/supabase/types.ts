@@ -1846,6 +1846,36 @@ export type Database = {
           unique_sessions: number
         }[]
       }
+      get_discoverable_profiles: {
+        Args: never
+        Returns: {
+          age: number
+          bio: string
+          communicates_with_care: boolean
+          created_at: string
+          drinking: string
+          education: string
+          exercise: string
+          full_name: string
+          gender: string
+          height_cm: number
+          id: string
+          latitude: number
+          lifestyle: string
+          location: string
+          longitude: number
+          occupation: string
+          relationship_goal: string
+          religion: string
+          shows_up_consistently: boolean
+          smoking: string
+          thoughtful_closer: boolean
+          updated_at: string
+          verification_status: string
+          verified: boolean
+          visibility_score: number
+        }[]
+      }
       get_fuzzed_location: {
         Args: { p_latitude: number; p_longitude: number; p_user_id: string }
         Returns: {
