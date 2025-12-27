@@ -234,6 +234,7 @@ const SecurityDashboard = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/settings")}
+                aria-label="Go back to settings"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>

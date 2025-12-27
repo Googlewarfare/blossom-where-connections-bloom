@@ -22,7 +22,7 @@ const Safety = () => {
       <Navbar />
       <div className="container max-w-2xl py-8 px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

@@ -109,6 +109,7 @@ export const VideoCallModal = ({
               autoPlay
               playsInline
               className="w-full h-full object-cover"
+              aria-label="Remote video feed"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-background">
@@ -145,6 +146,7 @@ export const VideoCallModal = ({
                 muted
                 className="w-full h-full object-cover mirror"
                 style={{ transform: "scaleX(-1)" }}
+                aria-label="Your video feed"
               />
               {isVideoOff && (
                 <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">

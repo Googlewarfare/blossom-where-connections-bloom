@@ -147,6 +147,7 @@ export const NotificationCenter = () => {
                           e.stopPropagation();
                           markAsRead(notification.id);
                         }}
+                        aria-label="Mark as read"
                       >
                         <Check className="h-3 w-3" />
                       </Button>
@@ -159,6 +160,7 @@ export const NotificationCenter = () => {
                         e.stopPropagation();
                         deleteNotification(notification.id);
                       }}
+                      aria-label="Delete notification"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>

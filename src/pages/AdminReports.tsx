@@ -350,7 +350,7 @@ export default function AdminReports() {
       <div className="container max-w-6xl mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} aria-label="Go back to admin dashboard">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -507,8 +507,9 @@ export default function AdminReports() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Admin Notes</Label>
+                  <Label htmlFor="admin-notes">Admin Notes</Label>
                   <Textarea
+                    id="admin-notes"
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     placeholder="Add notes about your decision..."

@@ -106,6 +106,7 @@ const MediaItem = ({
           src={signedUrl}
           className="h-20 w-20 object-cover rounded-lg"
           controls
+          aria-label={`Video: ${item.file_name}`}
         />
       ) : isAudio(item.file_type) ? (
         <div className="h-20 w-40 bg-muted rounded-lg flex items-center justify-center p-2">
@@ -181,6 +182,7 @@ export const UploadingMediaPreview = ({
               <video
                 src={objectUrl}
                 className="h-20 w-20 object-cover rounded-lg"
+                aria-label={`Video preview: ${file.name}`}
               />
             ) : (
               <div className="h-20 w-20 bg-muted rounded-lg flex items-center justify-center">
