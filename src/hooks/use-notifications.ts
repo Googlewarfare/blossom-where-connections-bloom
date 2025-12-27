@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Notification {
   id: string;
   user_id: string;
-  type: "match" | "message" | "profile_view" | "super_like";
+  type: "match" | "message" | "profile_view" | "super_like" | "nudge";
   title: string;
   message: string;
   related_user_id: string | null;

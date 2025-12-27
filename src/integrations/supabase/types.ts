@@ -1816,6 +1816,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_conversations_needing_nudge: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          days_inactive: number
+          last_message_at: string
+          other_user_id: string
+          other_user_name: string
+          user_to_nudge: string
+        }[]
+      }
       get_daily_analytics: {
         Args: never
         Returns: {
