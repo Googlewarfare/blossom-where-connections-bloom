@@ -27,7 +27,7 @@ export function RequireOnboarding({ children }: RequireOnboardingProps) {
       try {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("full_name, bio, age, gender")
+          .select("full_name, bio, age, gender, manifesto_agreed_at")
           .eq("id", user.id)
           .single();
 
@@ -35,12 +35,13 @@ export function RequireOnboarding({ children }: RequireOnboardingProps) {
           console.error("Error checking profile:", error);
           setProfileComplete(false);
         } else {
-          // Profile is complete if essential fields are filled
+          // Profile is complete if essential fields AND manifesto agreement are filled
           const isComplete = Boolean(
             profile?.full_name?.trim() &&
             profile?.bio?.trim() &&
             profile?.age &&
-            profile?.gender
+            profile?.gender &&
+            profile?.manifesto_agreed_at // Must have agreed to manifesto
           );
           setProfileComplete(isComplete);
         }

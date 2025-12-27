@@ -26,11 +26,12 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Heart, AlertCircle, ArrowRight } from "lucide-react";
 import { onboardingSchema, sanitizeString } from "@/lib/validation";
-import { OnboardingWelcome, IntentQuestions, INTENT_PROMPTS } from "@/features/onboarding";
+import { OnboardingWelcome, IntentQuestions, INTENT_PROMPTS, ManifestoAgreement } from "@/features/onboarding";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7; // Welcome, Manifesto, Basic Info, Photos, Bio, Preferences, Intent
+const MIN_INTENT_CHARS = 50; // Minimum characters for intent questions
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -54,6 +55,9 @@ const Onboarding = () => {
   
   // Intent prompts state
   const [intentAnswers, setIntentAnswers] = useState<Record<string, string>>({});
+  
+  // Manifesto agreement state
+  const [manifestoAgreed, setManifestoAgreed] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -121,7 +125,15 @@ const Onboarding = () => {
   const validateCurrentStep = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // Step 1: Manifesto Agreement
     if (step === 1) {
+      if (!manifestoAgreed) {
+        newErrors.manifesto = "You must agree to all commitments to continue";
+      }
+    }
+
+    // Step 2: Basic Info
+    if (step === 2) {
       const ageNum = parseInt(age);
       if (!age || isNaN(ageNum)) {
         newErrors.age = "Age is required";
@@ -140,13 +152,15 @@ const Onboarding = () => {
       }
     }
 
-    if (step === 2) {
+    // Step 3: Photos
+    if (step === 3) {
       if (photoFiles.length === 0) {
         newErrors.photos = "Please add at least one photo";
       }
     }
 
-    if (step === 3) {
+    // Step 4: Bio
+    if (step === 4) {
       if (!bio || bio.trim().length < 10) {
         newErrors.bio = "Bio must be at least 10 characters";
       } else if (bio.length > 1000) {
@@ -154,7 +168,8 @@ const Onboarding = () => {
       }
     }
 
-    if (step === 4) {
+    // Step 5: Preferences
+    if (step === 5) {
       if (interestedIn.length === 0) {
         newErrors.interestedIn = "Please select at least one preference";
       }
@@ -177,7 +192,15 @@ const Onboarding = () => {
       }
     }
 
-    // Step 5 (intent questions) is optional - no validation needed
+    // Step 6: Intent Questions - NOW REQUIRED
+    if (step === 6) {
+      for (const prompt of INTENT_PROMPTS) {
+        const answer = intentAnswers[prompt.key]?.trim() || "";
+        if (answer.length < MIN_INTENT_CHARS) {
+          newErrors[prompt.key] = `Please write at least ${MIN_INTENT_CHARS} characters`;
+        }
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -209,7 +232,7 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
-      // Update profile
+      // Update profile with manifesto agreement
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -217,6 +240,7 @@ const Onboarding = () => {
           gender: validationResult.data.gender,
           occupation: validationResult.data.occupation || null,
           bio: validationResult.data.bio,
+          manifesto_agreed_at: new Date().toISOString(),
         })
         .eq("id", user.id);
 
@@ -336,14 +360,16 @@ const Onboarding = () => {
       case 0:
         return "Welcome";
       case 1:
-        return "Basic Info";
+        return "The Blossom Promise";
       case 2:
-        return "Photos";
+        return "Basic Info";
       case 3:
-        return "About You";
+        return "Photos";
       case 4:
-        return "Preferences";
+        return "About You";
       case 5:
+        return "Preferences";
+      case 6:
         return "Intentions";
       default:
         return "Complete Profile";
@@ -355,15 +381,17 @@ const Onboarding = () => {
       case 0:
         return "Dating, without the games";
       case 1:
-        return "Let's start with the basics";
+        return "Commit to intentional dating";
       case 2:
-        return "Show your authentic self";
+        return "Let's start with the basics";
       case 3:
-        return "Tell us what makes you unique";
+        return "Show your authentic self";
       case 4:
-        return "Who are you hoping to meet?";
+        return "Tell us what makes you unique";
       case 5:
-        return "A moment of reflection (optional)";
+        return "Who are you hoping to meet?";
+      case 6:
+        return "A moment of reflection (required)";
       default:
         return "";
     }
@@ -388,8 +416,17 @@ const Onboarding = () => {
             {/* Step 0: Welcome */}
             {step === 0 && <OnboardingWelcome key="step0" />}
 
-            {/* Step 1: Basic Info */}
+            {/* Step 1: Manifesto Agreement */}
             {step === 1 && (
+              <ManifestoAgreement
+                key="step1"
+                agreed={manifestoAgreed}
+                onAgree={() => setManifestoAgreed(true)}
+              />
+            )}
+
+            {/* Step 2: Basic Info */}
+            {step === 2 && (
               <motion.div
                 key="step1"
                 initial={{ opacity: 0, x: 20 }}
@@ -455,8 +492,8 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            {/* Step 2: Photos */}
-            {step === 2 && (
+            {/* Step 3: Photos */}
+            {step === 3 && (
               <motion.div
                 key="step2"
                 initial={{ opacity: 0, x: 20 }}
@@ -508,8 +545,8 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            {/* Step 3: Bio */}
-            {step === 3 && (
+            {/* Step 4: Bio */}
+            {step === 4 && (
               <motion.div
                 key="step3"
                 initial={{ opacity: 0, x: 20 }}
@@ -542,8 +579,8 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            {/* Step 4: Preferences */}
-            {step === 4 && (
+            {/* Step 5: Preferences */}
+            {step === 5 && (
               <motion.div
                 key="step4"
                 initial={{ opacity: 0, x: 20 }}
@@ -642,10 +679,10 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            {/* Step 5: Intent Questions */}
-            {step === 5 && (
+            {/* Step 6: Intent Questions */}
+            {step === 6 && (
               <IntentQuestions
-                key="step5"
+                key="step6"
                 answers={intentAnswers}
                 onChange={handleIntentChange}
               />
@@ -659,13 +696,15 @@ const Onboarding = () => {
               </Button>
             )}
             <div className="flex-1" />
-            {step < 5 ? (
-              <Button onClick={nextStep}>
+            {step < 6 ? (
+              <Button onClick={nextStep} disabled={step === 1 && !manifestoAgreed}>
                 {step === 0 ? (
                   <>
                     Let's Begin
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
+                ) : step === 1 ? (
+                  "I Agree & Continue"
                 ) : (
                   "Next"
                 )}

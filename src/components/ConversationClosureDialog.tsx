@@ -187,13 +187,23 @@ export function ConversationClosureDialog({
               </RadioGroup>
 
               {selectedTemplate === "custom" && (
-                <Textarea
-                  value={customMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                  placeholder="Write a kind message..."
-                  rows={3}
-                  maxLength={500}
-                />
+                <div className="space-y-2">
+                  <Textarea
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Write a kind message (minimum 140 characters)..."
+                    rows={4}
+                    maxLength={500}
+                  />
+                  <div className="flex justify-between text-xs">
+                    <span className={customMessage.length < 140 ? "text-destructive" : "text-muted-foreground"}>
+                      {customMessage.length < 140 
+                        ? `${140 - customMessage.length} more characters needed` 
+                        : "✓ Minimum reached"}
+                    </span>
+                    <span className="text-muted-foreground">{customMessage.length}/500</span>
+                  </div>
+                </div>
               )}
             </>
           )}
