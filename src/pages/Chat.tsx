@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ConversationListSkeleton, ChatListSkeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles, Lock } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, Check, CheckCheck, X, Paperclip, Image as ImageIcon, Sparkles, Lock, DoorOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -23,6 +23,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { VideoCallButton } from '@/components/VideoCallButton';
 import { useVideoCallContext } from '@/components/VideoCallProvider';
 import { EncryptionIndicator, MessageEncryptionBanner } from '@/components/EncryptionIndicator';
+import { ConversationClosureDialog } from '@/components/ConversationClosureDialog';
+import { useConversationStatus } from '@/hooks/use-conversation-status';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ const Chat = () => {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [showClosureDialog, setShowClosureDialog] = useState(false);
+  const { refresh: refreshConversationStatus } = useConversationStatus();
 
   const hasReadReceipts = subscriptionStatus?.subscribed && 
     subscriptionStatus.subscriptions?.some(sub => sub.product_id === PREMIUM_FEATURES.READ_RECEIPTS);
@@ -427,6 +431,15 @@ const Chat = () => {
                     <EncryptionIndicator variant="inline" />
                   </div>
                   <EncryptionIndicator variant="badge" className="hidden sm:flex" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowClosureDialog(true)}
+                    title="End conversation thoughtfully"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <DoorOpen className="h-5 w-5" />
+                  </Button>
                   <VideoCallButton
                     onStartCall={() => startCall(
                       currentConversation.other_user.id,
@@ -702,6 +715,20 @@ const Chat = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Conversation Closure Dialog */}
+        {currentConversation && (
+          <ConversationClosureDialog
+            open={showClosureDialog}
+            onOpenChange={setShowClosureDialog}
+            conversationId={selectedConversation || ''}
+            otherUserName={currentConversation.other_user.full_name}
+            onClosed={() => {
+              setSelectedConversation(null);
+              refreshConversationStatus();
+            }}
+          />
+        )}
       </div>
     </div>
   );
