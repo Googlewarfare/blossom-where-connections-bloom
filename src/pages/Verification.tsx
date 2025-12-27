@@ -226,8 +226,8 @@ const Verification = () => {
 
   if (verificationStatus === "approved") {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full px-4 py-8 max-w-2xl mx-auto box-border">
           <Button
             variant="ghost"
             onClick={() => navigate("/profile")}
@@ -253,8 +253,8 @@ const Verification = () => {
 
   if (verificationStatus === "pending") {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full px-4 py-8 max-w-2xl mx-auto box-border">
           <Button
             variant="ghost"
             onClick={() => navigate("/profile")}
@@ -284,8 +284,8 @@ const Verification = () => {
 
   if (verificationStatus === "rejected") {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <div className="w-full px-4 py-8 max-w-2xl mx-auto box-border">
           <Button
             variant="ghost"
             onClick={() => navigate("/profile")}
@@ -322,8 +322,8 @@ const Verification = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+      <div className="w-full px-4 py-8 max-w-2xl mx-auto box-border">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}

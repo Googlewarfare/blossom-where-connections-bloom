@@ -199,7 +199,7 @@ const Onboarding = () => {
   const progress = (step / 4) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">

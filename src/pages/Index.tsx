@@ -13,13 +13,13 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
       <Navbar />
       <Hero />
 
       {/* Stories Section */}
       <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-4 max-w-7xl mx-auto box-border">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Stories</h2>
             <Button variant="link" onClick={() => navigate("/discover")}>
@@ -32,7 +32,7 @@ const Index = () => {
 
       {/* Daily Question Section */}
       <section className="py-12">
-        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="w-full px-4 max-w-3xl mx-auto box-border">
           <div className="flex items-center gap-2 mb-6">
             <Calendar className="h-6 w-6 text-primary" />
             <h2 className="text-2xl font-bold">Question of the Day</h2>

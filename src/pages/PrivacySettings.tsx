@@ -145,9 +145,9 @@ const PrivacySettingsPage = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="container mx-auto max-w-2xl p-4">
+        <div className="w-full max-w-2xl mx-auto p-4 box-border">
           <Skeleton className="h-8 w-48 mb-6" />
           <Skeleton className="h-96 w-full" />
         </div>
@@ -162,9 +162,9 @@ const PrivacySettingsPage = () => {
         <meta name="description" content="Control your privacy settings, location visibility, and data sharing preferences." />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="container mx-auto max-w-2xl p-4">
+        <div className="w-full max-w-2xl mx-auto p-4 box-border">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate('/settings')}>
               <ArrowLeft className="h-5 w-5" />

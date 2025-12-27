@@ -313,9 +313,9 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="flex items-center justify-center h-[calc(100dvh-4rem)]">
           <LoadingSpinner
             size="xl"
             variant="heart"
@@ -327,9 +327,9 @@ export default function Analytics() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="container mx-auto p-6 max-w-7xl space-y-6">
+      <div className="w-full p-6 max-w-7xl mx-auto space-y-6 box-border">
         {/* Header */}
         <div className="flex items-center gap-3 animate-fade-in">
           <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">

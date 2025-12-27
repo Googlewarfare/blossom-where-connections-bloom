@@ -558,7 +558,7 @@ const Profile = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -568,10 +568,10 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Navbar />
-      <div className="py-12 px-4">
-        <div className="container mx-auto max-w-4xl">
+      <div className="py-12 px-4 w-full">
+        <div className="w-full max-w-4xl mx-auto box-border">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">

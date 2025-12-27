@@ -68,7 +68,7 @@ const dataCategories = [
 
 const PrivacyLabels = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
       <Helmet>
         <title>App Privacy | Blossom</title>
         <meta
@@ -79,7 +79,7 @@ const PrivacyLabels = () => {
 
       <Navbar />
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="w-full px-4 py-12 max-w-4xl mx-auto box-border">
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 text-primary">
             <Eye className="w-8 h-8" />

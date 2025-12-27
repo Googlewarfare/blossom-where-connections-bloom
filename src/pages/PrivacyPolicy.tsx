@@ -23,10 +23,10 @@ const PrivacyPolicy = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
 
-        <main className="container mx-auto max-w-4xl px-4 py-12">
+        <main className="w-full max-w-4xl mx-auto px-4 py-12 box-border">
           <div className="mb-12 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
               <Shield className="w-8 h-8 text-primary" />
