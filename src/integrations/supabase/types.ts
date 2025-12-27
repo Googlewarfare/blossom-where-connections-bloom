@@ -1607,6 +1607,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_or_moderator: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           p_action: string
