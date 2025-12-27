@@ -796,6 +796,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_with_fuzzed_location"
+            referencedColumns: ["id"]
+          },
         ]
       }
       privacy_settings: {
@@ -898,6 +905,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_fuzzed_location"
             referencedColumns: ["id"]
           },
         ]
@@ -1256,6 +1270,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_fuzzed_location"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_question_answers: {
@@ -1480,6 +1501,78 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles_with_fuzzed_location: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string | null
+          drinking: string | null
+          education: string | null
+          exercise: string | null
+          full_name: string | null
+          gender: string | null
+          height_cm: number | null
+          id: string | null
+          latitude: number | null
+          lifestyle: string | null
+          location: string | null
+          longitude: number | null
+          occupation: string | null
+          relationship_goal: string | null
+          religion: string | null
+          smoking: string | null
+          updated_at: string | null
+          verification_status: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string | null
+          drinking?: string | null
+          education?: string | null
+          exercise?: string | null
+          full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          id?: string | null
+          latitude?: never
+          lifestyle?: string | null
+          location?: string | null
+          longitude?: never
+          occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string | null
+          drinking?: string | null
+          education?: string | null
+          exercise?: string | null
+          full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          id?: string | null
+          latitude?: never
+          lifestyle?: string | null
+          location?: string | null
+          longitude?: never
+          occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_account_lockout: {
@@ -1500,6 +1593,13 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_captcha: { Args: never; Returns: undefined }
+      get_fuzzed_location: {
+        Args: { p_latitude: number; p_longitude: number; p_user_id: string }
+        Returns: {
+          fuzzed_latitude: number
+          fuzzed_longitude: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

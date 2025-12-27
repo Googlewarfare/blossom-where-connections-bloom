@@ -156,8 +156,8 @@ const Discover = () => {
         } = await supabase.from("user_swipes").select("target_user_id").eq("user_id", user.id);
         const swipedUserIds = swipedIds?.map(s => s.target_user_id) || [];
 
-        // Build query
-        let query = supabase.from("profiles").select(`
+        // Build query using fuzzed location view for privacy
+        let query = supabase.from("profiles_with_fuzzed_location").select(`
             id,
             full_name,
             age,
