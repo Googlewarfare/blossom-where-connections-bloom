@@ -55,7 +55,6 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
         // Check if CdvPurchase is available (from cordova-plugin-purchase)
         const CdvPurchase = (window as any).CdvPurchase;
         if (!CdvPurchase) {
-          console.log("CdvPurchase not available - running in web mode");
           return;
         }
 
@@ -84,16 +83,14 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
         store
           .when()
           .approved((transaction: any) => {
-            console.log("Purchase approved:", transaction.products);
             transaction.verify();
           })
           .verified((receipt: any) => {
-            console.log("Purchase verified:", receipt);
             receipt.finish();
             checkPremiumStatus();
           })
-          .finished((transaction: any) => {
-            console.log("Purchase finished:", transaction);
+          .finished((_transaction: any) => {
+            // Purchase flow completed
           });
 
         // Initialize the store
@@ -155,7 +152,6 @@ export const useNativePurchases = (): UseNativePurchasesResult => {
   const purchaseProduct = useCallback(
     async (productId: string): Promise<boolean> => {
       if (!isNative) {
-        console.log("Not on native platform, cannot make purchase");
         return false;
       }
 

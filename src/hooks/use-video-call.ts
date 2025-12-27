@@ -72,14 +72,12 @@ export const useVideoCall = () => {
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log("Received remote track:", event.streams[0]);
       setRemoteStream(event.streams[0]);
     };
 
     // Handle ICE candidates
     pc.onicecandidate = async (event) => {
       if (event.candidate && user) {
-        console.log("Sending ICE candidate");
         await supabase.from("call_signals").insert({
           call_id: callId,
           from_user_id: user.id,
@@ -91,7 +89,6 @@ export const useVideoCall = () => {
     };
 
     pc.onconnectionstatechange = () => {
-      console.log("Connection state:", pc.connectionState);
       if (pc.connectionState === "connected") {
         setCallState((prev) => ({ ...prev, status: "active" }));
       } else if (
@@ -255,8 +252,6 @@ export const useVideoCall = () => {
 
   // End a call
   const endCall = useCallback(async () => {
-    console.log("Ending call");
-
     // Stop local stream
     if (localStream) {
       localStream.getTracks().forEach((track) => track.stop());
@@ -310,8 +305,6 @@ export const useVideoCall = () => {
         async (payload) => {
           const signal = payload.new as any;
           if (signal.call_id !== callId) return;
-
-          console.log("Received signal:", signal.signal_type);
 
           if (!peerConnection.current) return;
 
