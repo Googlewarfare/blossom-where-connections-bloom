@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import {
+  validateString,
+  parseRequestBody,
+  validateAuthHeader,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,10 +13,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-SUBSCRIPTION-CHECKOUT] ${step}${detailsStr}`);
 };
+
+// Allowed Stripe price IDs to prevent arbitrary price injection
+const ALLOWED_PRICE_IDS = [
+  "price_1ShsZ5D2qFqWAuNmmh2UjMgz", // Blossom Premium
+  "price_1SZdbTD2qFqWAuNmlGZjaNdE", // Read Receipts
+];
+
+interface SubscriptionRequest {
+  priceId?: string;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,9 +42,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    // Validate authorization header
+    const authResult = validateAuthHeader(req.headers.get("Authorization"));
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         {
@@ -39,7 +55,7 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authResult.data!;
     const { data, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !data.user?.email) {
@@ -84,22 +100,48 @@ serve(async (req) => {
       customerId: customerId || "new customer",
     });
 
-    // Get price from request body or use default premium price
-    const { priceId } = await req.json().catch(() => ({}));
-    const finalPriceId = priceId || "price_1ShsZ5D2qFqWAuNmmh2UjMgz"; // Blossom Premium
+    // Parse request body (optional priceId)
+    const bodyResult = await parseRequestBody<SubscriptionRequest>(req);
+    let priceId = ALLOWED_PRICE_IDS[0]; // Default to Blossom Premium
 
+    if (bodyResult.success && bodyResult.data?.priceId) {
+      // Validate priceId format
+      const priceIdResult = validateString(bodyResult.data.priceId, "priceId", {
+        minLength: 10,
+        maxLength: 100,
+      });
+
+      if (priceIdResult.success && priceIdResult.data) {
+        // Verify price ID is in allowed list
+        if (!ALLOWED_PRICE_IDS.includes(priceIdResult.data)) {
+          logStep("ERROR: Invalid price ID", { priceId: priceIdResult.data });
+          return new Response(
+            JSON.stringify({ error: "Invalid price ID" }),
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 400,
+            },
+          );
+        }
+        priceId = priceIdResult.data;
+      }
+    }
+
+    logStep("Creating checkout session", { priceId });
+
+    const origin = req.headers.get("origin") || "http://localhost:3000";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: finalPriceId,
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/premium?subscription_success=true`,
-      cancel_url: `${req.headers.get("origin")}/premium`,
+      success_url: `${origin}/premium?subscription_success=true`,
+      cancel_url: `${origin}/premium`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
@@ -112,7 +154,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to create checkout session" }),
       {

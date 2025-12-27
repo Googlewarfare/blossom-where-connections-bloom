@@ -1,5 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import {
+  validateUuid,
+  parseRequestBody,
+  validateAuthHeader,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,10 +12,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CALCULATE-COMPATIBILITY] ${step}${detailsStr}`);
 };
+
+interface CompatibilityRequest {
+  userId1: string;
+  userId2: string;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -25,10 +35,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Verify JWT and get authenticated user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    // Validate authorization header
+    const authResult = validateAuthHeader(req.headers.get("Authorization"));
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         {
@@ -38,7 +48,7 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authResult.data!;
     const { data: authData, error: authError } =
       await supabaseClient.auth.getUser(token);
 
@@ -56,12 +66,39 @@ serve(async (req) => {
     const callerUserId = authData.user.id;
     logStep("User authenticated", { userId: callerUserId });
 
-    const { userId1, userId2 } = await req.json();
-
-    if (!userId1 || !userId2) {
-      logStep("ERROR: Missing user IDs");
+    // Parse and validate request body
+    const bodyResult = await parseRequestBody<CompatibilityRequest>(req);
+    if (!bodyResult.success) {
+      logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
       return new Response(
-        JSON.stringify({ error: "Both user IDs are required" }),
+        JSON.stringify({ error: "Invalid request body" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
+      );
+    }
+
+    const { userId1, userId2 } = bodyResult.data!;
+
+    // Validate user IDs
+    const userId1Result = validateUuid(userId1, "userId1");
+    if (!userId1Result.success) {
+      logStep("ERROR: Invalid userId1", { errors: userId1Result.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid userId1 format" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
+      );
+    }
+
+    const userId2Result = validateUuid(userId2, "userId2");
+    if (!userId2Result.success) {
+      logStep("ERROR: Invalid userId2", { errors: userId2Result.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid userId2 format" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
@@ -147,16 +184,16 @@ serve(async (req) => {
     }
 
     // Calculate compatibility score
-    const factors: any = {};
+    const factors: Record<string, number> = {};
     let totalScore = 0;
     let factorCount = 0;
 
     // Shared interests (30%)
     const interests1 = new Set(
-      profile1.user_interests?.map((i: any) => i.interest_id),
+      profile1.user_interests?.map((i: { interest_id: string }) => i.interest_id),
     );
     const interests2 = new Set(
-      profile2.user_interests?.map((i: any) => i.interest_id),
+      profile2.user_interests?.map((i: { interest_id: string }) => i.interest_id),
     );
     const commonInterests = [...interests1].filter((i) => interests2.has(i));
     const interestScore = Math.min(
@@ -181,7 +218,7 @@ serve(async (req) => {
         profile2.latitude,
         profile2.longitude,
       );
-      const locationScore = Math.max(0, 100 - distance / 100); // max 100 miles for full score
+      const locationScore = Math.max(0, 100 - distance / 100);
       factors.location = locationScore;
       totalScore += locationScore * 0.2;
       factorCount += 0.2;
@@ -248,7 +285,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to calculate compatibility" }),
       {

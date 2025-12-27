@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { validateAuthHeader } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,10 +9,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-READ-RECEIPTS-CHECKOUT] ${step}${detailsStr}`);
 };
+
+// Fixed price ID for read receipts subscription
+const READ_RECEIPTS_PRICE_ID = "price_1SZdbTD2qFqWAuNmlGZjaNdE";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,9 +31,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      logStep("ERROR: No authorization header");
+    // Validate authorization header
+    const authResult = validateAuthHeader(req.headers.get("Authorization"));
+    if (!authResult.success) {
+      logStep("ERROR: Invalid authorization", { errors: authResult.errors });
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         {
@@ -39,7 +44,7 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authResult.data!;
     const { data, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !data.user?.email) {
@@ -84,18 +89,19 @@ serve(async (req) => {
       customerId: customerId || "new customer",
     });
 
+    const origin = req.headers.get("origin") || "http://localhost:3000";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SZdbTD2qFqWAuNmlGZjaNdE",
+          price: READ_RECEIPTS_PRICE_ID,
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/chat?subscription_success=true`,
-      cancel_url: `${req.headers.get("origin")}/chat`,
+      success_url: `${origin}/chat?subscription_success=true`,
+      cancel_url: `${origin}/chat`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
@@ -108,7 +114,6 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to create checkout session" }),
       {

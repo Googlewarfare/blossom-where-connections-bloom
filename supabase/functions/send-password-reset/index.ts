@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import {
+  validateEmail,
+  validateString,
+  parseRequestBody,
+} from "../_shared/validation.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -10,7 +15,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SEND-PASSWORD-RESET] ${step}${detailsStr}`);
 };
@@ -54,12 +59,12 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { email, resetLink }: PasswordResetRequest = await req.json();
-
-    if (!email || !resetLink) {
-      logStep("ERROR: Missing required fields");
+    // Parse and validate request body
+    const bodyResult = await parseRequestBody<PasswordResetRequest>(req);
+    if (!bodyResult.success) {
+      logStep("ERROR: Invalid request body", { errors: bodyResult.errors });
       return new Response(
-        JSON.stringify({ error: "Email and reset link are required" }),
+        JSON.stringify({ error: "Invalid request body" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -67,10 +72,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email) || email.length > 255) {
-      logStep("ERROR: Invalid email format");
+    const { email, resetLink } = bodyResult.data!;
+
+    // Validate email
+    const emailResult = validateEmail(email);
+    if (!emailResult.success) {
+      logStep("ERROR: Invalid email", { errors: emailResult.errors });
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         {
@@ -80,9 +87,26 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate reset link
+    const resetLinkResult = validateString(resetLink, "resetLink", {
+      required: true,
+      minLength: 10,
+      maxLength: 2000,
+    });
+    if (!resetLinkResult.success) {
+      logStep("ERROR: Invalid reset link", { errors: resetLinkResult.errors });
+      return new Response(
+        JSON.stringify({ error: "Invalid reset link" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
     // Validate reset link domain to prevent phishing
     if (!isValidResetLink(resetLink)) {
-      logStep("ERROR: Invalid reset link domain", { resetLink });
+      logStep("ERROR: Invalid reset link domain");
       return new Response(
         JSON.stringify({ error: "Invalid reset link" }),
         {
@@ -94,14 +118,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Rate limiting by email using database
     const { data: isAllowed } = await supabase.rpc('check_rate_limit', {
-      p_identifier: email.toLowerCase(),
+      p_identifier: emailResult.data!.toLowerCase(),
       p_endpoint: 'password_reset',
       p_max_requests: RATE_LIMIT_MAX,
       p_window_seconds: RATE_LIMIT_WINDOW
     });
 
     if (!isAllowed) {
-      logStep("ERROR: Rate limit exceeded", { email });
+      logStep("ERROR: Rate limit exceeded", { email: emailResult.data });
       return new Response(
         JSON.stringify({ error: "Too many password reset requests. Please try again later." }),
         {
@@ -190,9 +214,9 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
+    await resend.emails.send({
       from: "Blossom <onboarding@resend.dev>",
-      to: [email],
+      to: [emailResult.data!],
       subject: "Reset Your Password - Blossom",
       html: htmlContent,
     });
@@ -210,7 +234,6 @@ const handler = async (req: Request): Promise<Response> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
 
-    // Return generic error to client
     return new Response(
       JSON.stringify({ error: "Failed to send password reset email" }),
       {
