@@ -835,6 +835,13 @@ export type Database = {
             foreignKeyName: "preferences_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "discoverable_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -942,6 +949,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "discoverable_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profile_photos_user_id_fkey"
             columns: ["user_id"]
@@ -1339,6 +1353,13 @@ export type Database = {
             foreignKeyName: "user_interests_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "discoverable_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1642,6 +1663,36 @@ export type Database = {
         }
         Relationships: []
       }
+      discoverable_profiles: {
+        Row: {
+          age: number | null
+          bio: string | null
+          communicates_with_care: boolean | null
+          created_at: string | null
+          drinking: string | null
+          education: string | null
+          exercise: string | null
+          full_name: string | null
+          gender: string | null
+          height_cm: number | null
+          id: string | null
+          latitude: number | null
+          lifestyle: string | null
+          location: string | null
+          longitude: number | null
+          occupation: string | null
+          relationship_goal: string | null
+          religion: string | null
+          shows_up_consistently: boolean | null
+          smoking: string | null
+          thoughtful_closer: boolean | null
+          updated_at: string | null
+          verification_status: string | null
+          verified: boolean | null
+          visibility_score: number | null
+        }
+        Relationships: []
+      }
       profiles_with_fuzzed_location: {
         Row: {
           age: number | null
@@ -1732,6 +1783,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_inactive_conversations: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -1742,6 +1794,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_captcha: { Args: never; Returns: undefined }
+      detect_and_record_ghosting: { Args: never; Returns: undefined }
       get_active_conversation_count: {
         Args: { p_user_id: string }
         Returns: number
@@ -1804,6 +1857,10 @@ export type Database = {
           verification_status: string
           verified: boolean
         }[]
+      }
+      get_user_visibility_score: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       has_role: {
         Args: {
