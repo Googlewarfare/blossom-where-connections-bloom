@@ -1,7 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { validateAuthHeader, validateEmail } from "../_shared/validation.ts";
+import {
+  validateAuthHeader,
+  validateEmail,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,7 +85,6 @@ serve(async (req) => {
     const token = authResult.data!;
     logStep("Authenticating user", { tokenLength: token.length });
 
-    // JWT is already verified by the platform (verify_jwt default = true), so we can safely read claims.
     const payload = decodeJwtPayload(token);
     const userId = payload?.sub;
     const email = payload?.email;
@@ -91,7 +97,6 @@ serve(async (req) => {
       });
     }
 
-    // Validate email from JWT
     const emailResult = validateEmail(email);
     if (!emailResult.success) {
       logStep("ERROR: Invalid email in JWT", { errors: emailResult.errors });
@@ -102,6 +107,19 @@ serve(async (req) => {
     }
 
     logStep("User authenticated", { userId });
+
+    // Rate limiting check
+    const clientId = getClientIdentifier(req, userId);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabaseClient,
+      clientId,
+      RATE_LIMITS.subscription
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.subscription.windowSeconds);
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({

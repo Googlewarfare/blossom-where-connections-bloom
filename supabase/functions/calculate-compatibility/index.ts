@@ -4,6 +4,10 @@ import {
   validateUuid,
   parseRequestBody,
   validateAuthHeader,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
 } from "../_shared/validation.ts";
 
 const corsHeaders = {
@@ -66,6 +70,19 @@ serve(async (req) => {
     const callerUserId = authData.user.id;
     logStep("User authenticated", { userId: callerUserId });
 
+    // Rate limiting check
+    const clientId = getClientIdentifier(req, callerUserId);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabaseClient,
+      clientId,
+      RATE_LIMITS.compatibility
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.compatibility.windowSeconds);
+    }
+
     // Parse and validate request body
     const bodyResult = await parseRequestBody<CompatibilityRequest>(req);
     if (!bodyResult.success) {
@@ -125,7 +142,6 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!match) {
-      // Check if there's at least a like from the caller
       const targetUserId = callerUserId === userId1 ? userId2 : userId1;
       const { data: like } = await supabaseClient
         .from("profile_likes")
@@ -301,7 +317,7 @@ function calculateDistance(
   lat2: number,
   lon2: number,
 ): number {
-  const R = 3959; // Earth's radius in miles
+  const R = 3959;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =

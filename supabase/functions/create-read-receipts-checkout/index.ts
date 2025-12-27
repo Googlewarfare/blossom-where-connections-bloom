@@ -1,7 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { validateAuthHeader } from "../_shared/validation.ts";
+import {
+  validateAuthHeader,
+  checkDatabaseRateLimit,
+  getClientIdentifier,
+  createRateLimitResponse,
+  RATE_LIMITS,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +20,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CREATE-READ-RECEIPTS-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Fixed price ID for read receipts subscription
 const READ_RECEIPTS_PRICE_ID = "price_1SZdbTD2qFqWAuNmlGZjaNdE";
 
 serve(async (req) => {
@@ -31,7 +36,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Validate authorization header
     const authResult = validateAuthHeader(req.headers.get("Authorization"));
     if (!authResult.success) {
       logStep("ERROR: Invalid authorization", { errors: authResult.errors });
@@ -60,6 +64,19 @@ serve(async (req) => {
 
     const user = data.user;
     logStep("User authenticated", { userId: user.id });
+
+    // Rate limiting check
+    const clientId = getClientIdentifier(req, user.id);
+    const rateLimitResult = await checkDatabaseRateLimit(
+      supabaseClient,
+      clientId,
+      RATE_LIMITS.checkout
+    );
+    
+    if (!rateLimitResult.allowed) {
+      logStep("Rate limit exceeded", { clientId });
+      return createRateLimitResponse(corsHeaders, RATE_LIMITS.checkout.windowSeconds);
+    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
