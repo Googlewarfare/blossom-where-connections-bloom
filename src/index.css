@@ -126,6 +126,11 @@ All colors MUST be HSL.
     -webkit-tap-highlight-color: transparent;
   }
 
+  html,
+  body {
+    height: 100%;
+  }
+
   html {
     /* Prevent text size adjustment on iOS */
     -webkit-text-size-adjust: 100%;
@@ -139,20 +144,16 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    /* Prevent iOS zoom on input focus */
-    touch-action: manipulation;
-    /* Safe area padding for iOS */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    /* Prevent pull-to-refresh */
-    overscroll-behavior-y: contain;
-    /* Ensure proper sizing */
-    min-height: 100vh;
-    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
     width: 100%;
     overflow-x: hidden;
+
+    /* Prevent iOS zoom on input focus / native-feeling taps */
+    touch-action: manipulation;
+
+    /* Prevent pull-to-refresh */
+    overscroll-behavior-y: contain;
   }
 
   h1, h2, h3 {
@@ -170,9 +171,9 @@ All colors MUST be HSL.
     font-size: 16px !important;
   }
 
-  /* Fix for iOS 100vh issue */
+  /* App root should always fill the screen */
   #root {
-    min-height: 100vh;
+    min-height: 100%;
     min-height: 100dvh;
     width: 100%;
   }
