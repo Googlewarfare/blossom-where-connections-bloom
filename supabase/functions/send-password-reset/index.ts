@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -19,6 +20,28 @@ interface PasswordResetRequest {
   resetLink: string;
 }
 
+// Rate limiting: max 3 requests per email per hour
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds
+
+// Allowed domains for reset links
+const ALLOWED_DOMAINS = [
+  "localhost",
+  "lovable.dev",
+  "lovableproject.com",
+];
+
+const isValidResetLink = (resetLink: string): boolean => {
+  try {
+    const url = new URL(resetLink);
+    return ALLOWED_DOMAINS.some(domain => 
+      url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,6 +49,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     logStep("Function started");
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { email, resetLink }: PasswordResetRequest = await req.json();
 
@@ -35,6 +62,50 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ error: "Email and reset link are required" }),
         {
           status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email) || email.length > 255) {
+      logStep("ERROR: Invalid email format");
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
+    // Validate reset link domain to prevent phishing
+    if (!isValidResetLink(resetLink)) {
+      logStep("ERROR: Invalid reset link domain", { resetLink });
+      return new Response(
+        JSON.stringify({ error: "Invalid reset link" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
+    // Rate limiting by email using database
+    const { data: isAllowed } = await supabase.rpc('check_rate_limit', {
+      p_identifier: email.toLowerCase(),
+      p_endpoint: 'password_reset',
+      p_max_requests: RATE_LIMIT_MAX,
+      p_window_seconds: RATE_LIMIT_WINDOW
+    });
+
+    if (!isAllowed) {
+      logStep("ERROR: Rate limit exceeded", { email });
+      return new Response(
+        JSON.stringify({ error: "Too many password reset requests. Please try again later." }),
+        {
+          status: 429,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         },
       );
