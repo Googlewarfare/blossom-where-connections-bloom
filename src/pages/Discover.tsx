@@ -20,6 +20,8 @@ import { AdvancedFilters } from "@/components/AdvancedFilters";
 import { ReportDialog } from "@/components/ReportDialog";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
+import { TrustSignals } from "@/components/TrustSignals";
 
 // Lazy load heavy map component
 const MatchesMap = lazy(() => import("@/components/MatchesMap"));
@@ -487,6 +489,7 @@ const Discover = () => {
         {/* Profile Completion Banner */}
         <div className="mb-6">
           <ProfileCompletionBanner />
+          <ConversationLimitBanner />
         </div>
 
         {/* Header */}
