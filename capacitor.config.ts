@@ -48,8 +48,9 @@ const config: CapacitorConfig = {
       presentationOptions: ["badge", "sound", "alert"],
     },
     Keyboard: {
-      resize: "body",
-      resizeOnFullScreen: true,
+      resize: "native",
+      resizeOnFullScreen: false,
+      style: "dark",
     },
   },
 };
