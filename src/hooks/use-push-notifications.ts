@@ -94,7 +94,6 @@ export const usePushNotifications = () => {
           token: token.value,
           isRegistered: true,
         }));
-        console.log("Push registration success, token:", token.value);
 
         // Save token to backend
         await saveTokenToBackend(token.value);
@@ -122,15 +121,14 @@ export const usePushNotifications = () => {
           ...prev,
           notifications: [...prev.notifications, notification],
         }));
-        console.log("Push notification received:", notification);
       },
     );
 
     // Notification action performed (user tapped on notification)
     const actionListener = PushNotifications.addListener(
       "pushNotificationActionPerformed",
-      (action: ActionPerformed) => {
-        console.log("Push notification action performed:", action);
+      (_action: ActionPerformed) => {
+        // Handle notification action if needed
       },
     );
 
