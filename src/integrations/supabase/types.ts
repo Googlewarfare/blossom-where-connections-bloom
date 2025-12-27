@@ -254,8 +254,10 @@ export type Database = {
           closure_message: string | null
           closure_reason: string | null
           created_at: string
+          expected_responder_id: string | null
           id: string
           match_id: string
+          reminder_sent_at: string | null
           status: string | null
           updated_at: string
         }
@@ -265,8 +267,10 @@ export type Database = {
           closure_message?: string | null
           closure_reason?: string | null
           created_at?: string
+          expected_responder_id?: string | null
           id?: string
           match_id: string
+          reminder_sent_at?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -276,8 +280,10 @@ export type Database = {
           closure_message?: string | null
           closure_reason?: string | null
           created_at?: string
+          expected_responder_id?: string | null
           id?: string
           match_id?: string
+          reminder_sent_at?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -1009,6 +1015,7 @@ export type Database = {
           lifestyle: string | null
           location: string | null
           longitude: number | null
+          manifesto_agreed_at: string | null
           occupation: string | null
           relationship_goal: string | null
           religion: string | null
@@ -1033,6 +1040,7 @@ export type Database = {
           lifestyle?: string | null
           location?: string | null
           longitude?: number | null
+          manifesto_agreed_at?: string | null
           occupation?: string | null
           relationship_goal?: string | null
           religion?: string | null
@@ -1057,6 +1065,7 @@ export type Database = {
           lifestyle?: string | null
           location?: string | null
           longitude?: number | null
+          manifesto_agreed_at?: string | null
           occupation?: string | null
           relationship_goal?: string | null
           religion?: string | null
@@ -1771,6 +1780,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      can_access_app: { Args: { p_user_id: string }; Returns: boolean }
       can_start_new_conversation: {
         Args: { p_user_id: string }
         Returns: boolean
@@ -1841,6 +1851,15 @@ export type Database = {
         Returns: {
           fuzzed_latitude: number
           fuzzed_longitude: number
+        }[]
+      }
+      get_ghosted_conversations: {
+        Args: { p_user_id: string }
+        Returns: {
+          conversation_id: string
+          hours_since_last_message: number
+          other_user_id: string
+          other_user_name: string
         }[]
       }
       get_profiles_with_fuzzed_location: {

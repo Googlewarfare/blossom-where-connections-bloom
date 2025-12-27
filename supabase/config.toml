@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.send-conversation-nudges]
 verify_jwt = false
+
+[functions.send-ghosting-reminder]
+verify_jwt = false
+
+[functions.calculate-compatibility]
+verify_jwt = true
