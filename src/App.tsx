@@ -46,7 +46,7 @@ const App = () => (
             <BrowserRouter>
               <DeepLinkHandler />
               <SessionTimeoutProvider>
-                <main id="main-content">
+                <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full">
                   <AnimatedRoutes />
                 </main>
               </SessionTimeoutProvider>
