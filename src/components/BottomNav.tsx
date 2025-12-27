@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, Heart, MessageCircle, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useHaptics } from "@/hooks/use-haptics";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
@@ -15,6 +16,7 @@ export const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lightTap } = useHaptics();
 
   // Hide on auth, onboarding, and admin pages
   const hiddenPaths = ["/auth", "/onboarding", "/admin"];
@@ -23,6 +25,9 @@ export const BottomNav = () => {
   if (shouldHide) return null;
 
   const handleNavClick = (to: string) => {
+    // Trigger haptic feedback
+    lightTap();
+    
     // Redirect to auth if not logged in and trying to access protected routes
     const protectedRoutes = ["/matches", "/chat", "/profile"];
     if (!user && protectedRoutes.includes(to)) {
