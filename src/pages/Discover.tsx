@@ -440,10 +440,10 @@ const Discover = () => {
     }
   };
   if (loading) {
-    return <div className="min-h-screen">
+    return <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
         <Navbar />
-        <div className="gradient-hero">
-          <div className="container mx-auto px-4 py-8">
+        <div className="gradient-hero w-full">
+          <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
             <div className="flex justify-between items-center mb-8">
               <Skeleton className="h-8 w-48" />
               <Skeleton className="h-10 w-32" />
@@ -456,10 +456,10 @@ const Discover = () => {
       </div>;
   }
   const currentProfile = profiles[currentIndex];
-  return <div className="min-h-screen">
+  return <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset">
       <Navbar />
-      <div className="gradient-hero">
-      <div className="container mx-auto px-4 py-8">
+      <div className="gradient-hero w-full">
+      <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border">
         {/* Profile Completion Banner */}
         <div className="mb-6">
           <ProfileCompletionBanner />
