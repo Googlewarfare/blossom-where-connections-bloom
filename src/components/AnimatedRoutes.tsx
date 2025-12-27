@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import { PageTransition } from "./PageTransition";
 import { usePageTracking } from "@/hooks/use-analytics";
 import AppLoader from "./AppLoader";
+import { RequireAuth, RequireOnboarding, RequireAdmin } from "@/app/router";
 
 // Eagerly load the main landing page for fast initial load
 import Index from "@/pages/Index";
@@ -50,33 +51,122 @@ export const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Suspense fallback={<PageLoader />}>
         <Routes location={location} key={location.pathname}>
+          {/* Public routes */}
           <Route path="/" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-          <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
-          <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
-          <Route path="/discover" element={<PageTransition><Discover /></PageTransition>} />
-          <Route path="/matches" element={<PageTransition><Matches /></PageTransition>} />
-          <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
-          <Route path="/activity" element={<PageTransition><Activity /></PageTransition>} />
-          <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
-          <Route path="/success-stories" element={<PageTransition><SuccessStories /></PageTransition>} />
-          <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-          <Route path="/verification" element={<PageTransition><Verification /></PageTransition>} />
-          <Route path="/admin" element={<PageTransition><AdminDashboard /></PageTransition>} />
-          <Route path="/admin/verification" element={<PageTransition><AdminVerification /></PageTransition>} />
-          <Route path="/admin/reports" element={<PageTransition><AdminReports /></PageTransition>} />
-          <Route path="/admin/audit-logs" element={<PageTransition><AdminAuditLogs /></PageTransition>} />
-          <Route path="/premium" element={<PageTransition><Premium /></PageTransition>} />
-          <Route path="/safety" element={<PageTransition><Safety /></PageTransition>} />
           <Route path="/about" element={<PageTransition><About /></PageTransition>} />
           <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
           <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
           <Route path="/support" element={<PageTransition><Support /></PageTransition>} />
           <Route path="/community-guidelines" element={<PageTransition><CommunityGuidelines /></PageTransition>} />
           <Route path="/privacy-labels" element={<PageTransition><PrivacyLabels /></PageTransition>} />
-          <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
-          <Route path="/settings/privacy" element={<PageTransition><PrivacySettings /></PageTransition>} />
-          <Route path="/settings/security" element={<PageTransition><SecurityDashboard /></PageTransition>} />
+          <Route path="/success-stories" element={<PageTransition><SuccessStories /></PageTransition>} />
+          <Route path="/safety" element={<PageTransition><Safety /></PageTransition>} />
+          
+          {/* Auth required - onboarding flow */}
+          <Route path="/onboarding" element={
+            <RequireAuth>
+              <PageTransition><Onboarding /></PageTransition>
+            </RequireAuth>
+          } />
+          
+          {/* Auth required - profile accessible during onboarding */}
+          <Route path="/profile" element={
+            <RequireAuth>
+              <PageTransition><Profile /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/verification" element={
+            <RequireAuth>
+              <PageTransition><Verification /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/premium" element={
+            <RequireAuth>
+              <PageTransition><Premium /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/settings" element={
+            <RequireAuth>
+              <PageTransition><Settings /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/settings/privacy" element={
+            <RequireAuth>
+              <PageTransition><PrivacySettings /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/settings/security" element={
+            <RequireAuth>
+              <PageTransition><SecurityDashboard /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/analytics" element={
+            <RequireAuth>
+              <PageTransition><Analytics /></PageTransition>
+            </RequireAuth>
+          } />
+          
+          {/* Auth + onboarding required - core app features */}
+          <Route path="/discover" element={
+            <RequireAuth>
+              <RequireOnboarding>
+                <PageTransition><Discover /></PageTransition>
+              </RequireOnboarding>
+            </RequireAuth>
+          } />
+          <Route path="/matches" element={
+            <RequireAuth>
+              <RequireOnboarding>
+                <PageTransition><Matches /></PageTransition>
+              </RequireOnboarding>
+            </RequireAuth>
+          } />
+          <Route path="/chat" element={
+            <RequireAuth>
+              <RequireOnboarding>
+                <PageTransition><Chat /></PageTransition>
+              </RequireOnboarding>
+            </RequireAuth>
+          } />
+          <Route path="/activity" element={
+            <RequireAuth>
+              <RequireOnboarding>
+                <PageTransition><Activity /></PageTransition>
+              </RequireOnboarding>
+            </RequireAuth>
+          } />
+          <Route path="/events" element={
+            <RequireAuth>
+              <RequireOnboarding>
+                <PageTransition><Events /></PageTransition>
+              </RequireOnboarding>
+            </RequireAuth>
+          } />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={
+            <RequireAdmin>
+              <PageTransition><AdminDashboard /></PageTransition>
+            </RequireAdmin>
+          } />
+          <Route path="/admin/verification" element={
+            <RequireAdmin>
+              <PageTransition><AdminVerification /></PageTransition>
+            </RequireAdmin>
+          } />
+          <Route path="/admin/reports" element={
+            <RequireAdmin>
+              <PageTransition><AdminReports /></PageTransition>
+            </RequireAdmin>
+          } />
+          <Route path="/admin/audit-logs" element={
+            <RequireAdmin>
+              <PageTransition><AdminAuditLogs /></PageTransition>
+            </RequireAdmin>
+          } />
+          
+          {/* 404 */}
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
       </Suspense>
