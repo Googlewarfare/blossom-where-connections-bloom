@@ -10,7 +10,7 @@ export { default as OnboardingPage } from "@/pages/Onboarding";
 // Permission prompts
 export { CameraPermissionPrompt } from "@/components/CameraPermissionPrompt";
 export { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
-export { BiometricPermissionPrompt } from "@/components/BiometricPermissionPrompt";
+// Note: BiometricPermissionPrompt is exported from auth feature
 
 // Profile completion
 export { ProfileCompletionBanner } from "@/components/ProfileCompletionBanner";
