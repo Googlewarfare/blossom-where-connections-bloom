@@ -186,6 +186,22 @@ All colors MUST be HSL.
   }
 }
 
+/* Bottom safe area for fixed bottom elements */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Content padding to account for bottom nav */
+.pb-bottom-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .pb-bottom-nav {
+    padding-bottom: 0;
+  }
+}
+
 @layer utilities {
   /* Gradient utilities */
   .gradient-primary {

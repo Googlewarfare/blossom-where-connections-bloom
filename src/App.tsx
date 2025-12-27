@@ -14,6 +14,7 @@ import { useDeepLinks } from "./hooks/use-deep-links";
 import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { BottomNav } from "./components/BottomNav";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,9 +47,10 @@ const App = () => (
             <BrowserRouter>
               <DeepLinkHandler />
               <SessionTimeoutProvider>
-                <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full">
+                <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full pb-bottom-nav">
                   <AnimatedRoutes />
                 </main>
+                <BottomNav />
               </SessionTimeoutProvider>
             </BrowserRouter>
           </TooltipProvider>
