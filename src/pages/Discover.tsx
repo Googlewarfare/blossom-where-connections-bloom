@@ -501,57 +501,65 @@ const Discover = () => {
         </div>
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">
-              Discover{" "}
-              <span className="gradient-primary bg-clip-text text-primary-foreground">
-                Your Match
-              </span>
-            </h1>
-            <p className="text-muted-foreground">
-              Swipe right to like, left to pass
-            </p>
-            {hasUnlimitedSuperLikes && <Badge className="mt-2 bg-gradient-to-r from-yellow-400 to-orange-500">
-                ⭐ Unlimited Super Likes Active
-              </Badge>}
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-4xl font-bold mb-2">
+                Discover{" "}
+                <span className="gradient-primary bg-clip-text text-primary-foreground">
+                  Your Match
+                </span>
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Swipe right to like, left to pass
+              </p>
+              {hasUnlimitedSuperLikes && <Badge className="mt-2 bg-gradient-to-r from-yellow-400 to-orange-500">
+                  ⭐ Unlimited Super Likes Active
+                </Badge>}
+            </div>
+            {/* Primary actions - always visible */}
+            <div className="flex gap-2">
+              <Button onClick={() => navigate(-1)} variant="outline" size="sm" className="rounded-full">
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+              {hasUnlimitedSuperLikes ? <Button onClick={handleManageSubscription} variant="outline" size="sm" className="rounded-full">
+                  <Star className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Manage</span>
+                </Button> : <Button onClick={() => setShowSubscriptionDialog(true)} size="sm" className="rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600">
+                  <Star className="w-4 h-4 sm:mr-2 fill-current" />
+                  <span className="hidden sm:inline">Super Likes</span>
+                </Button>}
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate(-1)} variant="outline" className="rounded-full">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            {hasUnlimitedSuperLikes ? <Button onClick={handleManageSubscription} variant="outline" className="rounded-full">
-                <Star className="w-4 h-4 mr-2" />
-                Manage Subscription
-              </Button> : <Button onClick={() => setShowSubscriptionDialog(true)} className="rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600">
-                <Star className="w-4 h-4 mr-2 fill-current" />
-                Get Unlimited Super Likes
-              </Button>}
+          
+          {/* Secondary actions - scrollable on mobile */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <AdvancedFilters onFiltersApplied={() => window.location.reload()} />
-            <Button onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")} variant="outline" className="rounded-full">
+            <Button onClick={() => setViewMode(viewMode === "cards" ? "map" : "cards")} variant="outline" size="sm" className="rounded-full flex-shrink-0">
               {viewMode === "cards" ? <>
-                  <Map className="w-4 h-4 mr-2" />
-                  Map View
+                  <Map className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Map View</span>
                 </> : <>
-                  <Heart className="w-4 h-4 mr-2" />
-                  Card View
+                  <Heart className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Card View</span>
                 </>}
             </Button>
-            <Button onClick={() => navigate("/activity")} variant="outline" className="rounded-full">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Activity
+            <Button onClick={() => navigate("/activity")} variant="outline" size="sm" className="rounded-full flex-shrink-0">
+              <Sparkles className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Activity</span>
             </Button>
-            <Button onClick={() => navigate("/matches")} variant="outline" className="rounded-full">
-              <Heart className="w-4 h-4 mr-2" />
-              Matches
+            <Button onClick={() => navigate("/matches")} variant="outline" size="sm" className="rounded-full flex-shrink-0">
+              <Heart className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Matches</span>
             </Button>
-            <Button onClick={() => navigate("/chat")} variant="outline" className="rounded-full">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Messages
+            <Button onClick={() => navigate("/chat")} variant="outline" size="sm" className="rounded-full flex-shrink-0">
+              <MessageCircle className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Messages</span>
             </Button>
-            <Button onClick={() => navigate("/profile")} variant="outline" className="rounded-full">
-              My Profile
+            <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="rounded-full flex-shrink-0">
+              <span className="hidden sm:inline">My Profile</span>
+              <span className="sm:hidden">Profile</span>
             </Button>
           </div>
         </div>
