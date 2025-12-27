@@ -62,6 +62,61 @@ export function getCurrentLocation(): Promise<{
 }
 
 /**
+ * Reverse geocode coordinates to a human-readable location (City, State)
+ * Uses Mapbox Geocoding API
+ * @param latitude Latitude coordinate
+ * @param longitude Longitude coordinate
+ * @returns Promise with location string (e.g., "Baltimore, Maryland")
+ */
+export async function reverseGeocode(
+  latitude: number,
+  longitude: number,
+): Promise<string | null> {
+  try {
+    // Get Mapbox token from environment
+    const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
+    
+    if (!token) {
+      console.warn("Mapbox token not configured for reverse geocoding");
+      return null;
+    }
+
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,region&access_token=${token}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Geocoding request failed");
+    }
+
+    const data = await response.json();
+    
+    if (data.features && data.features.length > 0) {
+      // Find place (city) and region (state) features
+      const place = data.features.find((f: any) => f.place_type.includes("place"));
+      const region = data.features.find((f: any) => f.place_type.includes("region"));
+      
+      if (place && region) {
+        // Extract just the region name (e.g., "Maryland" from "Maryland, United States")
+        const regionName = region.text || region.place_name?.split(",")[0];
+        return `${place.text}, ${regionName}`;
+      } else if (place) {
+        return place.place_name;
+      } else if (data.features[0]) {
+        // Fallback to first result
+        const parts = data.features[0].place_name?.split(",").slice(0, 2);
+        return parts?.join(",").trim() || null;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return null;
+  }
+}
+
+/**
  * Convert centimeters to feet and inches
  * @param cm Height in centimeters
  * @returns Object with feet and inches
