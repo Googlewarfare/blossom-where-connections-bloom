@@ -21,14 +21,27 @@ import { checkAccountLockout, recordLoginAttempt } from "@/hooks/use-security";
 import { checkPasswordBreach } from "@/hooks/use-password-check";
 import { TwoFactorVerify } from "@/components/TwoFactorVerify";
 import { useBiometricAuth } from "@/hooks/use-biometric-auth";
+import { PasswordStrengthMeter, isPasswordStrong } from "@/components/PasswordStrengthMeter";
 import logo from "@/assets/blossom-logo.jpg";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters" })
-    .max(100),
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(100)
+    .refine(
+      (val) => /[A-Z]/.test(val),
+      { message: "Password must contain an uppercase letter" }
+    )
+    .refine(
+      (val) => /[a-z]/.test(val),
+      { message: "Password must contain a lowercase letter" }
+    )
+    .refine(
+      (val) => /[0-9]/.test(val),
+      { message: "Password must contain a number" }
+    ),
   fullName: z.string().trim().max(100).optional(),
   location: z.string().trim().max(200).optional(),
 });
@@ -648,7 +661,7 @@ const Auth = () => {
                   }}
                   onBlur={handlePasswordBlur}
                   required
-                  minLength={6}
+                  minLength={8}
                   maxLength={100}
                 />
                 {checkingPassword && (
@@ -666,9 +679,7 @@ const Auth = () => {
                   </div>
                 )}
                 {!isLogin && !passwordWarning && !checkingPassword && (
-                  <p className="text-xs text-muted-foreground">
-                    Minimum 6 characters
-                  </p>
+                  <PasswordStrengthMeter password={password} className="mt-2" />
                 )}
               </div>
 
@@ -676,7 +687,7 @@ const Auth = () => {
                 type="submit"
                 className="w-full rounded-full"
                 size="lg"
-                disabled={loading || biometricLoading}
+                disabled={loading || biometricLoading || (!isLogin && !isPasswordStrong(password))}
               >
                 {loading
                   ? "Please wait..."
