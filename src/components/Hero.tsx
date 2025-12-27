@@ -54,15 +54,15 @@ const Hero = () => {
             <div className="inline-flex items-center gap-2 glass px-5 py-2.5 rounded-full group hover-scale-sm cursor-default">
               <Sparkles className="w-4 h-4 text-primary animate-pulse-soft" />
               <span className="text-sm font-medium bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
-                Start Your Love Story Today
+                Built for people who show up
               </span>
             </div>
 
             <div className="space-y-6">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] font-display">
-                Find Your{" "}
+                Dating, without{" "}
                 <span className="text-gradient relative">
-                  Perfect Match
+                  the games
                   <svg
                     className="absolute -bottom-2 left-0 w-full"
                     viewBox="0 0 300 12"
@@ -91,26 +91,26 @@ const Hero = () => {
                 </span>
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                Discover meaningful connections through authentic profiles and
-                real conversations. Your love story begins here.
+                Fewer matches. Deeper connections. No ghosting. 
+                Blossom is for people who want something real.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/discover">
+              <Link to="/auth">
                 <Button
                   variant="premium"
                   size="xl"
                   className="group w-full sm:w-auto"
                 >
-                  Start Browsing
+                  Begin Your Journey
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/about">
                 <Button variant="glass" size="xl" className="w-full sm:w-auto">
                   <Heart className="w-5 h-5 mr-2" />
-                  Sign Up Free
+                  Learn More
                 </Button>
               </Link>
             </div>

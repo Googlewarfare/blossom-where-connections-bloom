@@ -1,50 +1,52 @@
-import { Heart, Shield, MessageCircle, Sparkles } from "lucide-react";
+import { Heart, Shield, MessageCircle, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
+
 const features = [
   {
-    icon: Heart,
-    title: "Smart Matching",
+    icon: Clock,
+    title: "3 Conversations Max",
     description:
-      "Our AI-powered algorithm learns your preferences to find compatible matches that truly resonate with you.",
+      "Be fully present. We limit active conversations so you can focus on quality, not quantity.",
     color: "text-primary",
   },
   {
     icon: Shield,
     title: "Safe & Verified",
     description:
-      "Every profile is verified with multiple security checks to ensure authentic connections and peace of mind.",
+      "Trust signals, verification badges, and tools that empower you to feel secure.",
     color: "text-secondary",
   },
   {
     icon: MessageCircle,
-    title: "Meaningful Conversations",
+    title: "No Ghosting Culture",
     description:
-      "Start conversations with thoughtful prompts designed to help you connect on a deeper level.",
+      "End conversations with care. Thoughtful closures matter here.",
     color: "text-primary",
   },
   {
-    icon: Sparkles,
-    title: "Unique Experiences",
+    icon: Heart,
+    title: "Intentional Onboarding",
     description:
-      "Discover virtual date ideas and activities to make every interaction special and memorable.",
+      "We ask the right questions upfront to help you attract the right people.",
     color: "text-secondary",
   },
 ];
+
 const Features = () => {
   return (
     <section className="py-20 px-4 bg-background">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl sm:text-5xl font-bold">
-            Why Choose{" "}
+            How{" "}
             <span className="gradient-primary bg-clip-text text-primary-foreground">
               Blossom
-            </span>
-            ?
+            </span>{" "}
+            is Different
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We've built features that help you find genuine connections and
-            nurture meaningful relationships.
+            We've intentionally removed features that destroy healthy relationships.
+            What remains is designed for people who show up.
           </p>
         </div>
 

@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { TrustSignals } from '@/components/TrustSignals';
 import { MapPin, Briefcase } from 'lucide-react';
 import { haptics } from '@/hooks/use-haptics';
 
@@ -19,9 +20,10 @@ interface ProfileCardProps {
     verified: boolean;
   };
   onClick?: () => void;
+  showTrustSignals?: boolean;
 }
 
-export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, onClick, showTrustSignals = true }: ProfileCardProps) => {
   const handleClick = () => {
     haptics.light();
     onClick?.();
@@ -50,6 +52,13 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
             </h3>
             <VerificationBadge verified={profile.verified} size="md" />
           </div>
+          
+          {/* Trust Signals */}
+          {showTrustSignals && (
+            <div className="mb-2">
+              <TrustSignals userId={profile.id} variant="compact" maxSignals={3} />
+            </div>
+          )}
           
           <div className="space-y-1 text-sm">
             {profile.occupation && (
