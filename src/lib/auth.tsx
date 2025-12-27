@@ -55,23 +55,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useState<SubscriptionStatus | null>(null);
 
   const checkSubscription = async () => {
-    if (!session) return;
-
     try {
+      // Get fresh session to avoid using stale tokens
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession?.access_token) {
+        setSubscriptionStatus(null);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke(
         "check-subscription",
         {
           headers: {
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${currentSession.access_token}`,
           },
         },
       );
+      
       if (error) {
-        console.error("Error checking subscription:", error);
+        // Don't log auth errors as they're expected when session expires
+        if (!error.message?.includes("401") && !error.message?.includes("Authentication")) {
+          console.error("Error checking subscription:", error);
+        }
         return;
       }
+      
       setSubscriptionStatus(data);
     } catch (error) {
+      // Silently handle errors - subscription check is non-critical
       console.error("Error checking subscription:", error);
     }
   };
