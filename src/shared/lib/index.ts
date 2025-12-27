@@ -12,3 +12,6 @@ export * from "@/lib/image-utils";
 
 // Location utilities
 export * from "@/lib/location-utils";
+
+// Validation utilities
+export * from "@/lib/validation";
