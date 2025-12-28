@@ -15,6 +15,7 @@ import { PushNotificationPrompt } from "./components/PushNotificationPrompt";
 import { AppRatingPrompt } from "./components/AppRatingPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { BottomNav } from "./components/BottomNav";
+import { GhostingBlocker } from "./components/GhostingBlocker";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,10 +48,12 @@ const App = () => (
             <BrowserRouter>
               <DeepLinkHandler />
               <SessionTimeoutProvider>
-                <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full pb-bottom-nav">
-                  <AnimatedRoutes />
-                </main>
-                <BottomNav />
+                <GhostingBlocker>
+                  <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full pb-bottom-nav">
+                    <AnimatedRoutes />
+                  </main>
+                  <BottomNav />
+                </GhostingBlocker>
               </SessionTimeoutProvider>
             </BrowserRouter>
           </TooltipProvider>
