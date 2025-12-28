@@ -685,6 +685,8 @@ const Onboarding = () => {
                 key="step6"
                 answers={intentAnswers}
                 onChange={handleIntentChange}
+                errors={errors}
+                minChars={MIN_INTENT_CHARS}
               />
             )}
           </AnimatePresence>
