@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProfileCardSkeleton } from "@/components/ui/skeleton";
-import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft, Flag } from "lucide-react";
+import { Heart, MapPin, Briefcase, X, Map, MessageCircle, Sparkles, Star, ArrowLeft, Flag, Pause, Play } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import { GhostingCheckpointDialog } from "@/components/GhostingCheckpointDialog"
 import { GhostingBlocker } from "@/components/GhostingBlocker";
 import { SwipeLimitOverlay } from "@/components/SwipeLimitOverlay";
 import { useSwipeLimits } from "@/hooks/use-swipe-limits";
+import { usePauseMode } from "@/hooks/use-pause-mode";
+import { PauseModeDialog } from "@/components/PauseModeDialog";
 
 // Lazy load heavy map component
 const MatchesMap = lazy(() => import("@/components/MatchesMap"));
@@ -90,7 +92,9 @@ const Discover = () => {
   // Swipe limits enforcement
   const { canSwipe, activeCount, maxConversations, refresh: refreshLimits } = useSwipeLimits();
 
-  // Handle super like and subscription success
+  // Pause mode
+  const { isPaused, refresh: refreshPauseStatus } = usePauseMode();
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
   useEffect(() => {
     const handleSuccess = async () => {
       // Handle super like payment success
@@ -490,8 +494,30 @@ const Discover = () => {
         <Navbar />
         <div className="gradient-hero w-full">
           <div className="w-full px-4 py-8 max-w-7xl mx-auto box-border relative">
+            {/* Pause Mode Overlay - blocks swiping when paused */}
+            {isPaused && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
+                <div className="text-center max-w-md mx-auto p-8">
+                  <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Pause className="w-10 h-10 text-amber-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3">Dating is paused</h2>
+                  <p className="text-muted-foreground mb-6">
+                    You're hidden from discovery. Take all the time you need.
+                  </p>
+                  <Button onClick={() => setShowPauseDialog(true)} className="w-full" size="lg">
+                    <Play className="w-4 h-4 mr-2" />
+                    Resume Dating
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    You can still message existing matches while paused.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Swipe Limit Overlay - blocks swiping when at max conversations */}
-            {!canSwipe && (
+            {!isPaused && !canSwipe && (
               <SwipeLimitOverlay 
                 activeCount={activeCount} 
                 maxConversations={maxConversations} 
@@ -772,6 +798,13 @@ const Discover = () => {
       
       {/* Push Notification Permission Prompt */}
       <PushNotificationPrompt />
+      
+      {/* Pause Mode Dialog */}
+      <PauseModeDialog
+        open={showPauseDialog}
+        onOpenChange={setShowPauseDialog}
+        onStatusChange={refreshPauseStatus}
+      />
         </div>
       </div>
     </GhostingBlocker>
