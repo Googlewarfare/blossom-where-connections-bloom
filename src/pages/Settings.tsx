@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import {
@@ -8,9 +9,10 @@ import {
   Trash2,
   LogOut,
   Bell,
-  Lock,
-  User,
   MapPin,
+  User,
+  Pause,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +30,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PauseModeDialog } from "@/components/PauseModeDialog";
+import { usePauseMode } from "@/hooks/use-pause-mode";
 
 const SettingsItem = ({
   icon: Icon,
@@ -35,12 +39,14 @@ const SettingsItem = ({
   to,
   destructive = false,
   onClick,
+  badge,
 }: {
   icon: React.ElementType;
   label: string;
   to?: string;
   destructive?: boolean;
   onClick?: () => void;
+  badge?: string;
 }) => {
   const content = (
     <div
@@ -52,6 +58,11 @@ const SettingsItem = ({
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5" />
         <span className="font-medium">{label}</span>
+        {badge && (
+          <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
+            {badge}
+          </span>
+        )}
       </div>
       {to && <ChevronRight className="w-5 h-5 text-muted-foreground" />}
     </div>
@@ -66,6 +77,8 @@ const SettingsItem = ({
 const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const { isPaused, refresh: refreshPauseStatus } = usePauseMode();
 
   const handleSignOut = async () => {
     try {
@@ -100,6 +113,31 @@ const Settings = () => {
         <div className="w-full max-w-lg mx-auto px-4 py-6 box-border">
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
+          {/* Pause Mode Banner */}
+          {isPaused && (
+            <div className="mb-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <Pause className="w-5 h-5 text-amber-600" />
+                <div className="flex-1">
+                  <p className="font-medium text-amber-800 dark:text-amber-200">
+                    Dating is paused
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    You're hidden from discovery
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowPauseDialog(true)}
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Resume
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Account Section */}
           <div className="mb-6">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
@@ -110,6 +148,12 @@ const Settings = () => {
               <SettingsItem icon={Bell} label="Notifications" to="/profile" />
               <SettingsItem icon={MapPin} label="Privacy Settings" to="/settings/privacy" />
               <SettingsItem icon={Shield} label="Security Dashboard" to="/settings/security" />
+              <SettingsItem
+                icon={isPaused ? Play : Pause}
+                label={isPaused ? "Resume Dating" : "Pause Dating"}
+                onClick={() => setShowPauseDialog(true)}
+                badge={isPaused ? "Paused" : undefined}
+              />
             </div>
           </div>
 
@@ -185,6 +229,12 @@ const Settings = () => {
           </p>
         </div>
       </div>
+
+      <PauseModeDialog
+        open={showPauseDialog}
+        onOpenChange={setShowPauseDialog}
+        onStatusChange={refreshPauseStatus}
+      />
     </>
   );
 };

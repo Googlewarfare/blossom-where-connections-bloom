@@ -1011,12 +1011,15 @@ export type Database = {
           gender: string | null
           height_cm: number | null
           id: string
+          is_paused: boolean | null
           latitude: number | null
           lifestyle: string | null
           location: string | null
           longitude: number | null
           manifesto_agreed_at: string | null
           occupation: string | null
+          pause_reason: string | null
+          paused_at: string | null
           relationship_goal: string | null
           religion: string | null
           smoking: string | null
@@ -1036,12 +1039,15 @@ export type Database = {
           gender?: string | null
           height_cm?: number | null
           id: string
+          is_paused?: boolean | null
           latitude?: number | null
           lifestyle?: string | null
           location?: string | null
           longitude?: number | null
           manifesto_agreed_at?: string | null
           occupation?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
           relationship_goal?: string | null
           religion?: string | null
           smoking?: string | null
@@ -1061,12 +1067,15 @@ export type Database = {
           gender?: string | null
           height_cm?: number | null
           id?: string
+          is_paused?: boolean | null
           latitude?: number | null
           lifestyle?: string | null
           location?: string | null
           longitude?: number | null
           manifesto_agreed_at?: string | null
           occupation?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
           relationship_goal?: string | null
           religion?: string | null
           smoking?: string | null
@@ -1781,6 +1790,13 @@ export type Database = {
         Returns: undefined
       }
       can_access_app: { Args: { p_user_id: string }; Returns: boolean }
+      can_pause_dating: {
+        Args: { p_user_id: string }
+        Returns: {
+          active_conversation_count: number
+          can_pause: boolean
+        }[]
+      }
       can_start_new_conversation: {
         Args: { p_user_id: string }
         Returns: boolean
