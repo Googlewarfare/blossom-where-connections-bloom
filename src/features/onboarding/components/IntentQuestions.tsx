@@ -13,24 +13,24 @@ interface IntentQuestionsProps {
 const INTENT_PROMPTS = [
   {
     key: "hoping_to_build",
-    question: "What are you genuinely hoping to build right now?",
+    question: "What are you hoping to build right now?",
     placeholder: "A meaningful connection with someone who shares my values...",
     icon: Heart,
     hint: "This helps us understand your relationship goals",
   },
   {
-    key: "pattern_to_break",
-    question: "What pattern in dating are you trying to break?",
+    key: "pattern_to_leave",
+    question: "What dating pattern are you trying to leave behind?",
     placeholder: "I want to stop rushing into things without really knowing someone...",
     icon: Sparkles,
     hint: "Reflection helps attract the right connections",
   },
   {
-    key: "feeling_safe",
-    question: "What does feeling safe in a relationship mean to you?",
-    placeholder: "Being able to be myself without judgment...",
+    key: "showing_up",
+    question: "What does showing up look like to you?",
+    placeholder: "Being present, honest, and consistent in how I communicate...",
     icon: Shield,
-    hint: "Safety is at the heart of Blossom",
+    hint: "Intentionality is at the heart of Blossom",
   },
 ];
 
