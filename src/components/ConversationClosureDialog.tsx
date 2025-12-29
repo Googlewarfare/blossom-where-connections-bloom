@@ -12,14 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Heart, MessageCircle, Archive } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface ClosureTemplate {
-  id: string;
-  message: string;
-  tone: string;
-}
 
 interface ConversationClosureDialogProps {
   open: boolean;
@@ -28,6 +22,32 @@ interface ConversationClosureDialogProps {
   otherUserName: string;
   onClosed?: () => void;
 }
+
+// Required closure options - non-punitive, emotionally responsible
+const CLOSURE_OPTIONS = [
+  {
+    id: "no_connection",
+    message: "I didn't feel the connection I was hoping for, but I wish you the best.",
+    label: "I didn't feel the connection",
+  },
+  {
+    id: "not_ready",
+    message: "I'm not ready to continue this right now. Thank you for your time and openness.",
+    label: "I'm not ready to continue",
+  },
+  {
+    id: "taking_break",
+    message: "I'm taking a break from dating to focus on myself. I hope you find what you're looking for.",
+    label: "I need a break from dating",
+  },
+  {
+    id: "custom",
+    message: "",
+    label: "Write my own message",
+  },
+];
+
+const MIN_CUSTOM_CHARS = 140;
 
 export function ConversationClosureDialog({
   open,
@@ -38,48 +58,30 @@ export function ConversationClosureDialog({
 }: ConversationClosureDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [templates, setTemplates] = useState<ClosureTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState("");
-  const [closureType, setClosureType] = useState<"close" | "archive">("close");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      const { data } = await supabase
-        .from("closure_templates")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-
-      if (data) {
-        setTemplates(data);
-      }
-    };
-
-    if (open) {
-      fetchTemplates();
-    }
-  }, [open]);
+  const isCustomSelected = selectedOption === "custom";
+  const customValid = customMessage.length >= MIN_CUSTOM_CHARS;
+  const canSubmit = selectedOption && (!isCustomSelected || customValid);
 
   const handleClose = async () => {
-    if (!user) return;
+    if (!user || !selectedOption) return;
 
     setLoading(true);
     try {
-      const closureMessage =
-        selectedTemplate === "custom"
-          ? customMessage
-          : templates.find((t) => t.id === selectedTemplate)?.message || null;
+      const option = CLOSURE_OPTIONS.find((o) => o.id === selectedOption);
+      const closureMessage = isCustomSelected ? customMessage : option?.message;
 
       // Update conversation status
       const { error } = await supabase
         .from("conversations")
         .update({
-          status: closureType === "close" ? "closed" : "archived",
+          status: "closed",
           closed_at: new Date().toISOString(),
           closed_by: user.id,
-          closure_reason: closureType,
+          closure_reason: selectedOption,
           closure_message: closureMessage,
         })
         .eq("id", conversationId);
@@ -87,21 +89,27 @@ export function ConversationClosureDialog({
       if (error) throw error;
 
       // Update user's response patterns (graceful closure)
+      const { data: existingPatterns } = await supabase
+        .from("user_response_patterns")
+        .select("graceful_closures, total_conversations")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       await supabase
         .from("user_response_patterns")
-        .upsert(
-          {
-            user_id: user.id,
-            graceful_closures: 1,
-            total_conversations: 1,
-          },
-          { onConflict: "user_id" }
-        )
-        .select();
+        .upsert({
+          user_id: user.id,
+          graceful_closures: (existingPatterns?.graceful_closures || 0) + 1,
+          total_conversations: (existingPatterns?.total_conversations || 0) + 1,
+          last_calculated_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+
+      // Recalculate trust signals
+      await supabase.rpc("calculate_trust_signals", { p_user_id: user.id });
 
       toast({
-        title: closureType === "close" ? "Conversation closed" : "Conversation archived",
-        description: "Thank you for communicating thoughtfully.",
+        title: "Conversation closed with care",
+        description: "Thank you for being thoughtful. Your message has been sent.",
       });
 
       onOpenChange(false);
@@ -124,104 +132,84 @@ export function ConversationClosureDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-primary" />
-            End conversation with care
+            Close with kindness
           </DialogTitle>
           <DialogDescription>
-            At Blossom, we believe in thoughtful communication. Would you like to send 
-            {otherUserName ? ` ${otherUserName}` : " them"} a kind message before closing?
+            Everyone deserves closure. Choose a message to send 
+            {otherUserName ? ` ${otherUserName}` : ""} before closing.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="flex gap-2">
-            <Button
-              variant={closureType === "close" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setClosureType("close")}
-              className="flex-1"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Close
-            </Button>
-            <Button
-              variant={closureType === "archive" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setClosureType("archive")}
-              className="flex-1"
-            >
-              <Archive className="w-4 h-4 mr-2" />
-              Archive
-            </Button>
-          </div>
-
-          {closureType === "close" && (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Choose a message to send (optional but encouraged):
-              </p>
-
-              <RadioGroup
-                value={selectedTemplate || ""}
-                onValueChange={setSelectedTemplate}
-                className="space-y-2"
+          <RadioGroup
+            value={selectedOption || ""}
+            onValueChange={setSelectedOption}
+            className="space-y-2"
+          >
+            {CLOSURE_OPTIONS.map((option) => (
+              <div
+                key={option.id}
+                className={`flex items-start space-x-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                  selectedOption === option.id
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                }`}
+                onClick={() => setSelectedOption(option.id)}
               >
-                {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <RadioGroupItem value={template.id} id={template.id} className="mt-0.5" />
-                    <Label htmlFor={template.id} className="text-sm font-normal cursor-pointer flex-1">
-                      "{template.message}"
-                    </Label>
-                  </div>
-                ))}
-                <div
-                  className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                >
-                  <RadioGroupItem value="custom" id="custom" className="mt-0.5" />
-                  <Label htmlFor="custom" className="text-sm font-normal cursor-pointer">
-                    Write your own message
+                <RadioGroupItem value={option.id} id={option.id} className="mt-0.5" />
+                <div className="flex-1">
+                  <Label htmlFor={option.id} className="text-sm font-medium cursor-pointer">
+                    {option.label}
                   </Label>
+                  {option.message && option.id !== "custom" && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">
+                      "{option.message}"
+                    </p>
+                  )}
                 </div>
-              </RadioGroup>
+              </div>
+            ))}
+          </RadioGroup>
 
-              {selectedTemplate === "custom" && (
-                <div className="space-y-2">
-                  <Textarea
-                    value={customMessage}
-                    onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="Write a kind message (minimum 140 characters)..."
-                    rows={4}
-                    maxLength={500}
-                  />
-                  <div className="flex justify-between text-xs">
-                    <span className={customMessage.length < 140 ? "text-destructive" : "text-muted-foreground"}>
-                      {customMessage.length < 140 
-                        ? `${140 - customMessage.length} more characters needed` 
-                        : "✓ Minimum reached"}
-                    </span>
-                    <span className="text-muted-foreground">{customMessage.length}/500</span>
-                  </div>
-                </div>
-              )}
-            </>
+          {isCustomSelected && (
+            <div className="space-y-2">
+              <Textarea
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                placeholder="Write a kind message..."
+                rows={4}
+                maxLength={500}
+                className="resize-none"
+              />
+              <div className="flex justify-between text-xs">
+                <span className={!customValid ? "text-amber-500" : "text-primary"}>
+                  {!customValid 
+                    ? `${MIN_CUSTOM_CHARS - customMessage.length} more characters needed` 
+                    : "✓ Ready to send"}
+                </span>
+                <span className="text-muted-foreground">{customMessage.length}/500</span>
+              </div>
+            </div>
           )}
 
-          {closureType === "archive" && (
-            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-              Archiving hides this conversation without sending a closure message. 
-              The other person won't be notified.
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground">
+              Your message will be delivered with care. No reply is required.
             </p>
-          )}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleClose} disabled={loading}>
-            {loading ? "Processing..." : closureType === "close" ? "Close & Send" : "Archive"}
+          <Button 
+            onClick={handleClose} 
+            disabled={loading || !canSubmit}
+            className="gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            {loading ? "Sending..." : "Send & Close"}
           </Button>
         </div>
       </DialogContent>

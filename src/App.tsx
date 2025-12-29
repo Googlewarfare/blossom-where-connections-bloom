@@ -16,6 +16,7 @@ import { AppRatingPrompt } from "./components/AppRatingPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { BottomNav } from "./components/BottomNav";
 import { GhostingBlocker } from "./components/GhostingBlocker";
+import { GhostingNudgeDialog } from "./components/GhostingNudgeDialog";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +50,7 @@ const App = () => (
               <DeepLinkHandler />
               <SessionTimeoutProvider>
                 <GhostingBlocker>
+                  <GhostingNudgeDialog />
                   <main id="main-content" className="safe-area-inset min-h-[100dvh] w-full pb-bottom-nav">
                     <AnimatedRoutes />
                   </main>
