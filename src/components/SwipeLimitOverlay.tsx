@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Heart, Sparkles } from "lucide-react";
+import { MessageCircle, Heart, Sparkles, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface SwipeLimitOverlayProps {
@@ -18,49 +18,62 @@ export function SwipeLimitOverlay({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm p-4"
     >
-      <div className="mx-4 max-w-md text-center">
+      <div className="max-w-md text-center">
         <div className="mb-6 flex justify-center">
           <div className="relative">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <Heart className="h-10 w-10 text-primary" />
+              <Users className="h-10 w-10 text-primary" />
             </div>
-            <div className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-destructive text-sm font-bold text-destructive-foreground">
+            <div className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {activeCount}
             </div>
           </div>
         </div>
 
         <h2 className="mb-3 text-2xl font-bold">
-          You've reached your connection limit
+          Your attention is full
         </h2>
 
-        <p className="mb-6 text-muted-foreground">
-          At Blossom, we believe in meaningful connections over endless swiping.
-          You have {activeCount} active conversation
-          {activeCount !== 1 ? "s" : ""} — focus on getting to know them before
-          starting new ones.
+        <p className="mb-4 text-muted-foreground leading-relaxed">
+          You're currently nurturing {activeCount} connection{activeCount !== 1 ? "s" : ""}. 
+          At Blossom, we believe real connections deserve your full presence.
         </p>
 
-        <div className="mb-6 rounded-lg border border-border/50 bg-muted/30 p-4">
-          <div className="flex items-center justify-center gap-2 text-sm">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span>
-              {maxConversations} active conversations max — quality over
-              quantity
-            </span>
+        <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <Heart className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Why we do this</span>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Limiting active conversations to {maxConversations} isn't a restriction — 
+            it's protection. For you and the people you're talking to. 
+            Depth requires focus.
+          </p>
         </div>
 
-        <Button
-          onClick={() => navigate("/chat")}
-          className="w-full gap-2"
-          size="lg"
-        >
-          <MessageCircle className="h-5 w-5" />
-          Go to your conversations
-        </Button>
+        <div className="space-y-3">
+          <Button
+            onClick={() => navigate("/chat")}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Continue your conversations
+          </Button>
+          
+          <p className="text-xs text-muted-foreground">
+            When a conversation has run its course, close it with kindness to make room for someone new.
+          </p>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-border/50">
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-primary" />
+            <span>Quality over quantity — always</span>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
