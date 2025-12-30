@@ -1428,30 +1428,42 @@ export type Database = {
       user_response_patterns: {
         Row: {
           average_response_time_hours: number | null
+          block_count: number | null
           ghosted_count: number | null
           graceful_closures: number | null
           id: string
+          internal_trust_score: number | null
           last_calculated_at: string | null
+          report_count: number | null
+          snooze_count: number | null
           total_conversations: number | null
           user_id: string
           visibility_score: number | null
         }
         Insert: {
           average_response_time_hours?: number | null
+          block_count?: number | null
           ghosted_count?: number | null
           graceful_closures?: number | null
           id?: string
+          internal_trust_score?: number | null
           last_calculated_at?: string | null
+          report_count?: number | null
+          snooze_count?: number | null
           total_conversations?: number | null
           user_id: string
           visibility_score?: number | null
         }
         Update: {
           average_response_time_hours?: number | null
+          block_count?: number | null
           ghosted_count?: number | null
           graceful_closures?: number | null
           id?: string
+          internal_trust_score?: number | null
           last_calculated_at?: string | null
+          report_count?: number | null
+          snooze_count?: number | null
           total_conversations?: number | null
           user_id?: string
           visibility_score?: number | null
