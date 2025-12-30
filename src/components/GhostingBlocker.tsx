@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { AlertTriangle, MessageCircle, Heart, Clock } from "lucide-react";
+import { MessageCircle, Heart, Clock } from "lucide-react";
 import { ConversationClosureDialog } from "./ConversationClosureDialog";
 
 interface GhostedConversation {
@@ -137,22 +137,23 @@ export function GhostingBlocker({ children }: GhostingBlockerProps) {
             onPointerDownOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <DialogHeader className="text-center pb-2">
+              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <Heart className="w-7 h-7 text-primary" />
+              </div>
+              <DialogTitle className="text-xl">
                 Someone is waiting for you
               </DialogTitle>
-              <DialogDescription className="text-base pt-2">
-                At Blossom, we don't let connections fade into silence. 
-                {currentConversation.other_user_name} has been waiting for {days} days.
+              <DialogDescription className="text-base pt-2 leading-relaxed">
+                We believe everyone deserves clarity. {currentConversation.other_user_name} reached out {days} day{days !== 1 ? "s" : ""} ago and hasn't heard back. Taking a moment to respond — or to close this chapter thoughtfully — is an act of care.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="py-6">
-              <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
-                <Avatar className="w-16 h-16 ring-2 ring-primary/20">
+            <div className="py-4">
+              <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl border border-border/50">
+                <Avatar className="w-14 h-14 ring-2 ring-primary/20">
                   <AvatarImage src={currentConversation.photo_url || undefined} />
-                  <AvatarFallback className="text-lg bg-primary/10">
+                  <AvatarFallback className="text-lg bg-primary/10 text-primary">
                     {currentConversation.other_user_name?.[0] || "?"}
                   </AvatarFallback>
                 </Avatar>
@@ -160,17 +161,11 @@ export function GhostingBlocker({ children }: GhostingBlockerProps) {
                   <p className="font-semibold text-lg">
                     {currentConversation.other_user_name || "Someone"}
                   </p>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    <span>Waiting {days} days for your response</span>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Waiting for a reply</span>
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-4 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                <p className="text-sm text-destructive font-medium">
-                  Your access to Blossom is paused until you respond or close this conversation.
-                </p>
               </div>
             </div>
 
@@ -200,9 +195,13 @@ export function GhostingBlocker({ children }: GhostingBlockerProps) {
               </Button>
             </div>
 
+            <p className="text-xs text-center text-muted-foreground pt-3 leading-relaxed">
+              This isn't a punishment — it's how we build a culture where everyone feels valued. Closure is an act of kindness.
+            </p>
+
             {ghostedConversations.length > 1 && (
-              <p className="text-xs text-center text-muted-foreground pt-2">
-                {currentIndex + 1} of {ghostedConversations.length} conversations requiring your attention
+              <p className="text-xs text-center text-muted-foreground">
+                {currentIndex + 1} of {ghostedConversations.length} conversations need attention
               </p>
             )}
           </DialogContent>

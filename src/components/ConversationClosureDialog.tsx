@@ -127,16 +127,21 @@ export function ConversationClosureDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-primary" />
-            Close with kindness
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent 
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="text-center pb-2">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <Heart className="w-6 h-6 text-primary" />
+          </div>
+          <DialogTitle className="text-xl">
+            Close this chapter with care
           </DialogTitle>
-          <DialogDescription>
-            Everyone deserves closure. Choose a message to send 
-            {otherUserName ? ` ${otherUserName}` : ""} before closing.
+          <DialogDescription className="text-base leading-relaxed">
+            {otherUserName} put themselves out there by reaching out. Even when the spark isn't there, a thoughtful goodbye shows you value their time and vulnerability.
           </DialogDescription>
         </DialogHeader>
 
@@ -192,25 +197,21 @@ export function ConversationClosureDialog({
             </div>
           )}
 
-          <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground">
-              Your message will be delivered with care. No reply is required.
-            </p>
-          </div>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
+        <div className="space-y-3">
           <Button 
             onClick={handleClose} 
             disabled={loading || !canSubmit}
-            className="gap-2"
+            className="w-full gap-2"
+            size="lg"
           >
             <MessageCircle className="w-4 h-4" />
-            {loading ? "Sending..." : "Send & Close"}
+            {loading ? "Sending..." : "Close with kindness"}
           </Button>
+          <p className="text-xs text-center text-muted-foreground leading-relaxed">
+            Your message will be delivered with care. Closing respectfully builds trust in our community.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
