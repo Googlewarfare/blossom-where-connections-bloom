@@ -25,6 +25,8 @@ import { useVideoCallContext } from '@/components/VideoCallProvider';
 import { EncryptionIndicator, MessageEncryptionBanner } from '@/components/EncryptionIndicator';
 import { ConversationClosureDialog } from '@/components/ConversationClosureDialog';
 import { useConversationStatus } from '@/hooks/use-conversation-status';
+import { DatePlanningPrompt, useDatePlanningDetection } from '@/components/DatePlanningPrompt';
+import { QuickSafetyCheckin } from '@/components/QuickSafetyCheckin';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -41,6 +43,11 @@ const Chat = () => {
   const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const { refresh: refreshConversationStatus } = useConversationStatus();
+  
+  // Date planning safety detection
+  const { showPrompt: showDatePlanningPrompt, checkMessage, skipOnce, dismissPrompt } = useDatePlanningDetection();
+  const [showSafetyCheckin, setShowSafetyCheckin] = useState(false);
+  const [safetyCheckinMode, setSafetyCheckinMode] = useState<"checkin" | "contact">("checkin");
 
   const hasReadReceipts = subscriptionStatus?.subscribed && 
     subscriptionStatus.subscriptions?.some(sub => sub.product_id === PREMIUM_FEATURES.READ_RECEIPTS);
@@ -105,6 +112,19 @@ const Chat = () => {
     markMessagesAsRead();
   }, [messages, selectedConversation, user]);
 
+  // Check incoming messages for date planning language
+  useEffect(() => {
+    if (!user || messages.length === 0) return;
+    
+    // Check the most recent message from the other person
+    const recentMessages = messages.slice(-3);
+    for (const msg of recentMessages) {
+      if (msg.sender_id !== user.id && !msg.deleted) {
+        checkMessage(msg.content);
+      }
+    }
+  }, [messages, user, checkMessage]);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(file => {
@@ -128,10 +148,27 @@ const Chat = () => {
     e.preventDefault();
     if (!messageText.trim() && selectedFiles.length === 0) return;
 
+    // Check for date planning language before sending
+    if (messageText.trim()) {
+      checkMessage(messageText);
+    }
+
     await sendMessage(messageText, selectedFiles);
     setMessageText('');
     setSelectedFiles([]);
     setUploadProgress({});
+  };
+
+  const handleEnableCheckin = () => {
+    dismissPrompt();
+    setSafetyCheckinMode("checkin");
+    setShowSafetyCheckin(true);
+  };
+
+  const handleAddContact = () => {
+    dismissPrompt();
+    setSafetyCheckinMode("contact");
+    setShowSafetyCheckin(true);
   };
 
   const handleVoiceRecording = async (audioBlob: Blob, duration: number) => {
@@ -600,6 +637,14 @@ const Chat = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Date Planning Safety Prompt */}
+                <DatePlanningPrompt
+                  isVisible={showDatePlanningPrompt}
+                  onEnableCheckin={handleEnableCheckin}
+                  onAddContact={handleAddContact}
+                  onSkip={skipOnce}
+                />
+
                 {/* Message Input */}
                 <form onSubmit={handleSendMessage} className="border-t">
                   {selectedFiles.length > 0 && (
@@ -729,6 +774,14 @@ const Chat = () => {
             }}
           />
         )}
+
+        {/* Quick Safety Check-in Dialog */}
+        <QuickSafetyCheckin
+          isOpen={showSafetyCheckin}
+          onClose={() => setShowSafetyCheckin(false)}
+          mode={safetyCheckinMode}
+          matchName={currentConversation?.other_user.full_name}
+        />
       </div>
     </div>
   );
