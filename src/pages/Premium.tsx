@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth, PREMIUM_PRICE_ID } from "@/lib/auth";
+import { useAuth, INTENTIONAL_MEMBERSHIP_PRICE_ID } from "@/lib/auth";
 import { usePremium } from "@/hooks/use-premium";
 import { useNativePurchases, IAP_PRODUCTS } from "@/hooks/use-native-purchases";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,61 +17,69 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import {
   ArrowLeft,
-  Crown,
   Heart,
+  Shield,
   Eye,
-  Zap,
-  Infinity,
+  Sparkles,
   CheckCircle,
   Loader2,
-  Sparkles,
   RotateCcw,
   Apple,
+  Users,
+  Lock,
+  XCircle,
 } from "lucide-react";
 
-const PREMIUM_FEATURES_LIST = [
-  {
-    icon: Infinity,
-    title: "Unlimited Swipes",
-    description: "Swipe as much as you want without daily limits",
-  },
+const INTENTIONAL_FEATURES = [
   {
     icon: Eye,
-    title: "See Who Liked You",
-    description: "View everyone who has liked your profile",
-  },
-  {
-    icon: Zap,
-    title: "Profile Boosts",
-    description: "Get 5 free boosts per month for more visibility",
-  },
-  {
-    icon: Heart,
-    title: "Unlimited Super Likes",
-    description: "Stand out with unlimited Super Likes",
-  },
-  {
-    icon: CheckCircle,
-    title: "Read Receipts",
-    description: "See when your messages are read",
+    title: "Priority Trust Visibility",
+    description: "Your profile is prioritized to users with high trust scores — quality over quantity",
   },
   {
     icon: Sparkles,
-    title: "Priority Matching",
-    description: "Your profile gets prioritized in potential matches",
+    title: "Deeper Compatibility Insights",
+    description: "See detailed breakdowns of what makes you compatible, beyond the surface level",
+  },
+  {
+    icon: Shield,
+    title: "Advanced Verification Options",
+    description: "Additional verification badges and identity confirmation tools",
+  },
+  {
+    icon: Lock,
+    title: "Enhanced Safety Tools",
+    description: "Advanced safety features including detailed date check-in and trusted contact alerts",
+  },
+];
+
+const NOT_INCLUDED = [
+  {
+    icon: Users,
+    title: "No Extra Match Limits",
+    description: "3 conversations at a time — because depth requires focus",
+  },
+  {
+    icon: XCircle,
+    title: "No Accountability Bypass",
+    description: "Ghosting rules still apply — everyone deserves respect",
+  },
+  {
+    icon: Heart,
+    title: "No Popularity Boosts",
+    description: "No artificial visibility — your trust score speaks for itself",
   },
 ];
 
 export default function Premium() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, session, checkSubscription } = useAuth();
-  const { hasPremium, premiumEndDate } = usePremium();
+  const { session, checkSubscription } = useAuth();
+  const { hasIntentionalMembership, intentionalEndDate } = usePremium();
   const [isLoading, setIsLoading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
 
-  // Native purchases hook for iOS/Android
   const {
     isNative,
     products,
@@ -81,20 +89,18 @@ export default function Premium() {
     hasActivePremium: hasNativePremium,
   } = useNativePurchases();
 
-  // Combined premium status (web or native)
-  const isPremiumActive = hasPremium || hasNativePremium;
+  const isActive = hasIntentionalMembership || hasNativePremium;
 
   useEffect(() => {
     if (searchParams.get("subscription_success") === "true") {
       toast.success(
-        "Welcome to Blossom Premium! Your subscription is now active.",
+        "Welcome to Intentional Membership! You're now part of a community that values depth.",
       );
       checkSubscription();
       window.history.replaceState({}, "", "/premium");
     }
   }, [searchParams, checkSubscription]);
 
-  // Handle web subscription via Stripe
   const handleSubscribe = async () => {
     if (!session) {
       toast.error("Please log in to subscribe");
@@ -110,7 +116,7 @@ export default function Premium() {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: { priceId: PREMIUM_PRICE_ID },
+          body: { priceId: INTENTIONAL_MEMBERSHIP_PRICE_ID },
         },
       );
 
@@ -126,9 +132,8 @@ export default function Premium() {
     }
   };
 
-  // Handle native iOS/Android purchase
   const handleNativePurchase = async (productId: string) => {
-    if (!user) {
+    if (!session) {
       toast.error("Please log in to subscribe");
       navigate("/auth");
       return;
@@ -138,7 +143,7 @@ export default function Premium() {
     try {
       const success = await purchaseProduct(productId);
       if (success) {
-        toast.success("Welcome to Blossom Premium!");
+        toast.success("Welcome to Intentional Membership!");
       }
     } catch (error) {
       console.error("Error with native purchase:", error);
@@ -148,7 +153,6 @@ export default function Premium() {
     }
   };
 
-  // Handle restore purchases (required by Apple)
   const handleRestorePurchases = async () => {
     setIsRestoring(true);
     try {
@@ -165,9 +169,7 @@ export default function Premium() {
   const handleManageSubscription = async () => {
     if (!session) return;
 
-    // On iOS, direct to App Store subscriptions
     if (isNative && hasNativePremium) {
-      // Open iOS subscription management
       window.open("https://apps.apple.com/account/subscriptions", "_blank");
       return;
     }
@@ -195,7 +197,6 @@ export default function Premium() {
     }
   };
 
-  // Get native product price
   const getNativePrice = (productId: string) => {
     const product = products.find((p) => p.id === productId);
     return product?.price || "Loading...";
@@ -211,35 +212,45 @@ export default function Premium() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Crown className="h-6 w-6 text-yellow-500" />
-              Blossom Premium
+              <Heart className="h-6 w-6 text-primary" />
+              Intentional Membership
             </h1>
             <p className="text-muted-foreground">
-              Unlock the full dating experience
+              Support depth over volume
             </p>
           </div>
         </div>
 
+        {/* Philosophy Statement */}
+        <Card className="mb-8 border-primary/20 bg-primary/5">
+          <CardContent className="p-6">
+            <p className="text-center text-lg leading-relaxed text-foreground/90">
+              "Intentional Membership isn't about getting more matches — it's about making better connections.
+              We believe depth requires limits, and everyone deserves accountability."
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Current Status */}
-        {isPremiumActive && (
-          <Card className="mb-8 border-yellow-500/50 bg-yellow-500/5">
+        {isActive && (
+          <Card className="mb-8 border-primary/50 bg-primary/5">
             <CardContent className="p-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-500/10 rounded-full">
-                    <Crown className="h-6 w-6 text-yellow-500" />
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Heart className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <p className="font-semibold text-lg">
-                      You're a Premium Member!
+                      You're an Intentional Member
                     </p>
-                    {premiumEndDate && (
+                    {intentionalEndDate && (
                       <p className="text-sm text-muted-foreground">
                         Renews on{" "}
-                        {new Date(premiumEndDate).toLocaleDateString()}
+                        {new Date(intentionalEndDate).toLocaleDateString()}
                       </p>
                     )}
-                    {hasNativePremium && !premiumEndDate && (
+                    {hasNativePremium && !intentionalEndDate && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Apple className="h-3 w-3" /> Subscribed via App Store
                       </p>
@@ -262,114 +273,57 @@ export default function Premium() {
           </Card>
         )}
 
-        {/* Pricing Cards */}
-        {!isPremiumActive && (
-          <div className="grid md:grid-cols-2 gap-4 mb-8">
-            {/* Monthly Plan */}
-            <Card className="border-primary/50 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-medium rounded-bl-lg">
-                Monthly
+        {/* Pricing Card */}
+        {!isActive && (
+          <Card className="mb-8 border-primary/50 relative overflow-hidden">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-2xl">Intentional Membership</CardTitle>
+              <CardDescription>Depth over volume</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="mb-6">
+                {isNative ? (
+                  <span className="text-4xl font-bold">
+                    {nativeLoading
+                      ? "..."
+                      : getNativePrice(IAP_PRODUCTS.PREMIUM_MONTHLY)}
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-4xl font-bold">$14.99</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </>
+                )}
               </div>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-2xl">Premium</CardTitle>
-                <CardDescription>Flexible monthly plan</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-6">
-                  {isNative ? (
-                    <span className="text-4xl font-bold">
-                      {nativeLoading
-                        ? "..."
-                        : getNativePrice(IAP_PRODUCTS.PREMIUM_MONTHLY)}
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-bold">$14.99</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </>
-                  )}
-                </div>
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() =>
-                    isNative
-                      ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_MONTHLY)
-                      : handleSubscribe()
-                  }
-                  disabled={isLoading || nativeLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      {isNative && <Apple className="h-4 w-4 mr-2" />}
-                      <Crown className="h-4 w-4 mr-2" />
-                      Subscribe Monthly
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Yearly Plan */}
-            <Card className="border-green-500/50 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 text-sm font-medium rounded-bl-lg">
-                Best Value
-              </div>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-2xl">Premium Yearly</CardTitle>
-                <CardDescription>Save over 40%</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-6">
-                  {isNative ? (
-                    <span className="text-4xl font-bold">
-                      {nativeLoading
-                        ? "..."
-                        : getNativePrice(IAP_PRODUCTS.PREMIUM_YEARLY)}
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-bold">$99.99</span>
-                      <span className="text-muted-foreground">/year</span>
-                    </>
-                  )}
-                </div>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white"
-                  onClick={() =>
-                    isNative
-                      ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_YEARLY)
-                      : handleSubscribe()
-                  }
-                  disabled={isLoading || nativeLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      {isNative && <Apple className="h-4 w-4 mr-2" />}
-                      <Crown className="h-4 w-4 mr-2" />
-                      Subscribe Yearly
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              <Button
+                size="lg"
+                className="w-full max-w-sm"
+                onClick={() =>
+                  isNative
+                    ? handleNativePurchase(IAP_PRODUCTS.PREMIUM_MONTHLY)
+                    : handleSubscribe()
+                }
+                disabled={isLoading || nativeLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    {isNative && <Apple className="h-4 w-4 mr-2" />}
+                    <Heart className="h-4 w-4 mr-2" />
+                    Join Intentional Membership
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Restore Purchases - Required by Apple */}
-        {isNative && !isPremiumActive && (
+        {/* Restore Purchases */}
+        {isNative && !isActive && (
           <div className="text-center mb-8">
             <Button
               variant="ghost"
@@ -387,21 +341,21 @@ export default function Premium() {
           </div>
         )}
 
-        {!isPremiumActive && (
+        {!isActive && (
           <p className="text-xs text-muted-foreground text-center mb-8">
-            Cancel anytime. No commitments.
+            Cancel anytime. Your support helps us build a more intentional dating culture.
             {isNative && " Subscription will be charged to your Apple ID."}
           </p>
         )}
 
-        {/* Features Grid */}
+        {/* What's Included */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Premium Features</h2>
+          <h2 className="text-xl font-semibold mb-4">What's Included</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {PREMIUM_FEATURES_LIST.map((feature, index) => (
+            {INTENTIONAL_FEATURES.map((feature, index) => (
               <Card
                 key={index}
-                className={isPremiumActive ? "border-green-500/30" : ""}
+                className={isActive ? "border-primary/30" : ""}
               >
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-lg shrink-0">
@@ -410,10 +364,10 @@ export default function Premium() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{feature.title}</h3>
-                      {isPremiumActive && (
+                      {isActive && (
                         <Badge
                           variant="outline"
-                          className="text-green-500 border-green-500/50 text-xs"
+                          className="text-primary border-primary/50 text-xs"
                         >
                           Active
                         </Badge>
@@ -421,6 +375,31 @@ export default function Premium() {
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {feature.description}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* What's NOT Included - Accountability Preserved */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-2">What's NOT Included</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Paying doesn't give you shortcuts. Everyone is held to the same standards.
+          </p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {NOT_INCLUDED.map((item, index) => (
+              <Card key={index} className="border-muted bg-muted/20">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <div className="p-2 bg-muted rounded-lg shrink-0">
+                    <item.icon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-sm">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {item.description}
                     </p>
                   </div>
                 </CardContent>
@@ -438,26 +417,27 @@ export default function Premium() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
+              <h4 className="font-medium">Why can't I get more matches with membership?</h4>
+              <p className="text-sm text-muted-foreground">
+                We believe depth requires limits. Having 3 active conversations encourages meaningful investment in each connection, rather than treating dating like a numbers game.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium">Will I still have to follow ghosting rules?</h4>
+              <p className="text-sm text-muted-foreground">
+                Yes. Everyone deserves closure and respect, regardless of subscription status. Accountability is a core value — not a feature to be unlocked.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium">What does "priority trust visibility" mean?</h4>
+              <p className="text-sm text-muted-foreground">
+                Your profile is shown more prominently to users with high trust scores — people who respond thoughtfully, close conversations respectfully, and show up consistently.
+              </p>
+            </div>
+            <div>
               <h4 className="font-medium">Can I cancel anytime?</h4>
               <p className="text-sm text-muted-foreground">
-                Yes! You can cancel your subscription at any time. You'll keep
-                your premium benefits until the end of your billing period.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium">How do profile boosts work?</h4>
-              <p className="text-sm text-muted-foreground">
-                Profile boosts put your profile at the top of potential matches
-                in your area for 30 minutes, getting you up to 10x more views.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium">
-                What happens to my likes if I downgrade?
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                Your matches and conversations stay intact. You'll just lose
-                access to premium features like seeing who liked you.
+                Yes! You can cancel your subscription at any time. You'll keep your benefits until the end of your billing period.
               </p>
             </div>
             {isNative && (

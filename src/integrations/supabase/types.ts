@@ -1433,6 +1433,7 @@ export type Database = {
           graceful_closures: number | null
           id: string
           internal_trust_score: number | null
+          is_intentional_member: boolean | null
           last_calculated_at: string | null
           report_count: number | null
           snooze_count: number | null
@@ -1447,6 +1448,7 @@ export type Database = {
           graceful_closures?: number | null
           id?: string
           internal_trust_score?: number | null
+          is_intentional_member?: boolean | null
           last_calculated_at?: string | null
           report_count?: number | null
           snooze_count?: number | null
@@ -1461,6 +1463,7 @@ export type Database = {
           graceful_closures?: number | null
           id?: string
           internal_trust_score?: number | null
+          is_intentional_member?: boolean | null
           last_calculated_at?: string | null
           report_count?: number | null
           snooze_count?: number | null

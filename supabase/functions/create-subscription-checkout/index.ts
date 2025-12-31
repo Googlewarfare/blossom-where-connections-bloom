@@ -23,8 +23,9 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 };
 
 const ALLOWED_PRICE_IDS = [
-  "price_1ShsZ5D2qFqWAuNmmh2UjMgz",
-  "price_1SZdbTD2qFqWAuNmlGZjaNdE",
+  "price_1ShsZ5D2qFqWAuNmmh2UjMgz", // Blossom Premium monthly
+  "price_1SZdbTD2qFqWAuNmlGZjaNdE", // Blossom Premium yearly
+  "price_1SkCwTD2qFqWAuNmu8XaPFLH", // Intentional Membership monthly
 ];
 
 interface SubscriptionRequest {

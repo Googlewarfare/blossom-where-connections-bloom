@@ -24,10 +24,12 @@ export const PREMIUM_FEATURES = {
   UNLIMITED_SUPER_LIKES: "prod_TWguag6wQXdfSB",
   READ_RECEIPTS: "prod_TWgzMdfHydGfMG",
   BLOSSOM_PREMIUM: "prod_TfCzZZYDeHQlyp",
+  INTENTIONAL_MEMBERSHIP: "prod_ThcAlr6eJNzYh0",
 } as const;
 
-// Premium price ID for checkout
+// Premium price IDs for checkout
 export const PREMIUM_PRICE_ID = "price_1ShsZ5D2qFqWAuNmmh2UjMgz";
+export const INTENTIONAL_MEMBERSHIP_PRICE_ID = "price_1SkCwTD2qFqWAuNmu8XaPFLH";
 
 interface AuthContextType {
   user: User | null;
