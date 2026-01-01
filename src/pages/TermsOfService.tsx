@@ -96,7 +96,10 @@ const TermsOfService = () => {
                 Community Guidelines
               </h2>
               <div className="space-y-4 text-muted-foreground">
-                <p>You agree not to:</p>
+                <p>
+                  Community standards include the Blossom Manifesto and these
+                  Terms. You agree not to:
+                </p>
                 <ul className="list-disc list-inside space-y-2">
                   <li>Harass, abuse, or harm other users</li>
                   <li>Post false, misleading, or deceptive content</li>
