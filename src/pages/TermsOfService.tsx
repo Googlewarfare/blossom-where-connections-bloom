@@ -189,6 +189,47 @@ const TermsOfService = () => {
             </section>
 
             <section className="bg-card rounded-xl p-6 border border-border">
+              <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
+                <Scale className="w-6 h-6 text-primary" />
+                Governing Law & Dispute Resolution
+              </h2>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  These Terms of Service shall be governed by and construed in
+                  accordance with the laws of the State of California, United
+                  States, without regard to its conflict of law provisions.
+                </p>
+                <p>
+                  <strong className="text-foreground">Informal Resolution:</strong>{" "}
+                  Before filing any formal dispute, you agree to first contact us
+                  at contact.blossomapp@gmail.com and attempt to resolve the
+                  dispute informally within 30 days.
+                </p>
+                <p>
+                  <strong className="text-foreground">Binding Arbitration:</strong>{" "}
+                  If informal resolution fails, any dispute arising from or
+                  relating to these Terms or the Service shall be resolved by
+                  binding arbitration administered by the American Arbitration
+                  Association (AAA) under its Consumer Arbitration Rules. The
+                  arbitration shall take place in San Francisco, California, and
+                  the arbitrator's decision shall be final and binding.
+                </p>
+                <p>
+                  <strong className="text-foreground">Class Action Waiver:</strong>{" "}
+                  You agree that any dispute resolution proceedings will be
+                  conducted only on an individual basis and not in a class,
+                  consolidated, or representative action.
+                </p>
+                <p>
+                  <strong className="text-foreground">Exceptions:</strong> Either
+                  party may seek injunctive relief in any court of competent
+                  jurisdiction to prevent the actual or threatened infringement
+                  of intellectual property rights.
+                </p>
+              </div>
+            </section>
+
+            <section className="bg-card rounded-xl p-6 border border-border">
               <h2 className="text-2xl font-semibold mb-4">Changes to Terms</h2>
               <p className="text-muted-foreground leading-relaxed">
                 We may modify these terms at any time. Material changes will be
