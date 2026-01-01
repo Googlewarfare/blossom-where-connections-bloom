@@ -283,7 +283,7 @@ const SafetyDisclaimer = () => {
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium">Blossom Dating</p>
                 <p className="text-muted-foreground">
-                  Email: safety@blossomapp.com
+                  Email: contact.blossomapp@gmail.com
                 </p>
               </div>
             </section>
