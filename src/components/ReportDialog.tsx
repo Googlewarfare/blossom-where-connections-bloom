@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -182,10 +183,16 @@ export const ReportDialog = ({
             Report {reportedUserName ? sanitizeString(reportedUserName) : "User"}
           </DialogTitle>
           <DialogDescription>
-            Help us keep the community safe. Your report will be reviewed by our
-            team.
+            Help us keep the community safe. Reports are reviewed in accordance with
+            our Community Guidelines and Terms of Service.
           </DialogDescription>
         </DialogHeader>
+
+        <p className="text-xs text-muted-foreground -mt-2">
+          <Link to="/terms" className="text-primary hover:underline" target="_blank">Terms of Service</Link>
+          {" · "}
+          <Link to="/community-guidelines" className="text-primary hover:underline" target="_blank">Community Guidelines</Link>
+        </p>
 
         <div className="space-y-4 py-4">
           <div className="space-y-3">
