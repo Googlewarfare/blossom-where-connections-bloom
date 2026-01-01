@@ -21,7 +21,8 @@ export const AdminReports = lazy(() => import("@/pages/AdminReports"));
 export const AdminAuditLogs = lazy(() => import("@/pages/AdminAuditLogs"));
 export const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 export const Premium = lazy(() => import("@/pages/Premium"));
-export const Safety = lazy(() => import("@/pages/Safety"));
+export const SafetyCenter = lazy(() => import("@/pages/Safety"));
+export const SafetyDisclaimer = lazy(() => import("@/pages/SafetyDisclaimer"));
 export const About = lazy(() => import("@/pages/About"));
 export const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 export const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
@@ -79,6 +80,7 @@ export const routeConfigs: RouteConfig[] = [
   { path: "/settings/privacy", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
   { path: "/settings/security", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
   { path: "/analytics", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/safety-center", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
   
   // Admin routes
   { path: "/admin", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: true, isPublic: false },

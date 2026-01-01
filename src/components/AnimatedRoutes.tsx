@@ -27,7 +27,8 @@ const AdminReports = lazy(() => import("@/pages/AdminReports"));
 const AdminAuditLogs = lazy(() => import("@/pages/AdminAuditLogs"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const Premium = lazy(() => import("@/pages/Premium"));
-const Safety = lazy(() => import("@/pages/Safety"));
+const SafetyCenter = lazy(() => import("@/pages/Safety"));
+const SafetyDisclaimer = lazy(() => import("@/pages/SafetyDisclaimer"));
 const About = lazy(() => import("@/pages/About"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
@@ -61,7 +62,7 @@ export const AnimatedRoutes = () => {
           <Route path="/community-guidelines" element={<PageTransition><CommunityGuidelines /></PageTransition>} />
           <Route path="/privacy-labels" element={<PageTransition><PrivacyLabels /></PageTransition>} />
           <Route path="/success-stories" element={<PageTransition><SuccessStories /></PageTransition>} />
-          <Route path="/safety" element={<PageTransition><Safety /></PageTransition>} />
+          <Route path="/safety" element={<PageTransition><SafetyDisclaimer /></PageTransition>} />
           
           {/* Auth required - onboarding flow */}
           <Route path="/onboarding" element={
@@ -106,6 +107,11 @@ export const AnimatedRoutes = () => {
           <Route path="/analytics" element={
             <RequireAuth>
               <PageTransition><Analytics /></PageTransition>
+            </RequireAuth>
+          } />
+          <Route path="/safety-center" element={
+            <RequireAuth>
+              <PageTransition><SafetyCenter /></PageTransition>
             </RequireAuth>
           } />
           
