@@ -131,9 +131,38 @@ const Profile = () => {
     show_profiles_within_miles: 50,
   });
 
+  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  // COMPONENT-LEVEL FAILSAFE: Verify manifesto agreement before allowing profile access
+  useEffect(() => {
+    async function verifyManifestoAgreement() {
+      if (!user) return;
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("manifesto_agreed_at")
+          .eq("id", user.id)
+          .single();
+
+        if (error || !profile?.manifesto_agreed_at) {
+          // MISSION-CRITICAL: No manifesto agreement = no profile access
+          console.warn("Profile access blocked: Manifesto not agreed");
+          navigate("/onboarding", { replace: true });
+        }
+      } catch (error) {
+        console.error("Error verifying manifesto agreement:", error);
+        navigate("/onboarding", { replace: true });
+      }
+    }
+
+    if (!authLoading && user) {
+      verifyManifestoAgreement();
     }
   }, [user, authLoading, navigate]);
 
