@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,25 @@ export function ManifestoAgreement({ onAgree, agreed }: ManifestoAgreementProps)
         <div className="bg-muted/50 rounded-xl p-4 text-center mt-4">
           <p className="text-sm text-muted-foreground italic">
             "Blossom isn't for everyone — and that's intentional."
+          </p>
+        </div>
+
+        {/* Legal links */}
+        <div className="text-center py-3 border-t border-border mt-4">
+          <p className="text-xs text-muted-foreground">
+            By continuing, you also agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline" target="_blank">
+              Terms of Service
+            </Link>
+            ,{" "}
+            <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link to="/safety" className="text-primary hover:underline" target="_blank">
+              Safety Disclaimer
+            </Link>
+            .
           </p>
         </div>
       </div>

@@ -65,7 +65,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/safety"
+                  to="/safety-center"
                   className="hover:text-primary transition-smooth"
                 >
                   Safety Center
@@ -133,7 +133,7 @@ const Footer = () => {
           <p className="text-sm text-muted-foreground">
             © 2025 Blossom. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link
               to="/privacy"
               className="hover:text-primary transition-smooth"
@@ -142,6 +142,9 @@ const Footer = () => {
             </Link>
             <Link to="/terms" className="hover:text-primary transition-smooth">
               Terms of Service
+            </Link>
+            <Link to="/safety" className="hover:text-primary transition-smooth">
+              Safety Disclaimer
             </Link>
           </div>
         </div>

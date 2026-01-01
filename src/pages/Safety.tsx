@@ -1,8 +1,8 @@
 import { useAuth } from "@/lib/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, FileText } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import BackgroundCheckRequest from "@/components/BackgroundCheckRequest";
 import DateCheckin from "@/components/DateCheckin";
@@ -53,6 +53,23 @@ const Safety = () => {
             <Button variant="destructive" size="lg">
               Emergency Resources
             </Button>
+          </div>
+
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Safety Disclaimer</p>
+                <p className="text-xs text-muted-foreground">
+                  Important information about staying safe
+                </p>
+              </div>
+              <Link to="/safety">
+                <Button variant="outline" size="sm">
+                  Read
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
