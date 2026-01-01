@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   ScanFace,
   Shield,
   Lock,
+  ArrowLeft,
 } from "lucide-react";
 import { z } from "zod";
 import { getCurrentLocation } from "@/lib/location-utils";
@@ -487,6 +488,15 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset gradient-hero flex items-center justify-center px-4 py-12 relative">
+      {/* Back Button */}
+      <Link
+        to="/"
+        className="absolute top-4 left-4 z-20 p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
+        aria-label="Go back to home"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Link>
+
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />

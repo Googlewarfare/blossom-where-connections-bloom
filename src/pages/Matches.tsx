@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, MessageCircle, MapPin, Briefcase, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Briefcase, Sparkles, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -170,8 +170,11 @@ const Matches = () => {
         </div>
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
+        <div className="flex items-start gap-4 mb-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0" aria-label="Go back">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
             <h1 className="text-4xl font-bold mb-2">
               Your{" "}
               <span className="gradient-primary bg-clip-text bg-primary text-primary">
@@ -182,19 +185,19 @@ const Matches = () => {
               {matches.length} {matches.length === 1 ? "match" : "matches"} found
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate("/activity")} variant="outline" className="rounded-full">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Activity
-            </Button>
-            <Button onClick={() => navigate("/discover")} variant="outline" className="rounded-full">
-              Keep Swiping
-            </Button>
-            <Button onClick={() => navigate("/chat")} variant="outline" className="rounded-full">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Messages
-            </Button>
-          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-8">
+          <Button onClick={() => navigate("/activity")} variant="outline" className="rounded-full">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Activity
+          </Button>
+          <Button onClick={() => navigate("/discover")} variant="outline" className="rounded-full">
+            Keep Swiping
+          </Button>
+          <Button onClick={() => navigate("/chat")} variant="outline" className="rounded-full">
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Messages
+          </Button>
         </div>
 
         {/* Matches Grid */}
