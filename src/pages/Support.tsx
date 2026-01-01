@@ -150,7 +150,7 @@ const Support = () => {
                 <Mail className="w-6 h-6 text-primary" />
                 <h3 className="font-semibold">Email Support</h3>
                 <p className="text-sm text-muted-foreground">
-                  support@blossom.app
+                  contact.blossomapp@gmail.com
                 </p>
               </div>
             </div>
@@ -292,11 +292,11 @@ const Support = () => {
                     Email us directly:
                   </p>
                   <a
-                    href="mailto:support@blossom.app"
+                    href="mailto:contact.blossomapp@gmail.com"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
                     <Mail className="w-4 h-4" />
-                    support@blossom.app
+                    contact.blossomapp@gmail.com
                   </a>
                 </div>
                 <div>
@@ -304,11 +304,11 @@ const Support = () => {
                     For urgent safety issues:
                   </p>
                   <a
-                    href="mailto:safety@blossom.app"
+                    href="mailto:contact.blossomapp@gmail.com"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
                     <Shield className="w-4 h-4" />
-                    safety@blossom.app
+                    contact.blossomapp@gmail.com
                   </a>
                 </div>
               </div>

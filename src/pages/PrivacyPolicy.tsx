@@ -209,10 +209,10 @@ const PrivacyPolicy = () => {
                 <p>
                   To exercise these rights, please contact us at{" "}
                   <a
-                    href="mailto:privacy@blossomapp.com"
+                    href="mailto:contact.blossomapp@gmail.com"
                     className="text-primary hover:underline"
                   >
-                    privacy@blossomapp.com
+                    contact.blossomapp@gmail.com
                   </a>
                 </p>
               </div>
@@ -230,7 +230,7 @@ const PrivacyPolicy = () => {
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <p className="font-medium">Blossom Dating</p>
                 <p className="text-muted-foreground">
-                  Email: privacy@blossomapp.com
+                  Email: contact.blossomapp@gmail.com
                 </p>
               </div>
             </section>
