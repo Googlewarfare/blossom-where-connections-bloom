@@ -32,13 +32,10 @@ export const usePremium = () => {
   );
 
   return {
-    // Legacy premium features
+    // Legacy premium add-ons (ethical only)
     hasPremium,
     hasUnlimitedSuperLikes: hasPremium || hasUnlimitedSuperLikes,
     hasReadReceipts: hasPremium || hasReadReceipts,
-    hasUnlimitedSwipes: hasPremium,
-    canSeeWhoLikedYou: hasPremium,
-    hasProfileBoosts: hasPremium,
     premiumEndDate: premiumSubscription?.subscription_end,
 
     // Intentional Membership features (ethical premium)
@@ -51,10 +48,11 @@ export const usePremium = () => {
     hasAdvancedVerification: hasIntentionalMembership, // Advanced verification options
     hasEnhancedSafetyTools: hasIntentionalMembership, // Enhanced safety features
 
-    // What Intentional Membership does NOT provide (accountability preserved)
-    // - No increased match limits (still 3 max)
-    // - No bypassing ghosting accountability
-    // - No popularity boosts or artificial visibility
+    // CONSTRAINTS ENFORCED - These features are NEVER provided:
+    // ❌ No unlimited swipes - everyone has the same conversation limits
+    // ❌ No boosts or popularity metrics - trust score is earned, not bought
+    // ❌ No bypassing closure or match limits - accountability applies to all
+    // ❌ No gamifying trust or effort - no artificial visibility advantages
 
     isSubscribed: subscriptionStatus?.subscribed ?? false,
   };
