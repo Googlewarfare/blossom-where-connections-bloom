@@ -13,6 +13,7 @@ import {
   User,
   Pause,
   Play,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -111,7 +112,12 @@ const Settings = () => {
 
       <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <div className="w-full max-w-lg mx-auto px-4 py-6 box-border">
-          <h1 className="text-2xl font-bold mb-6">Settings</h1>
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Settings</h1>
+          </div>
 
           {/* Pause Mode Banner */}
           {isPaused && (
