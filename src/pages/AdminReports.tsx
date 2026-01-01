@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -568,11 +568,18 @@ export default function AdminReports() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Block User</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to block {userToBlock?.name || "this user"}? 
-                They will no longer be able to use the platform.
+              <AlertDialogDescription className="space-y-2">
+                <span>
+                  Are you sure you want to block {userToBlock?.name || "this user"}? 
+                  They will no longer be able to use the platform, as described in our Terms of Service.
+                </span>
               </AlertDialogDescription>
             </AlertDialogHeader>
+            <p className="text-xs text-muted-foreground">
+              <Link to="/terms" className="text-primary hover:underline" target="_blank">Terms of Service</Link>
+              {" · "}
+              <Link to="/privacy" className="text-primary hover:underline" target="_blank">Privacy Policy</Link>
+            </p>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={isBlocking}>Cancel</AlertDialogCancel>
               <AlertDialogAction

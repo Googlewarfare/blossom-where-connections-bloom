@@ -209,7 +209,8 @@ const Settings = () => {
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete your
-                    account and remove all your data from our servers.
+                    account and remove all your data from our servers, as described
+                    in our Terms of Service.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

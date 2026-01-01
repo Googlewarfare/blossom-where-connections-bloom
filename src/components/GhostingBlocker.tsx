@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -196,7 +196,14 @@ export function GhostingBlocker({ children }: GhostingBlockerProps) {
             </div>
 
             <p className="text-xs text-center text-muted-foreground pt-3 leading-relaxed">
-              This isn't a punishment — it's how we build a culture where everyone feels valued. Closure is an act of kindness.
+              This isn't a punishment — it's how we build a culture where everyone feels valued. 
+              Closure is an act of kindness, as outlined in our Community Guidelines.
+            </p>
+
+            <p className="text-xs text-center text-muted-foreground">
+              <Link to="/terms" className="text-primary hover:underline" target="_blank">Terms of Service</Link>
+              {" · "}
+              <Link to="/community-guidelines" className="text-primary hover:underline" target="_blank">Community Guidelines</Link>
             </p>
 
             {ghostedConversations.length > 1 && (
