@@ -4,7 +4,7 @@ import { lazy, Suspense } from "react";
 import { PageTransition } from "./PageTransition";
 import { usePageTracking } from "@/hooks/use-analytics";
 import AppLoader from "./AppLoader";
-import { RequireAuth, RequireOnboarding, RequireAdmin } from "@/app/router";
+import { RequireAuth, RequireOnboarding, RequireAdmin, RequireManifesto } from "@/app/router";
 
 // Eagerly load the main landing page for fast initial load
 import Index from "@/pages/Index";
@@ -70,10 +70,12 @@ export const AnimatedRoutes = () => {
             </RequireAuth>
           } />
           
-          {/* Auth required - profile accessible during onboarding */}
+          {/* Auth required - profile requires manifesto agreement */}
           <Route path="/profile" element={
             <RequireAuth>
-              <PageTransition><Profile /></PageTransition>
+              <RequireManifesto>
+                <PageTransition><Profile /></PageTransition>
+              </RequireManifesto>
             </RequireAuth>
           } />
           <Route path="/verification" element={

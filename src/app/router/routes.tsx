@@ -43,43 +43,46 @@ export interface RouteConfig {
   path: string;
   requiresAuth: boolean;
   requiresOnboarding: boolean;
+  requiresManifesto: boolean;
   requiresAdmin: boolean;
   isPublic: boolean;
 }
 
 export const routeConfigs: RouteConfig[] = [
   // Public routes
-  { path: "/", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/auth", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/about", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/privacy", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/terms", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/support", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/community-guidelines", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/privacy-labels", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/success-stories", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
-  { path: "/safety", requiresAuth: false, requiresOnboarding: false, requiresAdmin: false, isPublic: true },
+  { path: "/", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/auth", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/about", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/privacy", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/terms", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/support", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/community-guidelines", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/privacy-labels", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/success-stories", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
+  { path: "/safety", requiresAuth: false, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: true },
   
   // Auth required routes (onboarding)
-  { path: "/onboarding", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
+  { path: "/onboarding", requiresAuth: true, requiresOnboarding: false, requiresManifesto: false, requiresAdmin: false, isPublic: false },
+  
+  // Auth + manifesto required routes (profile access blocked without manifesto)
+  { path: "/profile", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
   
   // Auth + onboarding required routes
-  { path: "/discover", requiresAuth: true, requiresOnboarding: true, requiresAdmin: false, isPublic: false },
-  { path: "/profile", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/matches", requiresAuth: true, requiresOnboarding: true, requiresAdmin: false, isPublic: false },
-  { path: "/chat", requiresAuth: true, requiresOnboarding: true, requiresAdmin: false, isPublic: false },
-  { path: "/activity", requiresAuth: true, requiresOnboarding: true, requiresAdmin: false, isPublic: false },
-  { path: "/events", requiresAuth: true, requiresOnboarding: true, requiresAdmin: false, isPublic: false },
-  { path: "/verification", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/premium", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/settings", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/settings/privacy", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/settings/security", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
-  { path: "/analytics", requiresAuth: true, requiresOnboarding: false, requiresAdmin: false, isPublic: false },
+  { path: "/discover", requiresAuth: true, requiresOnboarding: true, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/matches", requiresAuth: true, requiresOnboarding: true, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/chat", requiresAuth: true, requiresOnboarding: true, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/activity", requiresAuth: true, requiresOnboarding: true, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/events", requiresAuth: true, requiresOnboarding: true, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/verification", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/premium", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/settings", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/settings/privacy", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/settings/security", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
+  { path: "/analytics", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: false, isPublic: false },
   
   // Admin routes
-  { path: "/admin", requiresAuth: true, requiresOnboarding: false, requiresAdmin: true, isPublic: false },
-  { path: "/admin/verification", requiresAuth: true, requiresOnboarding: false, requiresAdmin: true, isPublic: false },
-  { path: "/admin/reports", requiresAuth: true, requiresOnboarding: false, requiresAdmin: true, isPublic: false },
-  { path: "/admin/audit-logs", requiresAuth: true, requiresOnboarding: false, requiresAdmin: true, isPublic: false },
+  { path: "/admin", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: true, isPublic: false },
+  { path: "/admin/verification", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: true, isPublic: false },
+  { path: "/admin/reports", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: true, isPublic: false },
+  { path: "/admin/audit-logs", requiresAuth: true, requiresOnboarding: false, requiresManifesto: true, requiresAdmin: true, isPublic: false },
 ];
