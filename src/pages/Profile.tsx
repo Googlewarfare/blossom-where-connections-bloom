@@ -98,6 +98,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [manifestoVerified, setManifestoVerified] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<ProfileData>({
     full_name: "",
     bio: "",
@@ -138,7 +139,7 @@ const Profile = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // COMPONENT-LEVEL FAILSAFE: Verify manifesto agreement before allowing profile access
+  // COMPONENT-LEVEL FAILSAFE: Verify manifesto agreement before allowing ANY profile access
   useEffect(() => {
     async function verifyManifestoAgreement() {
       if (!user) return;
@@ -152,11 +153,14 @@ const Profile = () => {
 
         if (error || !profile?.manifesto_agreed_at) {
           // MISSION-CRITICAL: No manifesto agreement = no profile access
-          console.warn("Profile access blocked: Manifesto not agreed");
+          setManifestoVerified(false);
           navigate("/onboarding", { replace: true });
+        } else {
+          setManifestoVerified(true);
         }
       } catch (error) {
         console.error("Error verifying manifesto agreement:", error);
+        setManifestoVerified(false);
         navigate("/onboarding", { replace: true });
       }
     }
@@ -166,15 +170,16 @@ const Profile = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Only load profile data AFTER manifesto is verified
   useEffect(() => {
-    if (user) {
+    if (user && manifestoVerified === true) {
       loadProfile();
       loadPhotos();
       loadInterests();
       loadUserInterests();
       loadPreferences();
     }
-  }, [user]);
+  }, [user, manifestoVerified]);
 
   const loadProfile = async () => {
     try {
@@ -302,7 +307,34 @@ const Profile = () => {
     }
   };
 
+  // SAVE-BLOCK ENFORCEMENT: Verify manifesto before ANY save action
+  const verifyManifestoBeforeSave = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("manifesto_agreed_at")
+        .eq("id", user.id)
+        .single();
+
+      if (error || !profile?.manifesto_agreed_at) {
+        // Block save and redirect - no error message, just calm redirect
+        navigate("/onboarding", { replace: true });
+        return false;
+      }
+      return true;
+    } catch {
+      navigate("/onboarding", { replace: true });
+      return false;
+    }
+  };
+
   const saveProfile = async () => {
+    // SAVE-BLOCK: Verify manifesto agreement before saving
+    const canSave = await verifyManifestoBeforeSave();
+    if (!canSave) return;
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -343,6 +375,10 @@ const Profile = () => {
   };
 
   const toggleInterest = async (interestId: string) => {
+    // SAVE-BLOCK: Verify manifesto agreement before modifying interests
+    const canSave = await verifyManifestoBeforeSave();
+    if (!canSave) return;
+
     try {
       if (selectedInterests.includes(interestId)) {
         const { error } = await supabase
@@ -373,6 +409,10 @@ const Profile = () => {
   };
 
   const savePreferences = async () => {
+    // SAVE-BLOCK: Verify manifesto agreement before saving preferences
+    const canSave = await verifyManifestoBeforeSave();
+    if (!canSave) return;
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -411,6 +451,10 @@ const Profile = () => {
   };
 
   const uploadPhotoFile = async (file: File) => {
+    // SAVE-BLOCK: Verify manifesto agreement before uploading photos
+    const canSave = await verifyManifestoBeforeSave();
+    if (!canSave) return;
+
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
@@ -517,6 +561,10 @@ const Profile = () => {
 
   const handleDeletePhoto = async (photoId: string, photoUrl: string) => {
     try {
+      // SAVE-BLOCK: Verify manifesto agreement before deleting photos
+      const canSave = await verifyManifestoBeforeSave();
+      if (!canSave) return;
+
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from("profile-photos")
@@ -549,6 +597,10 @@ const Profile = () => {
   };
 
   const handleSetPrimaryPhoto = async (photoId: string) => {
+    // SAVE-BLOCK: Verify manifesto agreement before setting primary photo
+    const canSave = await verifyManifestoBeforeSave();
+    if (!canSave) return;
+
     try {
       // Set all photos to non-primary
       await supabase
@@ -590,12 +642,29 @@ const Profile = () => {
     navigate("/");
   };
 
-  if (authLoading || loading) {
+  // Show loading while auth or manifesto verification is in progress
+  if (authLoading || loading || manifestoVerified === null) {
     return (
       <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
         <Navbar />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  // FAILSAFE: If manifesto not verified, show calm redirect message (should rarely be seen due to route guard)
+  if (manifestoVerified === false) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden safe-area-inset bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+          <Heart className="w-12 h-12 text-primary fill-current mb-4" />
+          <p className="text-lg text-muted-foreground max-w-md">
+            Before setting up your profile, we ask everyone to agree to the Blossom Manifesto.
+          </p>
+          <Loader2 className="w-6 h-6 animate-spin text-primary mt-4" />
         </div>
       </div>
     );
