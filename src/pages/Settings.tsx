@@ -165,7 +165,8 @@ const Settings = () => {
             <div className="bg-card rounded-xl p-2">
               <SettingsItem icon={Shield} label="Privacy Policy" to="/privacy" />
               <SettingsItem icon={FileText} label="Terms of Service" to="/terms" />
-              <SettingsItem icon={Shield} label="Community Guidelines" to="/guidelines" />
+              <SettingsItem icon={Shield} label="Safety Disclaimer" to="/safety" />
+              <SettingsItem icon={FileText} label="Community Guidelines" to="/community-guidelines" />
             </div>
           </div>
 
@@ -176,7 +177,7 @@ const Settings = () => {
             </h2>
             <div className="bg-card rounded-xl p-2">
               <SettingsItem icon={HelpCircle} label="Help & Support" to="/support" />
-              <SettingsItem icon={Shield} label="Safety Center" to="/safety" />
+              <SettingsItem icon={Shield} label="Safety Center" to="/safety-center" />
             </div>
           </div>
 
