@@ -99,6 +99,11 @@ const PrivacyPolicy = () => {
                 <li>To ensure safety and enforce our community guidelines</li>
                 <li>To comply with legal obligations</li>
               </ul>
+              <p className="text-muted-foreground mt-4">
+                We may use behavioral signals such as responsiveness, completion
+                of required flows, and reports or blocks to support community
+                safety and improve matching quality.
+              </p>
             </section>
 
             <section className="bg-card rounded-xl p-6 border border-border">
