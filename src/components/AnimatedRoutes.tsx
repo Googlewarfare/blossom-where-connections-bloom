@@ -1,46 +1,43 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { PageTransition } from "./PageTransition";
 import { usePageTracking } from "@/hooks/use-analytics";
-import AppLoader from "./AppLoader";
+import { PageSkeleton } from "./ui/page-skeleton";
 import { RequireAuth, RequireOnboarding, RequireAdmin, RequireManifesto } from "@/app/router";
 
-// Eagerly load the main landing page for fast initial load
-import Index from "@/pages/Index";
-
-// Lazy load all other pages for code splitting
-const Auth = lazy(() => import("@/pages/Auth"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const Discover = lazy(() => import("@/pages/Discover"));
-const Matches = lazy(() => import("@/pages/Matches"));
-const Chat = lazy(() => import("@/pages/Chat"));
-const Activity = lazy(() => import("@/pages/Activity"));
-const Onboarding = lazy(() => import("@/pages/Onboarding"));
-const Analytics = lazy(() => import("@/pages/Analytics"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
-const SuccessStories = lazy(() => import("@/pages/SuccessStories"));
-const Events = lazy(() => import("@/pages/Events"));
-const Verification = lazy(() => import("@/pages/Verification"));
-const AdminVerification = lazy(() => import("@/pages/AdminVerification"));
-const AdminReports = lazy(() => import("@/pages/AdminReports"));
-const AdminAuditLogs = lazy(() => import("@/pages/AdminAuditLogs"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const Premium = lazy(() => import("@/pages/Premium"));
-const SafetyCenter = lazy(() => import("@/pages/Safety"));
-const SafetyDisclaimer = lazy(() => import("@/pages/SafetyDisclaimer"));
-const About = lazy(() => import("@/pages/About"));
-const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
-const Support = lazy(() => import("@/pages/Support"));
-const CommunityGuidelines = lazy(() => import("@/pages/CommunityGuidelines"));
-const PrivacyLabels = lazy(() => import("@/pages/PrivacyLabels"));
-const Settings = lazy(() => import("@/pages/Settings"));
-const PrivacySettings = lazy(() => import("@/pages/PrivacySettings"));
-const SecurityDashboard = lazy(() => import("@/pages/SecurityDashboard"));
-
-// Loading fallback component
-const PageLoader = () => <AppLoader message="Loading page..." />;
+// Import lazily-loaded routes from centralized route config
+import {
+  Index,
+  Auth,
+  Profile,
+  Discover,
+  Matches,
+  Chat,
+  Activity,
+  Onboarding,
+  Analytics,
+  NotFound,
+  SuccessStories,
+  Events,
+  Verification,
+  AdminVerification,
+  AdminReports,
+  AdminAuditLogs,
+  AdminDashboard,
+  Premium,
+  SafetyCenter,
+  SafetyDisclaimer,
+  About,
+  PrivacyPolicy,
+  TermsOfService,
+  Support,
+  CommunityGuidelines,
+  PrivacyLabels,
+  Settings,
+  PrivacySettings,
+  SecurityDashboard,
+} from "@/app/router/routes";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -50,7 +47,7 @@ export const AnimatedRoutes = () => {
 
   return (
     <AnimatePresence mode="wait">
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={<PageSkeleton />}>
         <Routes location={location} key={location.pathname}>
           {/* Public routes */}
           <Route path="/" element={<PageTransition><Index /></PageTransition>} />
